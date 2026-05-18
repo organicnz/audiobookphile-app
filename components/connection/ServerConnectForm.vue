@@ -454,7 +454,10 @@ export default {
         ...config
       }
       this.showForm = true
-      var success = await this.pingServerAddress(config.address)
+      let success = true
+      if (!this.$supabase) {
+        success = await this.pingServerAddress(config.address)
+      }
       this.processing = false
       console.log(`[ServerConnectForm] pingServer result ${success}`)
       if (!success) {
@@ -921,6 +924,55 @@ export default {
 
       this.error = null
       this.processing = true
+
+      if (this.$supabase) {
+        try {
+          console.log('[ServerConnectForm] authenticateToken: Authenticating via Supabase')
+          const { data, error } = await this.$supabase.auth.getSession()
+          if (error) throw error
+          if (data && data.session) {
+            const { data: profile } = await this.$supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', data.session.user.id)
+              .single()
+
+            const authRes = {
+              user: {
+                id: data.session.user.id,
+                username: profile?.username || data.session.user.email.split('@')[0],
+                type: profile?.user_type || 'user',
+                token: data.session.access_token,
+                isActive: true,
+                isLocked: false,
+                permissions: {
+                  download: true,
+                  update: profile?.user_type === 'admin',
+                  delete: profile?.user_type === 'admin',
+                  upload: profile?.user_type === 'admin',
+                  accessAllLibraries: true
+                }
+              },
+              userDefaultLibraryId: profile?.default_library_id || null,
+              serverSettings: {
+                version: '2.26.0',
+                language: 'en-us'
+              },
+              ereaderDevices: [],
+              source: 'local'
+            }
+            this.processing = false
+            return authRes
+          } else {
+            throw new Error('No active Supabase session')
+          }
+        } catch (e) {
+          console.error('[ServerConnectForm] Supabase token auth failed', e)
+          this.error = `Failed to authorize (${e.message})`
+          this.processing = false
+          return false
+        }
+      }
 
       const nativeHttpOptions = {
         headers: {

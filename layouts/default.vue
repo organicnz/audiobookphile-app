@@ -130,17 +130,62 @@ export default {
 
       AbsLogger.info({ tag: 'default', message: `attemptConnection: Got server config, attempt authorize (${serverConfig.name})` })
 
-      const nativeHttpOptions = {
-        headers: {
-          Authorization: `Bearer ${serverConfig.token}`
-        },
-        connectTimeout: 6000,
-        serverConnectionConfig: serverConfig
+      let authRes = null
+      if (this.$supabase) {
+        AbsLogger.info({ tag: 'default', message: 'attemptConnection: Authenticating with Supabase session' })
+        try {
+          const { data, error } = await this.$supabase.auth.getSession()
+          if (error) throw error
+          if (data && data.session) {
+            const { data: profile } = await this.$supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', data.session.user.id)
+              .single()
+
+            authRes = {
+              user: {
+                id: data.session.user.id,
+                username: profile?.username || data.session.user.email.split('@')[0],
+                type: profile?.user_type || 'user',
+                token: data.session.access_token,
+                isActive: true,
+                isLocked: false,
+                permissions: {
+                  download: true,
+                  update: profile?.user_type === 'admin',
+                  delete: profile?.user_type === 'admin',
+                  upload: profile?.user_type === 'admin',
+                  accessAllLibraries: true
+                }
+              },
+              userDefaultLibraryId: profile?.default_library_id || null,
+              serverSettings: {
+                version: '2.26.0',
+                language: 'en-us'
+              },
+              ereaderDevices: [],
+              source: 'local'
+            }
+          } else {
+            AbsLogger.warn({ tag: 'default', message: 'attemptConnection: No active Supabase session found' })
+          }
+        } catch (e) {
+          AbsLogger.error({ tag: 'default', message: `attemptConnection: Supabase session retrieval failed: ${e.message}` })
+        }
+      } else {
+        const nativeHttpOptions = {
+          headers: {
+            Authorization: `Bearer ${serverConfig.token}`
+          },
+          connectTimeout: 6000,
+          serverConnectionConfig: serverConfig
+        }
+        authRes = await this.$nativeHttp.post(`${serverConfig.address}/api/authorize`, null, nativeHttpOptions).catch((error) => {
+          AbsLogger.error({ tag: 'default', message: `attemptConnection: Server auth failed (${serverConfig.name})` })
+          return false
+        })
       }
-      const authRes = await this.$nativeHttp.post(`${serverConfig.address}/api/authorize`, null, nativeHttpOptions).catch((error) => {
-        AbsLogger.error({ tag: 'default', message: `attemptConnection: Server auth failed (${serverConfig.name})` })
-        return false
-      })
 
       if (!authRes) {
         this.attemptingConnection = false
