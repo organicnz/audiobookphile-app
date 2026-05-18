@@ -37,6 +37,13 @@ end
 post_install do |installer|
   assertDeploymentTarget(installer)
   
+  # Disable user script sandboxing for all Pod targets to allow shell script bridging
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'
+    end
+  end
+
   # Remove Pods xcuserdata to prevent scheme clutter
   FileUtils.rm_rf(installer.pods_project.path.to_s + '/xcuserdata')
 end

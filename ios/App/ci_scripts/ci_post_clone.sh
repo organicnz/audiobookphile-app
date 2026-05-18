@@ -59,4 +59,8 @@ log_info "Installing CocoaPods native dependencies..."
 cd "$CI_PRIMARY_REPOSITORY_PATH/ios/App"
 pod install
 
+# 7. Grant execution permissions on all target support framework/resources scripts
+log_info "Granting execution permissions on dynamically generated CocoaPods scripts..."
+chmod -R +x "$CI_PRIMARY_REPOSITORY_PATH/ios/App/Pods/Target Support Files" || true
+
 log_success "Xcode Cloud Post-Clone script completed successfully!"
