@@ -5,18 +5,20 @@
 
 set -e
 
-echo "Installing Node.js via Homebrew..."
-brew install node
+echo "Installing Bun..."
+curl -fsSL https://bun.sh/install | bash
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
 
-echo "Installing Node.js dependencies..."
+echo "Installing dependencies with Bun..."
 cd "$CI_PRIMARY_REPOSITORY_PATH"
-npm install --legacy-peer-deps
+bun install
 
 echo "Building web assets..."
-npm run generate
+bun run generate
 
 echo "Syncing Capacitor..."
-npx cap sync ios
+bunx cap sync ios
 
 echo "Installing CocoaPods..."
 cd "$CI_PRIMARY_REPOSITORY_PATH/ios/App"
