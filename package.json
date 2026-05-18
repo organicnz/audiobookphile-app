@@ -48,6 +48,10 @@
     "@capacitor/cli": "^6.0.0",
     "autoprefixer": "^10.4.17",
     "postcss": "^8.4.33",
-    "tailwindcss": "^3.4.1"
+    "tailwindcss": "^3.4.1",
+    "worker-loader": "3.0.8",
+    "loader-utils": "2.0.4",
+    "schema-utils": "3.3.0",
+    "json5": "2.2.3"
   }
 }

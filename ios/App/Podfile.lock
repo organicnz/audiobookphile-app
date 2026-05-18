@@ -1,27 +1,27 @@
 PODS:
   - Alamofire (5.10.2)
-  - Capacitor (7.2.0):
+  - Capacitor (7.6.5):
     - CapacitorCordova
-  - CapacitorApp (7.0.1):
+  - CapacitorApp (7.1.2):
     - Capacitor
-  - CapacitorBrowser (7.0.1):
+  - CapacitorBrowser (7.0.5):
     - Capacitor
-  - CapacitorClipboard (7.0.1):
+  - CapacitorClipboard (7.0.4):
     - Capacitor
-  - CapacitorCommunityKeepAwake (7.0.0):
+  - CapacitorCommunityKeepAwake (7.1.0):
     - Capacitor
   - CapacitorCommunityVolumeButtons (7.0.0):
     - Capacitor
-  - CapacitorCordova (7.2.0)
-  - CapacitorDialog (7.0.1):
+  - CapacitorCordova (7.6.5)
+  - CapacitorDialog (7.0.4):
     - Capacitor
-  - CapacitorHaptics (7.0.1):
+  - CapacitorHaptics (7.0.5):
     - Capacitor
-  - CapacitorNetwork (7.0.1):
+  - CapacitorNetwork (7.0.4):
     - Capacitor
-  - CapacitorPreferences (7.0.1):
+  - CapacitorPreferences (7.0.4):
     - Capacitor
-  - CapacitorStatusBar (7.0.1):
+  - CapacitorStatusBar (7.0.6):
     - Capacitor
   - CordovaPlugins (6.2.1):
     - CapacitorCordova
@@ -89,18 +89,18 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Alamofire: 7193b3b92c74a07f85569e1a6c4f4237291e7496
-  Capacitor: 03bc7cbdde6a629a8b910a9d7d78c3cc7ed09ea7
-  CapacitorApp: febecbb9582cb353aed037e18ec765141f880fe9
-  CapacitorBrowser: 6299776d496e968505464884d565992faa20444a
-  CapacitorClipboard: 70bfdb42b877b320a6e511ab94fa7a6a55d57ecb
-  CapacitorCommunityKeepAwake: ae762ce29b53147d28cfcaae5273cd1db0c38fc4
+  Capacitor: e9708b186e71dc45f9b2ee72e826b7389fb79ff2
+  CapacitorApp: f01a913211780e0718dae9750442c3e23f96e106
+  CapacitorBrowser: 6d09f59655e89aede71654ef08b98de55cf032b6
+  CapacitorClipboard: d1f123674cf413125db816a45e8f70e8770972fc
+  CapacitorCommunityKeepAwake: 05c75aab989f60e621870cf03b24a144a5544c30
   CapacitorCommunityVolumeButtons: 1b84f7abf29cd9476cef9e8979b2854a64d2eed5
-  CapacitorCordova: 5967b9ba03915ef1d585469d6e31f31dc49be96f
-  CapacitorDialog: 0e09f242f6c3f5e82e4dc76b20f2a056be57a579
-  CapacitorHaptics: 1f1e17041f435d8ead9ff2a34edd592c6aa6a8d6
-  CapacitorNetwork: 15cb4385f0913a8ceb5e9a4d7af1ec554bdb8de8
-  CapacitorPreferences: 6c98117d4d7508034a4af9db64d6b26fc75d7b94
-  CapacitorStatusBar: 6e7af040d8fc4dd655999819625cae9c2d74c36f
+  CapacitorCordova: 2b36392a7292c3c451dcae154185ee8804d7b6b3
+  CapacitorDialog: 508267e5708ab1744288e4d8059336b8dea59abe
+  CapacitorHaptics: 1b145fa83c622e5383a3bac04ea81e2514f0b0f5
+  CapacitorNetwork: b719d692a8d1310da8d26d6648d3aa1ef1e100e1
+  CapacitorPreferences: 69d9991307507aeab8ef8019c10b9babfda0e9ca
+  CapacitorStatusBar: 416e9e53fd6397e668d4a181cd2131617d949bd6
   CordovaPlugins: 2ecbba09775516c41764dbf78ade612427311b7e
   Realm: b1b3bc68162fa242132eb7eefbf91d7c40f36a85
   RealmSwift: 456cfd82a4f23dff8e3456980999331ab69bbf3e
