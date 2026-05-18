@@ -10,7 +10,7 @@ brew install node
 
 echo "Installing Node.js dependencies..."
 cd "$CI_PRIMARY_REPOSITORY_PATH"
-npm ci
+npm install --legacy-peer-deps
 
 echo "Building web assets..."
 npm run generate
