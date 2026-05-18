@@ -1,132 +1,120 @@
-import { io } from 'socket.io-client'
 import EventEmitter from 'events'
 
 class ServerSocket extends EventEmitter {
-  constructor(store) {
+  constructor(store, supabase) {
     super()
 
     this.$store = store
-    this.socket = null
+    this.$supabase = supabase
+    this.channel = null
     this.connected = false
     this.serverAddress = null
     this.isAuthenticated = false
-
-    this.lastReconnectAttemptTime = 0
   }
 
   $on(evt, callback) {
-    if (this.socket) this.socket.on(evt, callback)
-    else console.error('$on Socket not initialized')
+    this.on(evt, callback)
   }
 
   $off(evt, callback) {
-    if (this.socket) this.socket.off(evt, callback)
-    else console.error('$off Socket not initialized')
+    this.off(evt, callback)
   }
 
   connect(serverAddress, token) {
     this.serverAddress = serverAddress
-
-    const serverUrl = new URL(serverAddress)
-    const serverHost = `${serverUrl.protocol}//${serverUrl.host}`
-    const serverPath = serverUrl.pathname === '/' ? '' : serverUrl.pathname
-
-    console.log(`[SOCKET] Connecting to ${serverHost} with path ${serverPath}/socket.io`)
-
-    const socketOptions = {
-      transports: ['websocket'],
-      upgrade: false,
-      path: `${serverPath}/socket.io`,
-      reconnectionDelayMax: 15000
+    if (!this.$supabase) {
+      console.error('[SOCKET/SUPABASE] Supabase client not initialized')
+      return
     }
-    this.socket = io(serverHost, socketOptions)
-    this.setSocketListeners()
+
+    console.log(`[SOCKET/SUPABASE] Connecting via Supabase Realtime...`)
+    
+    // We create a channel to listen to media_progress updates for real-time sync
+    this.channel = this.$supabase.channel('public:media_progress')
+
+    this.channel
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'media_progress' },
+        (payload) => {
+          this.onUserItemProgressUpdated(payload.new)
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'media_progress' },
+        (payload) => {
+          this.onUserItemProgressUpdated(payload.new)
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          this.onConnect()
+        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+          this.onDisconnect(status)
+        }
+      })
   }
 
   logout() {
-    if (this.socket) this.socket.disconnect()
-    this.removeListeners()
-  }
-
-  setSocketListeners() {
-    this.socket.on('connect', this.onConnect.bind(this))
-    this.socket.on('disconnect', this.onDisconnect.bind(this))
-    this.socket.on('init', this.onInit.bind(this))
-    this.socket.on('auth_failed', this.onAuthFailed.bind(this))
-    this.socket.on('user_updated', this.onUserUpdated.bind(this))
-    this.socket.on('user_item_progress_updated', this.onUserItemProgressUpdated.bind(this))
-    this.socket.on('playlist_added', this.onPlaylistAdded.bind(this))
-    this.socket.io.on('reconnect_attempt', this.onReconnectAttempt.bind(this))
-    this.socket.io.on('reconnect_error', this.onReconnectError.bind(this))
-    this.socket.io.on('reconnect_failed', this.onReconnectFailed.bind(this))
+    if (this.channel) {
+      this.$supabase.removeChannel(this.channel)
+      this.channel = null
+    }
+    this.connected = false
+    this.isAuthenticated = false
   }
 
   sendAuthenticate() {
-    // Required to connect a socket to a user
-    this.socket.emit('auth', this.$store.getters['user/getToken'])
-  }
-
-  removeListeners() {
-    if (!this.socket) return
-    this.socket.removeAllListeners()
-    if (this.socket.io && this.socket.io.removeAllListeners) {
-      this.socket.io.removeAllListeners()
-    }
+    // Supabase handles auth automatically via JWT in headers.
+    // We just emit init to signify we are ready.
+    this.onInit({ message: 'Supabase Realtime Ready' })
   }
 
   onConnect() {
-    console.log('[SOCKET] Socket Connected ' + this.socket.id)
+    console.log('[SOCKET/SUPABASE] Connected to Supabase Realtime')
     this.connected = true
     this.$store.commit('setSocketConnected', true)
     this.emit('connection-update', true)
     this.sendAuthenticate()
   }
 
-  onReconnectAttempt(attemptNumber) {
-    const timeSinceLastReconnectAttempt = this.lastReconnectAttemptTime ? Date.now() - this.lastReconnectAttemptTime : 0
-    this.lastReconnectAttemptTime = Date.now()
-    console.log(`[SOCKET] Reconnect attempt ${attemptNumber} ${timeSinceLastReconnectAttempt > 0 ? `after ${timeSinceLastReconnectAttempt}ms` : ''}`)
-  }
-
-  onReconnectError(error) {
-    console.log('[SOCKET] Reconnect error', error)
-  }
-
-  onReconnectFailed(error) {
-    console.log('[SOCKET] Reconnect failed', error)
-  }
-
   onDisconnect(reason) {
-    console.log('[SOCKET] Socket Disconnected: ' + reason)
+    console.log('[SOCKET/SUPABASE] Disconnected: ' + reason)
     this.connected = false
     this.$store.commit('setSocketConnected', false)
     this.emit('connection-update', false)
   }
 
   onInit(data) {
-    console.log('[SOCKET] Initial socket data received', data)
+    console.log('[SOCKET/SUPABASE] Initial socket data received', data)
     this.emit('initialized', true)
     this.isAuthenticated = true
   }
 
-  onAuthFailed(data) {
-    console.log('[SOCKET] Auth failed', data)
-    this.isAuthenticated = false
-  }
-
-  onUserUpdated(data) {
-    console.log('[SOCKET] User updated', data)
-    this.emit('user_updated', data)
-  }
-
   onUserItemProgressUpdated(payload) {
-    console.log('[SOCKET] User Item Progress Updated', JSON.stringify(payload))
-    this.$store.commit('user/updateUserMediaProgress', payload.data)
-    this.emit('user_media_progress_updated', payload)
+    console.log('[SOCKET/SUPABASE] User Item Progress Updated', payload)
+    
+    // Map Supabase payload to the format expected by Vuex
+    // Supabase media_progress table: id, user_id, library_item_id, episode_id, duration, progress, currentTime, isFinished, etc.
+    const mappedPayload = {
+      id: payload.id,
+      libraryItemId: payload.library_item_id,
+      episodeId: payload.episode_id,
+      duration: payload.duration,
+      progress: payload.progress,
+      currentTime: payload.currentTime || payload.current_time,
+      isFinished: payload.isFinished || payload.is_finished,
+      hideFromContinueListening: payload.hide_from_continue_listening,
+      lastUpdate: new Date(payload.updated_at).getTime(),
+      startedAt: new Date(payload.created_at).getTime(),
+    }
+
+    this.$store.commit('user/updateUserMediaProgress', mappedPayload)
+    this.emit('user_media_progress_updated', { data: mappedPayload })
   }
 
   onPlaylistAdded() {
-    // Currently numUserPlaylists is only used for showing the playlist tab or not. Precise number is not necessary
     if (!this.$store.state.libraries.numUserPlaylists) {
       this.$store.commit('libraries/setNumUserPlaylists', 1)
     }
@@ -134,5 +122,5 @@ class ServerSocket extends EventEmitter {
 }
 
 export default ({ app, store }, inject) => {
-  inject('socket', new ServerSocket(store))
+  inject('socket', new ServerSocket(store, app.$supabase))
 }

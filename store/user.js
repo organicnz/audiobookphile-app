@@ -139,19 +139,20 @@ export const actions = {
     }
   },
   async logout({ state, commit }, logoutFromServer = false) {
-    // Logging out from server deletes the session so the refresh token is no longer valid
-    // Currently this is not being used to support switching servers without logging back in (assuming refresh token is still valid)
-    // We may want to make this change in the future
-    if (state.serverConnectionConfig && logoutFromServer) {
+    // Supabase specific logout
+    if (this.$supabase) {
+      await this.$supabase.auth.signOut().catch((error) => {
+        console.error('Failed to logout from Supabase', error)
+      })
+    } else if (state.serverConnectionConfig && logoutFromServer) {
+      // Legacy fallback
       const refreshToken = await this.$db.getRefreshToken(state.serverConnectionConfig.id)
       const options = {}
       if (refreshToken) {
-        // Refresh token is used to delete the session on the server
         options.headers = {
           'x-refresh-token': refreshToken
         }
       }
-      // Logout from server
       await this.$nativeHttp.post('/logout', null, options).catch((error) => {
         console.error('Failed to logout', error)
       })
@@ -165,6 +166,32 @@ export const actions = {
     await AbsLogger.info({ tag: 'user', message: `Logged out from server ${state.serverConnectionConfig?.name || 'Not connected'}` })
   },
   async refreshToken({ getters, commit, state }) {
+    if (this.$supabase) {
+      // Supabase automatically refreshes the token behind the scenes.
+      // We just need to grab the latest session.
+      const { data, error } = await this.$supabase.auth.getSession()
+      if (error || !data.session) {
+        console.error('[user] Supabase session refresh failed', error)
+        return null
+      }
+      
+      const newAccessToken = data.session.access_token
+      commit('setAccessToken', newAccessToken)
+      
+      const updatedConfig = {
+        ...state.serverConnectionConfig,
+        token: newAccessToken,
+        refreshToken: data.session.refresh_token // Note: Supabase handles refresh tokens internally
+      }
+      
+      const savedConfig = await this.$db.setServerConnectionConfig(updatedConfig)
+      if (savedConfig) {
+        commit('setServerConnectionConfig', savedConfig)
+      }
+      return newAccessToken
+    }
+
+    // Legacy Audiobookshelf refresh logic below...
     const refreshToken = await this.$db.getRefreshToken(getters.getServerConnectionConfigId)
     if (!refreshToken) {
       console.error('No refresh token found')

@@ -633,62 +633,70 @@ export default {
           return false
         })
     },
-    requestServerLogin() {
-      const headers = {
-        // Tells the Abs server to return the refresh token
-        'x-return-tokens': 'true',
-        ...(this.serverConfig.customHeaders || {})
-      }
-      return this.postRequest(`${this.serverConfig.address}/login`, { username: this.serverConfig.username, password: this.password || '' }, headers, 20000)
-        .then((data) => {
-          if (!data.user) {
-            console.error(data.error)
-            this.error = data.error || 'Unknown Error'
-            return false
-          }
-          return data
+    async requestServerLogin() {
+      try {
+        const { data, error } = await this.$supabase.auth.signInWithPassword({
+          email: this.serverConfig.username,
+          password: this.password || ''
         })
-        .catch((error) => {
-          console.error('Server auth failed', error)
-          const errorMsg = error.message || error
-          this.error = 'Failed to login'
-          if (typeof errorMsg === 'string') {
-            this.error += ` (${errorMsg})`
-          }
+
+        if (error) {
+          console.error('Supabase auth failed', error)
+          this.error = error.message || 'Failed to login'
           return false
-        })
+        }
+
+        // Fetch user profile from Supabase profiles table
+        const { data: profile } = await this.$supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single()
+
+        // Format into the legacy payload structure Audiobookshelf expects
+        return {
+          user: {
+            id: data.user.id,
+            username: profile?.username || data.user.email.split('@')[0],
+            type: profile?.user_type || 'user',
+            token: data.session.access_token,
+            isActive: true,
+            isLocked: false,
+            permissions: {
+              download: true,
+              update: profile?.user_type === 'admin',
+              delete: profile?.user_type === 'admin',
+              upload: profile?.user_type === 'admin',
+              accessAllLibraries: true
+            }
+          },
+          userDefaultLibraryId: profile?.default_library_id || null,
+          serverSettings: {},
+          source: 'local'
+        }
+      } catch (error) {
+        console.error('Server auth exception', error)
+        this.error = error.message || 'Failed to login'
+        return false
+      }
     },
     async submit(preventAutoLogin = false) {
       if (!this.networkConnected || !this.serverConfig.address) return false
 
       const initialAddress = this.serverConfig.address
-      // Did the user specify a protocol?
       const protocolProvided = initialAddress.startsWith('http://') || initialAddress.startsWith('https://')
-      // Add https:// if not provided
       this.serverConfig.address = this.prependProtocolIfNeeded(initialAddress)
 
       this.processing = true
       this.error = null
-      this.authMethods = []
+      this.authMethods = ['local'] // Enforce local auth since we handle SSO differently in Supabase
 
       try {
-        console.log('[ServerConnectForm] submit tryServerUrl: ' + this.serverConfig.address)
-        // Try the server URL. If it fails and the protocol was not provided, try with http instead of https
-        const statusData = await this.tryServerUrl(this.serverConfig.address, !protocolProvided)
-        if (this.validateLoginFormResponse(statusData, this.serverConfig.address, protocolProvided)) {
-          this.showAuth = true
-          this.authMethods = statusData.data.authMethods || []
-          this.oauth.buttonText = statusData.data.authFormData?.authOpenIDButtonText || 'Login with OpenID'
-          this.serverConfig.version = statusData.data.serverVersion
-
-          if (statusData.data.authFormData?.authOpenIDAutoLaunch && !preventAutoLogin) {
-            this.clickLoginWithOpenId()
-          }
-          return true
-        } else {
-          console.log('[ServerConnectForm] submit validateLoginFormResponse failed: ' + this.serverConfig.address)
-          return false
-        }
+        console.log('[ServerConnectForm] submit bypassing ping for Supabase')
+        // We bypass the legacy `/status` ping entirely since Supabase doesn't use it.
+        // We just assume the URL is valid and show the auth form.
+        this.showAuth = true
+        return true
       } catch (error) {
         this.handleLoginFormError(error)
         return false

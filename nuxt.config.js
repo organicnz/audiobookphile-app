@@ -30,7 +30,7 @@ export default {
 
   css: ['@/assets/tailwind.css', '@/assets/app.css'],
 
-  plugins: ['@/plugins/server.js', '@/plugins/db.js', '@/plugins/localStore.js', '@/plugins/init.client.js', '@/plugins/axios.js', '@/plugins/capacitor/index.js', '@/plugins/capacitor/AbsAudioPlayer.js', '@/plugins/nativeHttp.js', '@/plugins/toast.js', '@/plugins/constants.js', '@/plugins/haptics.js', '@/plugins/i18n.js'],
+  plugins: ['@/plugins/supabase.js', '@/plugins/server.js', '@/plugins/db.js', '@/plugins/localStore.js', '@/plugins/init.client.js', '@/plugins/axios.js', '@/plugins/capacitor/index.js', '@/plugins/capacitor/AbsAudioPlayer.js', '@/plugins/nativeHttp.js', '@/plugins/toast.js', '@/plugins/constants.js', '@/plugins/haptics.js', '@/plugins/i18n.js'],
 
   components: true,
 
@@ -39,6 +39,7 @@ export default {
   axios: {},
 
   build: {
+    transpile: ['@supabase', 'node-fetch', '@supabase/supabase-js', 'iceberg-js'],
     postcss: {
       postcssOptions: {
         plugins: {
@@ -48,7 +49,11 @@ export default {
       }
     },
     babel: {
-      plugins: [['@babel/plugin-proposal-private-property-in-object', { loose: true }]]
+      plugins: [
+        ['@babel/plugin-proposal-private-property-in-object', { loose: true }],
+        '@babel/plugin-proposal-nullish-coalescing-operator',
+        '@babel/plugin-proposal-optional-chaining'
+      ]
     }
   }
 }
