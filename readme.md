@@ -24,7 +24,7 @@ Join us on [discord](https://discord.gg/pJsjuNCKRq)
 
 ## Contributing
 
-This application is built using [NuxtJS](https://nuxtjs.org/) and [Capacitor](https://capacitorjs.com/) in order to run on both iOS and Android on the same code base.
+This application is built using [NuxtJS](https://nuxtjs.org/), [Capacitor](https://capacitorjs.com/), and [Bun](https://bun.sh/) in order to run on both iOS and Android with rapid build times and native performance.
 
 ### Localization
 
@@ -35,7 +35,7 @@ Thank you to [Weblate](https://hosted.weblate.org/engage/audiobookshelf/) for ho
 Required Software:
 
 - [Git](https://git-scm.com/downloads)
-- [Node.js](https://nodejs.org/en/) (version 20)
+- [Bun](https://bun.sh/) (or Node.js version 20 as fallback)
 - Code editor of choice([VSCode](https://code.visualstudio.com/download), etc)
 - [Android Studio](https://developer.android.com/studio)
 - [Android SDK](https://developer.android.com/studio)
@@ -50,10 +50,8 @@ Note: This requires a PowerShell prompt with winget installed.  You should be ab
 winget install -e --id Git.Git; `
 winget install -e --id Microsoft.VisualStudioCode; `
 winget install -e --id  Google.AndroidStudio; `
-winget install -e --id OpenJS.NodeJS --version 20.11.0;
+winget install -e --id JarredSumner.Bun;
 ```
-
-![](/screenshots/dev_setup_windows_winget.png)
 
 </p>
 </details>
@@ -66,7 +64,7 @@ Your Windows environment should now be set up and ready to proceed!
 Required Software:
 
 - [Android Studio](https://developer.android.com/studio)
-- [Node.js](https://nodejs.org/en/) (version 20)
+- [Bun](https://bun.sh/)
 - [Cocoapods](https://guides.cocoapods.org/using/getting-started.html#installation)
 - [Android SDK](https://developer.android.com/studio)
 
@@ -76,7 +74,7 @@ Required Software:
 <p>
 
 ```zsh
-brew install android-studio node cocoapods
+brew install android-studio oven-sh/bun/bun cocoapods
 ```
 
 </p>
@@ -89,57 +87,33 @@ Clone or fork the project from terminal or powershell and `cd` into the project 
 Install the required node packages:
 
 ```shell
-npm install
+bun install
 ```
 
-<details>
-<summary>Expand for screenshot</summary>
-
-![](/screenshots/dev_setup_android_npm_install.png)
-
-</details>
 <br>
 
 Generate static web app:
 
 ```shell
-npm run generate
+bun run generate
 ```
 
-<details>
-<summary>Expand for screenshot</summary>
-
-![](/screenshots/dev_setup_android_npm_run.png)
-
-</details>
 <br>
 
 Copy web app into native android/ios folders:
 
 ```shell
-npx cap sync
+bunx cap sync
 ```
 
-<details>
-<summary>Expand for screenshot</summary>
-
-![](/screenshots/dev_setup_android_cap_sync.png)
-
-</details>
 <br>
 
 Open Android Studio:
 
 ```shell
-npx cap open android
+bunx cap open android
 ```
 
-<details>
-<summary>Expand for screenshot</summary>
-
-![](/screenshots/dev_setup_cap_android.png)
-
-</details>
 <br>
 
 Start coding!
@@ -147,7 +121,7 @@ Start coding!
 After making changes to the JS layer you need to rebuild the nuxt pages and sync them to the native shells:
 
 ```shell
-npm run sync
+bun run sync
 ```
 
 ### Mac Environment Setup for iOS
@@ -155,67 +129,43 @@ npm run sync
 Required Software:
 
 - [Xcode](https://developer.apple.com/xcode/)
-- [Node.js](https://nodejs.org/en/)
+- [Bun](https://bun.sh/)
 - [Cocoapods](https://guides.cocoapods.org/using/getting-started.html#installation)
 
 ### Start working on the iOS app
 
 Clone or fork the project in the terminal and `cd` into the project directory.
 
-Install the required node packages:
+Install the required packages:
 
 ```shell
-npm install
+bun install
 ```
 
-<details>
-<summary>Expand for screenshot</summary>
-
-![](/screenshots/dev_setup_ios_npm_install.png)
-
-</details>
 <br>
 
 Generate static web app:
 
 ```shell
-npm run generate
+bun run generate
 ```
 
-<details>
-<summary>Expand for screenshot</summary>
-
-![](/screenshots/dev_setup_ios_npm_generate.png)
-
-</details>
 <br>
 
 Copy web app into native android/ios folders:
 
 ```shell
-npx cap sync
+bunx cap sync
 ```
 
-<details>
-<summary>Expand for screenshot</summary>
-
-![](/screenshots/dev_setup_ios_cap_sync.png)
-
-</details>
 <br>
 
 Open Xcode:
 
 ```shell
-npx cap open ios
+bunx cap open ios
 ```
 
-<details>
-<summary>Expand for screenshot</summary>
-
-![](/screenshots/dev_setup_ios_cap_open.png)
-
-</details>
 <br>
 
 Start coding!
@@ -223,5 +173,31 @@ Start coding!
 After making changes to the JS layer you need to rebuild the nuxt pages and sync them to the native shells:
 
 ```shell
-npm run sync
+bun run sync
 ```
+
+---
+
+## Xcode Cloud Build Pipeline
+
+The iOS client uses **Xcode Cloud** for automated TestFlight building and distribution. The pipeline uses **Bun** in combination with Node.js in the post-clone script step for rapid compilation.
+
+### How it Works (Post-Clone Shell)
+When Xcode Cloud triggers a build, it executes the custom post-clone script located at `ios/App/ci_scripts/ci_post_clone.sh`. This script:
+1. Installs Node.js via Homebrew (required to support capacitor shebang environments).
+2. Installs Bun natively on the Apple build container.
+3. Runs `bun install --frozen-lockfile` to install all packages.
+4. Executes `bun run generate` to compile Nuxt static pages.
+5. Runs `bunx cap sync ios` to move compile outputs into Xcode.
+6. Installs CocoaPods dependencies via `pod install`.
+
+### Environment Variables Setup
+To allow Nuxt to bake the Supabase credentials into the client bundle at build-time, you **MUST** configure the following environment variables in your Xcode Cloud Workflow settings under the **Environment** tab:
+
+| Variable | Description |
+|---|---|
+| `NUXT_ENV_SUPABASE_URL` | Your Supabase Project API URL (e.g. `https://xxxx.supabase.co`) |
+| `NUXT_ENV_SUPABASE_ANON_KEY` | Your Supabase publishable anonymous key |
+
+Ensure both are marked as **Required** in your Xcode Cloud workflow parameters so the build pipeline has access to them.
+
