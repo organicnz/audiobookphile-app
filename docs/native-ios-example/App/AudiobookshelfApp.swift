@@ -11,11 +11,6 @@ import SwiftUI
 struct AudiobookshelfApp: App {
     @StateObject private var appState = AppState()
 
-    init() {
-        // Configure appearance
-        configureAppearance()
-    }
-
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -26,25 +21,6 @@ struct AudiobookshelfApp: App {
                     ProMotionManager.shared.enableHighPerformanceMode()
                 }
         }
-    }
-
-    private func configureAppearance() {
-        // Navigation bar appearance
-        let navBarAppearance = UINavigationBarAppearance()
-        navBarAppearance.configureWithTransparentBackground()
-        navBarAppearance.titleTextAttributes = [.foregroundColor: UIColor.white]
-        navBarAppearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
-
-        UINavigationBar.appearance().standardAppearance = navBarAppearance
-        UINavigationBar.appearance().scrollEdgeAppearance = navBarAppearance
-
-        // Tab bar appearance
-        let tabBarAppearance = UITabBarAppearance()
-        tabBarAppearance.configureWithTransparentBackground()
-        tabBarAppearance.backgroundColor = UIColor(Color.appBackground.opacity(0.95))
-
-        UITabBar.appearance().standardAppearance = tabBarAppearance
-        UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
     }
 }
 
@@ -151,6 +127,8 @@ struct MainTabView: View {
                 // Library Tab
                 NavigationStack {
                     BookshelfView()
+                        .toolbarBackground(.hidden, for: .navigationBar)
+                        .toolbarColorScheme(.dark, for: .navigationBar)
                 }
                 .tabItem {
                     Label("Library", systemImage: "books.vertical")
@@ -160,6 +138,8 @@ struct MainTabView: View {
                 // Search Tab
                 NavigationStack {
                     SearchView()
+                        .toolbarBackground(.hidden, for: .navigationBar)
+                        .toolbarColorScheme(.dark, for: .navigationBar)
                 }
                 .tabItem {
                     Label("Search", systemImage: "magnifyingglass")
@@ -169,6 +149,8 @@ struct MainTabView: View {
                 // Downloads Tab
                 NavigationStack {
                     DownloadsView()
+                        .toolbarBackground(.hidden, for: .navigationBar)
+                        .toolbarColorScheme(.dark, for: .navigationBar)
                 }
                 .tabItem {
                     Label("Downloads", systemImage: "arrow.down.circle")
@@ -178,6 +160,8 @@ struct MainTabView: View {
                 // Settings Tab
                 NavigationStack {
                     SettingsView()
+                        .toolbarBackground(.hidden, for: .navigationBar)
+                        .toolbarColorScheme(.dark, for: .navigationBar)
                 }
                 .tabItem {
                     Label("Settings", systemImage: "gear")
@@ -185,6 +169,9 @@ struct MainTabView: View {
                 .tag(3)
             }
             .tint(.cyan)
+            .toolbarBackground(Color.appBackground.opacity(0.95), for: .tabBar)
+            .toolbarBackground(.visible, for: .tabBar)
+            .toolbarColorScheme(.dark, for: .tabBar)
 
             // Mini Player (when audio is playing)
             if audioPlayer.session != nil && !showFullPlayer {

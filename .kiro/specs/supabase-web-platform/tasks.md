@@ -63,7 +63,7 @@ Migrate the Audiobookshelf client from a Nuxt 2 + Capacitor app to a fully web-n
     - _Requirements: 1.4, 1.5, 1.9_
 
 - [-] 4. Implement library management
-  - [ ] 4.1 Create library composable and Pinia store
+  - [x] 4.1 Create library composable and Pinia store
     - Create `composables/useLibrary.ts` with functions to create, read, update, and delete libraries using the Supabase JS client
     - Create `stores/library.ts` holding the reactive list of libraries and current library selection
     - Ensure all queries rely on RLS (no manual `user_id` filter needed in client code)
