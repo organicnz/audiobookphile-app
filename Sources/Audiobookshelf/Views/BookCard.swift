@@ -55,6 +55,7 @@ public struct BookCard: View {
                         progressBar(progress: progress.progress)
                     }
                 }
+                .frame(height: 68, alignment: .topLeading)
             }
         }
         .buttonStyle(ScaleButtonStyle())
@@ -66,19 +67,12 @@ public struct BookCard: View {
         GeometryReader { geometry in
             ZStack(alignment: .topTrailing) {
                 // Cover
-                AsyncImage(url: coverURL) { phase in
-                    switch phase {
-                    case .empty:
-                        placeholderCover
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    case .failure:
-                        placeholderCover
-                    @unknown default:
-                        placeholderCover
-                    }
+                CachedAsyncImage(url: coverURL) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    placeholderCover
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 .clipped()
@@ -92,6 +86,9 @@ public struct BookCard: View {
                 // Download badge (if downloaded)
                 if isDownloaded {
                     downloadBadge
+                        .padding(8)
+                } else if book.isMissing == true {
+                    missingBadge
                         .padding(8)
                 }
             }
@@ -116,6 +113,18 @@ public struct BookCard: View {
             .background {
                 Circle()
                     .fill(.green)
+                    .padding(-4)
+            }
+            .shadow(radius: 4)
+    }
+    
+    private var missingBadge: some View {
+        Image(systemName: "exclamationmark.triangle.fill")
+            .font(.title3)
+            .foregroundStyle(.white)
+            .background {
+                Circle()
+                    .fill(.red)
                     .padding(-4)
             }
             .shadow(radius: 4)
@@ -187,7 +196,7 @@ public struct GlassBookCard: View {
         Button(action: onTap) {
             HStack(spacing: 16) {
                 // Small cover
-                AsyncImage(url: coverURL) { image in
+                CachedAsyncImage(url: coverURL) { image in
                     image
                         .resizable()
                         .aspectRatio(contentMode: .fill)
@@ -219,6 +228,14 @@ public struct GlassBookCard: View {
                                 .font(.caption)
                         }
                         .foregroundStyle(.blue)
+                    } else if book.isMissing == true {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.caption2)
+                            Text("Missing Files")
+                                .font(.caption)
+                        }
+                        .foregroundStyle(.red)
                     }
                 }
                 

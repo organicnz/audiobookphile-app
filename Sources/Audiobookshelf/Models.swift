@@ -26,6 +26,7 @@ public struct Book: Identifiable, Codable, Hashable {
     public let folderId: String?
     public let path: String
     public let relPath: String
+    public let isMissing: Bool?
     
     // Media Info
     public let media: BookMedia
@@ -65,6 +66,7 @@ public struct Book: Identifiable, Codable, Hashable {
     public enum CodingKeys: String, CodingKey {
         case id, libraryId, folderId, path, relPath, media
         case userMediaProgress, addedAt, updatedAt
+        case isMissing = "is_missing"
     }
 }
 
@@ -112,7 +114,7 @@ public struct BookMetadata: Codable, Hashable {
 }
 
 // MARK: - Chapter
-public struct Chapter: Identifiable, Codable, Hashable {
+public struct Chapter: Identifiable, Codable, Hashable, Sendable {
     public var id: Int
     public let title: String
     public let start: TimeInterval
@@ -232,7 +234,7 @@ public struct PlaybackSession: Codable {
 }
 
 // MARK: - Audio Track
-public struct AudioTrack: Identifiable, Codable {
+public struct AudioTrack: Identifiable, Codable, Sendable {
     public let index: Int
     public let startOffset: TimeInterval
     public let duration: TimeInterval
