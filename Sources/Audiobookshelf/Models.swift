@@ -141,14 +141,14 @@ public struct AudioFile: Identifiable, Codable, Hashable {
 }
 
 public struct AudioMetadata: Codable, Hashable {
-    public let filename: String
-    public let ext: String
-    public let path: String
-    public let relPath: String
-    public let size: Int64
-    public let mtimeMs: Int64
-    public let ctimeMs: Int64
-    public let birthtimeMs: Int64
+    public let filename: String?
+    public let ext: String?
+    public let path: String?
+    public let relPath: String?
+    public let size: Int64?
+    public let mtimeMs: Int64?
+    public let ctimeMs: Int64?
+    public let birthtimeMs: Int64?
 }
 
 // MARK: - Library File
@@ -157,20 +157,20 @@ public struct LibraryFile: Identifiable, Codable, Hashable {
         ino
     }
     public let ino: String
-    public let metadata: FileMetadata
+    public let metadata: FileMetadata?
     public let isSupplementary: Bool?
-    public let fileType: String
+    public let fileType: String?
 }
 
 public struct FileMetadata: Codable, Hashable {
-    public let filename: String
-    public let ext: String
-    public let path: String
-    public let relPath: String
-    public let size: Int64
-    public let mtimeMs: Int64
-    public let ctimeMs: Int64
-    public let birthtimeMs: Int64
+    public let filename: String?
+    public let ext: String?
+    public let path: String?
+    public let relPath: String?
+    public let size: Int64?
+    public let mtimeMs: Int64?
+    public let ctimeMs: Int64?
+    public let birthtimeMs: Int64?
 }
 
 // MARK: - Ebook File

@@ -132,37 +132,37 @@ struct AudioFile: Identifiable, Codable, Hashable {
     let mimeType: String
 }
 
-struct AudioMetadata: Codable, Hashable {
-    let filename: String
-    let ext: String
-    let path: String
-    let relPath: String
-    let size: Int64
-    let mtimeMs: Int64
-    let ctimeMs: Int64
-    let birthtimeMs: Int64
+public struct AudioMetadata: Codable, Hashable {
+    public let filename: String?
+    public let ext: String?
+    public let path: String?
+    public let relPath: String?
+    public let size: Int64?
+    public let mtimeMs: Int64?
+    public let ctimeMs: Int64?
+    public let birthtimeMs: Int64?
 }
 
 // MARK: - Library File
-struct LibraryFile: Identifiable, Codable, Hashable {
-    var id: String {
+public struct LibraryFile: Identifiable, Codable, Hashable {
+    public var id: String {
         ino
     }
-    let ino: String
-    let metadata: FileMetadata
-    let isSupplementary: Bool?
-    let fileType: String
+    public let ino: String
+    public let metadata: FileMetadata?
+    public let isSupplementary: Bool?
+    public let fileType: String?
 }
 
-struct FileMetadata: Codable, Hashable {
-    let filename: String
-    let ext: String
-    let path: String
-    let relPath: String
-    let size: Int64
-    let mtimeMs: Int64
-    let ctimeMs: Int64
-    let birthtimeMs: Int64
+public struct FileMetadata: Codable, Hashable {
+    public let filename: String?
+    public let ext: String?
+    public let path: String?
+    public let relPath: String?
+    public let size: Int64?
+    public let mtimeMs: Int64?
+    public let ctimeMs: Int64?
+    public let birthtimeMs: Int64?
 }
 
 // MARK: - Ebook File

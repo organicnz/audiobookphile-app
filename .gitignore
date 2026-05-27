@@ -74,7 +74,3 @@ Carthage/Build/
 **/fastlane/README.md
 **/fastlane/Preview.html
 **/fastlane/test_output
-
-node_modules/
-.DS_Store
-.build/

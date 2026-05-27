@@ -49,3 +49,11 @@ Kotlin JUnit tests in the Robolectric Android simulation environment.
 
 Parity testing can be performed with `skip test`,
 which will output a table of the test results for both platforms.
+
+## 🤖 AI Agent Guidelines
+
+For all AI coding assistants working in this repository:
+- **Upstream Benchmark**: Refer directly to [advplyr/audiobookshelf-app](https://github.com/advplyr/audiobookshelf-app) (the Capacitor-based Client app) as the absolute source of truth for all user flows, features, state patterns, and API interactions.
+- **Reference Documentation**: Prioritize reading [docs/UI-UX-BENCHMARK.md](file:///Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/UI-UX-BENCHMARK.md) and [docs/AGENTS.md](file:///Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/AGENTS.md) to align with existing design systems and state requirements.
+- **Visual Design Standard**: Maintain the custom native **Liquid Glass (LG)** visual system in SwiftUI/Compose (Metal shaders, spring animation dynamics, ProMotion 120Hz support, and haptics) while achieving exact parity with the upstream client's functional flows.
+
