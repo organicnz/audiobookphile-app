@@ -27,10 +27,6 @@ class AudioPlayerService: NSObject, ObservableObject {
     @Published var currentChapter: Chapter?
     @Published var syncStatus: SyncStatus = .idle
 
-    enum SyncStatus {
-        case idle, syncing, success, failed
-    }
-
     // MARK: - Private Properties
 
     private var player: AVPlayer?
@@ -172,7 +168,8 @@ class AudioPlayerService: NSObject, ObservableObject {
         self.session = session
         self.isLoading = true
 
-        guard let audioTracks = session.audioTracks, !audioTracks.isEmpty else {
+        let audioTracks = session.audioTracks
+        guard !audioTracks.isEmpty else {
             print("[AudioPlayerService] No audio tracks in session")
             isLoading = false
             return
@@ -203,10 +200,11 @@ class AudioPlayerService: NSObject, ObservableObject {
                 switch status {
                 case .readyToPlay:
                     self?.isLoading = false
-                    self?.duration = session.duration ?? 0
+                    self?.duration = session.duration
 
                     // Seek to saved position
-                    if let startTime = session.currentTime, startTime > 0 {
+                    let startTime = session.currentTime
+                    if startTime > 0 {
                         self?.seek(to: startTime)
                     }
 
@@ -224,7 +222,7 @@ class AudioPlayerService: NSObject, ObservableObject {
             .store(in: &cancellables)
 
         // Time observer
-        let interval = CMTime(seconds: 1, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        let interval = CMTime(seconds: 1, preferredTimescale: 1000)
         timeObserver = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
             self?.updateTime(time.seconds)
         }
@@ -255,7 +253,7 @@ class AudioPlayerService: NSObject, ObservableObject {
     }
 
     func seek(to time: TimeInterval) {
-        let cmTime = CMTime(seconds: time, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        let cmTime = CMTime(seconds: time, preferredTimescale: 1000)
         player?.seek(to: cmTime, toleranceBefore: .zero, toleranceAfter: .zero)
         currentTime = time
         updateNowPlayingInfo()
@@ -321,8 +319,8 @@ class AudioPlayerService: NSObject, ObservableObject {
             nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? playbackRate : 0
 
             if let chapter = currentChapter {
-                nowPlayingInfo[MPNowPlayingInfoPropertyChapterNumber] = session.chapters?.firstIndex(where: { $0.id == chapter.id })
-                nowPlayingInfo[MPNowPlayingInfoPropertyChapterCount] = session.chapters?.count
+                nowPlayingInfo[MPNowPlayingInfoPropertyChapterNumber] = session.chapters.firstIndex(where: { $0.id == chapter.id })
+                nowPlayingInfo[MPNowPlayingInfoPropertyChapterCount] = session.chapters.count
             }
         }
 
@@ -364,7 +362,8 @@ class AudioPlayerService: NSObject, ObservableObject {
             lastSyncTime = Date()
 
             // Reset to idle after a moment
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            Task {
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
                 self.syncStatus = .idle
             }
         } catch {

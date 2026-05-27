@@ -145,12 +145,7 @@ enum GradientPresets {
     )
 }
 
-// MARK: - Media Types
 
-enum MediaType: String, Codable {
-    case book
-    case podcast
-}
 
 // MARK: - Play Methods
 

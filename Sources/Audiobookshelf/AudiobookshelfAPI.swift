@@ -7,18 +7,23 @@
 //
 
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 #if canImport(Security)
 import Security
 #endif
+import Observation
 
 // MARK: - API Client
 
+@Observable
 @MainActor
-public class AudiobookshelfAPI: ObservableObject {
+public class AudiobookshelfAPI {
     public static let shared = AudiobookshelfAPI()
 
-    @Published public var isAuthenticated = false
-    @Published public var currentUser: User?
+    public var isAuthenticated = false
+    public var currentUser: User?
 
     public var baseURL: String = ""
     public var accessToken: String = ""
@@ -175,7 +180,15 @@ public class AudiobookshelfAPI: ObservableObject {
                 return Date(timeIntervalSince1970: timestamp / 1000.0)
             }
 
-            return try decoder.decode(T.self, from: data)
+            do {
+                return try decoder.decode(T.self, from: data)
+            } catch let decodingError as DecodingError {
+                let errorDetails = "[DecodingError] Details: \(decodingError)\nFor type: \(T.self)\nJSON length: \(data.count) bytes\n"
+                try? errorDetails.write(toFile: "/Users/organic/dev/work/audiobookshelf/audiobookshelf-app/decoding_error.txt", atomically: true, encoding: .utf8)
+                throw decodingError
+            } catch {
+                throw error
+            }
 
         } catch let error as APIError {
             throw error
@@ -464,7 +477,7 @@ public final class KeychainManager: Sendable {
     private let refreshTokenKey = "abs_refreshToken"
 
     public func saveCredentials(serverURL: String, token: String, refreshToken: String) throws {
-        #if !SKIP
+        #if !SKIP && !os(Android)
         // iOS Keychain Implementation
         let credentials = [
             "serverURL": serverURL,
@@ -494,7 +507,7 @@ public final class KeychainManager: Sendable {
     }
 
     public func loadCredentials() throws -> (serverURL: String, token: String, refreshToken: String)? {
-        #if !SKIP
+        #if !SKIP && !os(Android)
         // iOS Keychain Retrieval
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -528,7 +541,7 @@ public final class KeychainManager: Sendable {
     }
 
     public func clearCredentials() throws {
-        #if !SKIP
+        #if !SKIP && !os(Android)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: "com.audiobookshelf.native",

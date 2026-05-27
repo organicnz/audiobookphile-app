@@ -8,6 +8,7 @@
 import Foundation
 import Network
 import Combine
+import SwiftUI
 
 /// Monitors network connectivity and connection type
 @MainActor
@@ -136,7 +137,7 @@ enum DownloadPolicy: String, Codable, CaseIterable {
 // MARK: - SwiftUI View
 
 struct NetworkStatusView: View {
-    @StateObject private var networkMonitor = NetworkMonitor.shared
+    @ObservedObject private var networkMonitor = NetworkMonitor.shared
 
     var body: some View {
         HStack(spacing: 8) {
@@ -185,7 +186,7 @@ struct NetworkStatusView: View {
         NetworkStatusView()
             .padding()
             .background(.ultraThinMaterial)
-            .cornerRadius(10)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
 
         Text("Connection: \(NetworkMonitor.shared.isConnected ? "Yes" : "No")")
         Text("Metered: \(NetworkMonitor.shared.isMetered ? "Yes" : "No")")

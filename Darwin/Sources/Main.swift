@@ -1,6 +1,7 @@
 import SwiftUI
 import Audiobookshelf
 
+// Force recompilation of main app bundle to ensure rebuilt SPM views are correctly embedded
 private typealias AppRootView = AudiobookshelfRootView
 private typealias AppDelegate = AudiobookshelfAppDelegate
 

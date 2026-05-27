@@ -11,12 +11,14 @@ import SwiftUI
 struct GlassButton: View {
     let title: String
     let icon: String?
-    let action: () -> Void
+
     
     var size: ButtonSize = .medium
     var colors: [Color] = [.blue, .purple]
     var isLoading: Bool = false
     var isDisabled: Bool = false
+    
+    let action: () -> Void
     
     @State private var isPressed = false
     
@@ -60,6 +62,9 @@ struct GlassButton: View {
                     )
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(title))
+        .accessibilityAddTraits(.isButton)
         .scaleEffect(isPressed ? 0.97 : 1.0)
         .animation(.easeInOut(duration: 0.15), value: isPressed)
         .disabled(isDisabled || isLoading)

@@ -70,27 +70,6 @@ extension View {
 // MARK: - Glass Effects
 
 extension View {
-    /// Apply standard glass card styling
-    func glassCard(
-        cornerRadius: CGFloat = 16,
-        borderOpacity: Double = 0.3
-    ) -> some View {
-        self
-            .padding(16)
-            .background(.ultraThinMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-            .overlay {
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: [.white.opacity(borderOpacity), .white.opacity(borderOpacity * 0.3)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
-            }
-    }
 
     /// Apply glass shadow
     func glassShadow() -> some View {

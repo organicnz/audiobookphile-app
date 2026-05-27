@@ -102,12 +102,12 @@ public enum StorageKeys {
 // MARK: - App Colors
 
 extension Color {
-    public static let appBackground = Color(red: 0.08, green: 0.08, blue: 0.12)
-    public static let appSecondaryBackground = Color(red: 0.12, green: 0.12, blue: 0.16)
+    public static let appBackground = Color(red: 0.07, green: 0.07, blue: 0.07)
+    public static let appSecondaryBackground = Color(red: 0.12, green: 0.12, blue: 0.12)
 
-    public static let appPrimary = Color.cyan
-    public static let appSecondary = Color.blue
-    public static let appAccent = Color.purple
+    public static let appPrimary = Color(red: 0.96, green: 0.62, blue: 0.04) // Amber/Gold #f59e0b
+    public static let appSecondary = Color(red: 0.85, green: 0.49, blue: 0.02) // Amber/Orange #d97706
+    public static let appAccent = Color(red: 0.98, green: 0.75, blue: 0.14) // Amber/Yellow #fbbf24
 
     public static let appSuccess = Color.green
     public static let appWarning = Color.orange
@@ -122,19 +122,19 @@ extension Color {
 
 public enum GradientPresets {
     public static let primaryGradient = LinearGradient(
-        colors: [.cyan, .blue],
+        colors: [.appPrimary, .appAccent],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
 
     public static let secondaryGradient = LinearGradient(
-        colors: [.blue, .purple],
+        colors: [.appSecondary, .appPrimary],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
 
     public static let accentGradient = LinearGradient(
-        colors: [.purple, .pink],
+        colors: [.appAccent, .appSecondary],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )

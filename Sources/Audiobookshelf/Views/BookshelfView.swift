@@ -64,7 +64,6 @@ public struct BookshelfView: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
-        .ignoresSafeArea(edges: .top)
         #if os(iOS) || SKIP
         .navigationBarTitleDisplayMode(.inline)
         #endif
@@ -339,31 +338,38 @@ public struct ContinueListeningCard: View {
     }
     
     public var body: some View {
-        Button(action: onTap) {
-            VStack(alignment: .leading, spacing: 8) {
-                // Cover
-                AsyncImage(url: coverURL) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    Color.gray.opacity(0.3)
+        VStack(alignment: .leading, spacing: 8) {
+            // Cover image
+            Group {
+                if let url = coverURL {
+                    CachedAsyncImage(url: url) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 120, height: 120)
+                            .clipped()
+                    } placeholder: {
+                        fallbackCover
+                    }
+                    .frame(width: 120, height: 120)
+                } else {
+                    fallbackCover
                 }
-                .frame(width: 140, height: 140)
-                .cornerRadius(12)
-                .shadow(radius: 10)
-                
-                // Title
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            
+            // Title & Progress with strict height
+            VStack(alignment: .leading, spacing: 4) {
                 Text(book.title)
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .lineLimit(2)
                     .foregroundStyle(.white)
+                    .multilineTextAlignment(.leading)
                 
-                // Progress
                 if let progress = book.userMediaProgress {
                     HStack {
-                        Text("\(progress.progressPercentage)%")
+                        Text("\(Int(progress.progress * 100))%")
                             .font(.caption)
                             .foregroundStyle(.cyan)
                         
@@ -372,10 +378,37 @@ public struct ContinueListeningCard: View {
                         Image(systemName: "play.circle.fill")
                             .foregroundStyle(.cyan)
                     }
+                } else {
+                    Spacer(minLength: 0)
+                        .frame(height: 16)
                 }
             }
-            .frame(width: 140)
+            .frame(height: 56, alignment: .topLeading)
         }
+        .frame(width: 120)
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onTap)
+    }
+    
+    private var fallbackCover: some View {
+        ZStack {
+            Color(white: 0.2)
+            
+            VStack(spacing: 6) {
+                Image(systemName: "book.closed.fill")
+                    .font(.headline)
+                    .foregroundStyle(.white.opacity(0.3))
+                
+                Text(book.title)
+                    .font(.caption2)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.white.opacity(0.4))
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 6)
+            }
+        }
+        .frame(width: 120, height: 120)
     }
     
     private var coverURL: URL? {
@@ -405,15 +438,25 @@ public class BookshelfViewModel: ObservableObject {
         return "\(hours)"
     }
     
-    public init() {}
+    private var customService: LibraryServiceProtocol? = nil
+    
+    public init(service: LibraryServiceProtocol? = nil) {
+        self.customService = service
+    }
     
     public func loadLibrary() async {
         isLoading = true
         
-        // Generate mock books
-        books = (0..<20).map { sampleBook(index: $0) }
-        filteredBooks = books
-        continueListening = books.filter { $0.userMediaProgress != nil }.prefix(5).map { $0 }
+        let service = customService ?? (AppState.shared.isAuthenticated ? LiveLibraryService() : MockLibraryService())
+        
+        do {
+            let fetched = try await service.fetchLibraryItems(libraryId: AppState.shared.currentLibraryId)
+            self.books = fetched
+            self.filteredBooks = fetched
+            self.continueListening = fetched.filter { $0.userMediaProgress != nil }.prefix(5).map { $0 }
+        } catch {
+            print("[BookshelfViewModel] Failed to load library items: \(error)")
+        }
         
         isLoading = false
     }
@@ -442,103 +485,4 @@ public class BookshelfViewModel: ObservableObject {
     public func showSettings() {}
     public func showDownloads() {}
     public func showStats() {}
-}
-
-// MARK: - Book Detail View
-
-public struct BookDetailView: View {
-    public let book: Book
-    
-    public init(book: Book) {
-        self.book = book
-    }
-    
-    public var body: some View {
-        NavigationStack {
-            ZStack {
-                AnimatedGradientBackground()
-                ScrollView {
-                    VStack(spacing: 24) {
-                        Text(book.title)
-                            .font(.title.bold())
-                            .foregroundStyle(.white)
-                            .multilineTextAlignment(.center)
-                            .padding()
-                        
-                        if let author = book.author {
-                            Text(author)
-                                .font(.headline)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-// Sample data helper
-private func sampleBook(index: Int) -> Book {
-    Book(
-        id: "book-\(index)",
-        libraryId: "lib1",
-        folderId: nil,
-        path: "/books/book\(index)",
-        relPath: "book\(index)",
-        media: BookMedia(
-            libraryFiles: [],
-            chapters: [],
-            duration: TimeInterval.random(in: 10000...50000),
-            size: 0,
-            metadata: BookMetadata(
-                title: [
-                    "The Midnight Library",
-                    "Project Hail Mary",
-                    "The Thursday Murder Club",
-                    "Atomic Habits",
-                    "Dune",
-                    "1984",
-                    "The Hobbit"
-                ].randomElement() ?? "Book \(index)",
-                subtitle: nil,
-                authorName: [
-                    "Matt Haig",
-                    "Andy Weir",
-                    "Richard Osman",
-                    "James Clear",
-                    "Frank Herbert"
-                ].randomElement(),
-                narratorName: nil,
-                seriesName: nil,
-                genres: [],
-                publishedYear: "2024",
-                publishedDate: nil,
-                publisher: nil,
-                description: nil,
-                isbn: nil,
-                asin: nil,
-                language: "en",
-                explicit: false
-            ),
-            coverPath: nil,
-            tags: [],
-            audioFiles: [],
-            ebookFile: nil
-        ),
-        userMediaProgress: index % 3 == 0 ? MediaProgress(
-            id: "progress-\(index)",
-            libraryItemId: "book-\(index)",
-            episodeId: nil,
-            duration: 28800,
-            progress: Double.random(in: 0.1...0.9),
-            currentTime: 10000,
-            isFinished: false,
-            hideFromContinueListening: false,
-            lastUpdate: Date(),
-            startedAt: Date(),
-            finishedAt: nil
-        ) : nil,
-        addedAt: Date(),
-        updatedAt: Date()
-    )
 }

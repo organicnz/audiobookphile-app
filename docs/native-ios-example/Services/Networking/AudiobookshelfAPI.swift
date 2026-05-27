@@ -51,7 +51,7 @@ class AudiobookshelfAPI: ObservableObject {
     func login(serverURL: String, username: String, password: String) async throws -> User {
         self.baseURL = serverURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
 
-        let url = URL(string: "\(baseURL)/login")!
+        guard let url = URL(string: "\(baseURL)/login") else { throw APIError.invalidURL }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -110,7 +110,7 @@ class AudiobookshelfAPI: ObservableObject {
 
         print("[API] Refreshing access token...")
 
-        let url = URL(string: "\(baseURL)/auth/refresh")!
+        guard let url = URL(string: "\(baseURL)/auth/refresh") else { throw APIError.invalidURL }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -160,7 +160,7 @@ class AudiobookshelfAPI: ObservableObject {
 
             // Handle 401 - try token refresh
             if httpResponse.statusCode == 401 {
-                try await handleUnauthorized(originalRequest: request, responseType: responseType)
+                return try await handleUnauthorized(originalRequest: request, responseType: responseType)
             }
 
             guard (200...299).contains(httpResponse.statusCode) else {
@@ -211,7 +211,7 @@ class AudiobookshelfAPI: ObservableObject {
 
     /// Get all libraries
     func getLibraries() async throws -> [Library] {
-        let url = URL(string: "\(baseURL)/api/libraries")!
+        guard let url = URL(string: "\(baseURL)/api/libraries") else { throw APIError.invalidURL }
         let request = URLRequest(url: url)
 
         let response: LibrariesResponse = try await executeRequest(request, responseType: LibrariesResponse.self)
@@ -220,7 +220,7 @@ class AudiobookshelfAPI: ObservableObject {
 
     /// Get library items (books)
     func getLibraryItems(libraryId: String, limit: Int = 50, page: Int = 0, sort: String = "addedAt", desc: Bool = true) async throws -> LibraryItemsResponse {
-        var components = URLComponents(string: "\(baseURL)/api/libraries/\(libraryId)/items")!
+        guard var components = URLComponents(string: "\(baseURL)/api/libraries/\(libraryId)/items") else { throw APIError.invalidURL }
         components.queryItems = [
             URLQueryItem(name: "limit", value: "\(limit)"),
             URLQueryItem(name: "page", value: "\(page)"),
@@ -229,19 +229,21 @@ class AudiobookshelfAPI: ObservableObject {
             URLQueryItem(name: "include", value: "progress")
         ]
 
-        let request = URLRequest(url: components.url!)
+        guard let url = components.url else { throw APIError.invalidURL }
+        let request = URLRequest(url: url)
         return try await executeRequest(request, responseType: LibraryItemsResponse.self)
     }
 
     /// Search library
     func searchLibrary(libraryId: String, query: String, limit: Int = 12) async throws -> SearchResponse {
-        var components = URLComponents(string: "\(baseURL)/api/libraries/\(libraryId)/search")!
+        guard var components = URLComponents(string: "\(baseURL)/api/libraries/\(libraryId)/search") else { throw APIError.invalidURL }
         components.queryItems = [
             URLQueryItem(name: "q", value: query),
             URLQueryItem(name: "limit", value: "\(limit)")
         ]
 
-        let request = URLRequest(url: components.url!)
+        guard let url = components.url else { throw APIError.invalidURL }
+        let request = URLRequest(url: url)
         return try await executeRequest(request, responseType: SearchResponse.self)
     }
 
@@ -249,7 +251,7 @@ class AudiobookshelfAPI: ObservableObject {
 
     /// Get single library item
     func getLibraryItem(id: String) async throws -> Book {
-        let url = URL(string: "\(baseURL)/api/items/\(id)?expanded=1&include=progress")!
+        guard let url = URL(string: "\(baseURL)/api/items/\(id)?expanded=1&include=progress") else { throw APIError.invalidURL }
         let request = URLRequest(url: url)
         return try await executeRequest(request, responseType: Book.self)
     }
@@ -258,12 +260,13 @@ class AudiobookshelfAPI: ObservableObject {
 
     /// Start a playback session
     func startPlaybackSession(libraryItemId: String, episodeId: String? = nil) async throws -> PlaybackSession {
-        var url: URL
+        let urlString: String
         if let episodeId = episodeId {
-            url = URL(string: "\(baseURL)/api/items/\(libraryItemId)/play/\(episodeId)")!
+            urlString = "\(baseURL)/api/items/\(libraryItemId)/play/\(episodeId)"
         } else {
-            url = URL(string: "\(baseURL)/api/items/\(libraryItemId)/play")!
+            urlString = "\(baseURL)/api/items/\(libraryItemId)/play"
         }
+        guard let url = URL(string: urlString) else { throw APIError.invalidURL }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -285,7 +288,7 @@ class AudiobookshelfAPI: ObservableObject {
 
     /// Sync playback progress
     func syncProgress(sessionId: String, currentTime: TimeInterval, duration: TimeInterval, timeListened: TimeInterval = 0) async throws {
-        let url = URL(string: "\(baseURL)/api/session/\(sessionId)/sync")!
+        guard let url = URL(string: "\(baseURL)/api/session/\(sessionId)/sync") else { throw APIError.invalidURL }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -310,7 +313,7 @@ class AudiobookshelfAPI: ObservableObject {
 
     /// Close playback session
     func closePlaybackSession(sessionId: String, currentTime: TimeInterval, duration: TimeInterval) async throws {
-        let url = URL(string: "\(baseURL)/api/session/\(sessionId)/close")!
+        guard let url = URL(string: "\(baseURL)/api/session/\(sessionId)/close") else { throw APIError.invalidURL }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -334,7 +337,7 @@ class AudiobookshelfAPI: ObservableObject {
             urlString += "/\(episodeId)"
         }
 
-        let url = URL(string: urlString)!
+        guard let url = URL(string: urlString) else { throw APIError.invalidURL }
         let request = URLRequest(url: url)
 
         do {
@@ -348,7 +351,7 @@ class AudiobookshelfAPI: ObservableObject {
 
     /// Get cover image URL
     func getCoverURL(itemId: String, width: Int = 400) -> URL? {
-        var components = URLComponents(string: "\(baseURL)/api/items/\(itemId)/cover")!
+        guard var components = URLComponents(string: "\(baseURL)/api/items/\(itemId)/cover") else { return nil }
         components.queryItems = [
             URLQueryItem(name: "width", value: "\(width)"),
             URLQueryItem(name: "format", value: "jpeg"),
@@ -399,6 +402,7 @@ struct SearchResponse: Codable {
 
 enum APIError: LocalizedError {
     case invalidResponse
+    case invalidURL
     case authenticationFailed
     case serverError(statusCode: Int)
     case networkError(underlying: Error)
@@ -411,6 +415,8 @@ enum APIError: LocalizedError {
         switch self {
         case .invalidResponse:
             return "Invalid response from server"
+        case .invalidURL:
+            return "Invalid URL constructed"
         case .authenticationFailed:
             return "Authentication failed. Check your credentials."
         case .serverError(let statusCode):

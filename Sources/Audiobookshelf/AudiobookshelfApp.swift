@@ -31,6 +31,16 @@ let logger: Logger = Logger(subsystem: "club.foodshare.audiobookshelf", category
 
     /* SKIP @bridge */public func onInit() {
         logger.debug("onInit")
+        
+        // Configure global URLCache for AsyncImage and network requests
+        let memoryCapacity = 50 * 1024 * 1024 // 50 MB
+        let diskCapacity = 200 * 1024 * 1024 // 200 MB
+        #if os(iOS)
+        URLCache.shared = URLCache(memoryCapacity: memoryCapacity, diskCapacity: diskCapacity, diskPath: "audiobookshelf_images")
+        #else
+        // Configure for Skip if needed, but URLCache.shared works natively on most platforms.
+        URLCache.shared = URLCache(memoryCapacity: memoryCapacity, diskCapacity: diskCapacity, diskPath: "audiobookshelf_images")
+        #endif
     }
 
     /* SKIP @bridge */public func onLaunch() {

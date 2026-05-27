@@ -165,6 +165,7 @@ struct MiniPlayerView: View {
                     .font(.title3)
                     .foregroundStyle(.white.opacity(0.8))
             }
+            .accessibilityLabel("Skip backward 10 seconds")
 
             // Play/Pause
             Button {
@@ -188,6 +189,7 @@ struct MiniPlayerView: View {
                     }
                 }
             }
+            .accessibilityLabel(audioPlayer.isPlaying ? "Pause" : "Play")
 
             // Skip forward
             Button {
@@ -200,6 +202,7 @@ struct MiniPlayerView: View {
                     .font(.title3)
                     .foregroundStyle(.white.opacity(0.8))
             }
+            .accessibilityLabel("Skip forward 30 seconds")
         }
     }
 

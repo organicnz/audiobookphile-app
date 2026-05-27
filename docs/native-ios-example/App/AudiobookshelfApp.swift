@@ -117,7 +117,7 @@ struct ContentView: View {
 
 struct MainTabView: View {
     @EnvironmentObject var appState: AppState
-    @StateObject private var audioPlayer = AudioPlayerService.shared
+    @ObservedObject private var audioPlayer = AudioPlayerService.shared
     @State private var selectedTab = 0
     @State private var showFullPlayer = false
 

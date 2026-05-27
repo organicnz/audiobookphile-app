@@ -7,9 +7,10 @@
 //
 
 import SwiftUI
+import Observation
 
 public struct SettingsView: View {
-    @StateObject var viewModel = SettingsViewModel()
+    @State var viewModel = SettingsViewModel()
     @Environment(\.dismiss) var dismiss
 
     public init() {}
@@ -55,6 +56,18 @@ public struct SettingsView: View {
                     .padding(.horizontal, 16)
                     .padding(.top, 16)
                 }
+                .onChange(of: viewModel.autoSleepTimer) { oldValue, newValue in
+                    UserDefaults.standard.set(newValue, forKey: "autoSleepTimer")
+                }
+                .onChange(of: viewModel.autoResume) { oldValue, newValue in
+                    UserDefaults.standard.set(newValue, forKey: "autoResume")
+                }
+                .onChange(of: viewModel.hapticsEnabled) { oldValue, newValue in
+                    UserDefaults.standard.set(newValue, forKey: "hapticsEnabled")
+                }
+                .onChange(of: viewModel.lockOrientation) { oldValue, newValue in
+                    UserDefaults.standard.set(newValue, forKey: "lockOrientation")
+                }
             }
             .navigationTitle("Settings")
             #if os(iOS) || SKIP
@@ -65,7 +78,7 @@ public struct SettingsView: View {
                     Button("Done") {
                         dismiss()
                     }
-                    .foregroundStyle(.cyan)
+                    .foregroundStyle(Color.appPrimary)
                 }
             }
         }
@@ -79,7 +92,7 @@ public struct SettingsView: View {
                 // Avatar
                 Circle()
                     .fill(LinearGradient(
-                        colors: [.blue, .purple],
+                        colors: [.appPrimary, .appSecondary],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ))
@@ -110,30 +123,48 @@ public struct SettingsView: View {
     private var playbackSection: some View {
         SettingsSection(title: "Playback") {
             // Jump forward time
-            SettingsRow(
-                icon: "goforward",
-                title: "Jump Forward",
-                value: "\(viewModel.jumpForwardTime)s"
-            ) {
-                // Action
+            Menu {
+                ForEach([5, 10, 15, 30, 45, 60], id: \.self) { seconds in
+                    Button("\(seconds) seconds") {
+                        viewModel.saveJumpForwardTime(seconds)
+                    }
+                }
+            } label: {
+                SettingsRow(
+                    icon: "goforward",
+                    title: "Jump Forward",
+                    value: "\(viewModel.jumpForwardTime)s"
+                ) {}
             }
 
             // Jump backward time
-            SettingsRow(
-                icon: "gobackward",
-                title: "Jump Backward",
-                value: "\(viewModel.jumpBackwardTime)s"
-            ) {
-                // Action
+            Menu {
+                ForEach([5, 10, 15, 30, 45, 60], id: \.self) { seconds in
+                    Button("\(seconds) seconds") {
+                        viewModel.saveJumpBackwardTime(seconds)
+                    }
+                }
+            } label: {
+                SettingsRow(
+                    icon: "gobackward",
+                    title: "Jump Backward",
+                    value: "\(viewModel.jumpBackwardTime)s"
+                ) {}
             }
 
             // Playback speed
-            SettingsRow(
-                icon: "speedometer",
-                title: "Default Speed",
-                value: "\(viewModel.defaultPlaybackSpeed)x"
-            ) {
-                // Action
+            Menu {
+                ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0], id: \.self) { speed in
+                    Button(String(format: "%.2fx", speed)) {
+                        viewModel.saveDefaultPlaybackSpeed(speed)
+                    }
+                }
+            } label: {
+                SettingsRow(
+                    icon: "speedometer",
+                    title: "Default Speed",
+                    value: String(format: "%.1fx", viewModel.defaultPlaybackSpeed)
+                ) {}
             }
 
             Divider().background(.white.opacity(0.2))
@@ -183,12 +214,18 @@ public struct SettingsView: View {
     private var appSection: some View {
         SettingsSection(title: "App") {
             // Theme
-            SettingsRow(
-                icon: "paintpalette",
-                title: "Theme",
-                value: "System"
-            ) {
-                // Action
+            Menu {
+                ForEach(["System", "Dark", "Light"], id: \.self) { theme in
+                    Button(theme) {
+                        viewModel.saveTheme(theme)
+                    }
+                }
+            } label: {
+                SettingsRow(
+                    icon: "paintpalette",
+                    title: "Theme",
+                    value: viewModel.selectedTheme
+                ) {}
             }
 
             // Haptics
@@ -250,19 +287,21 @@ public struct SettingsView: View {
 
 // MARK: - ViewModel
 
+@Observable
 @MainActor
-public class SettingsViewModel: ObservableObject {
-    @Published public var currentUser: User?
-    @Published public var jumpForwardTime = 30
-    @Published public var jumpBackwardTime = 10
-    @Published public var defaultPlaybackSpeed = 1.0
-    @Published public var autoSleepTimer = false
-    @Published public var autoResume = true
-    @Published public var streamingPolicy: StreamingPolicy = .always
-    @Published public var downloadPolicy: DownloadPolicy = .wifiOnly
-    @Published public var hapticsEnabled = true
-    @Published public var lockOrientation = false
-    @Published public var serverURL = ""
+public class SettingsViewModel {
+    public var currentUser: User?
+    public var jumpForwardTime = 30
+    public var jumpBackwardTime = 10
+    public var defaultPlaybackSpeed = 1.0
+    public var autoSleepTimer = false
+    public var autoResume = true
+    public var streamingPolicy: StreamingPolicy = .always
+    public var downloadPolicy: DownloadPolicy = .wifiOnly
+    public var hapticsEnabled = true
+    public var lockOrientation = false
+    public var selectedTheme = "System"
+    public var serverURL = ""
 
     public init() {
         loadSettings()
@@ -284,7 +323,28 @@ public class SettingsViewModel: ObservableObject {
         autoResume = defaults.bool(forKey: "autoResume")
         hapticsEnabled = defaults.bool(forKey: "hapticsEnabled")
         lockOrientation = defaults.bool(forKey: "lockOrientation")
+        selectedTheme = defaults.string(forKey: "selectedTheme") ?? "System"
         serverURL = defaults.string(forKey: "serverURL") ?? ""
+    }
+
+    public func saveJumpForwardTime(_ val: Int) {
+        jumpForwardTime = val
+        UserDefaults.standard.set(val, forKey: "jumpForwardTime")
+    }
+
+    public func saveJumpBackwardTime(_ val: Int) {
+        jumpBackwardTime = val
+        UserDefaults.standard.set(val, forKey: "jumpBackwardTime")
+    }
+
+    public func saveDefaultPlaybackSpeed(_ val: Double) {
+        defaultPlaybackSpeed = val
+        UserDefaults.standard.set(val, forKey: "defaultPlaybackSpeed")
+    }
+
+    public func saveTheme(_ val: String) {
+        selectedTheme = val
+        UserDefaults.standard.set(val, forKey: "selectedTheme")
     }
 
     public func logout() {
@@ -339,7 +399,7 @@ public struct SettingsRow: View {
         Button(action: action) {
             HStack {
                 Image(systemName: icon)
-                    .foregroundStyle(.cyan)
+                    .foregroundStyle(Color.appPrimary)
                     .frame(width: 28)
 
                 Text(title)
@@ -373,7 +433,7 @@ public struct SettingsToggleRow: View {
     public var body: some View {
         HStack {
             Image(systemName: icon)
-                .foregroundStyle(.cyan)
+                .foregroundStyle(Color.appPrimary)
                 .frame(width: 28)
 
             Text(title)
@@ -383,7 +443,7 @@ public struct SettingsToggleRow: View {
 
             Toggle("", isOn: $isOn)
                 .labelsHidden()
-                .tint(.cyan)
+                .tint(.appPrimary)
         }
         .padding(12)
     }

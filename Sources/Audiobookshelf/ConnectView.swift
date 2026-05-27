@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import Observation
 
 public struct RecentServer: Codable, Identifiable {
     public let id: String
@@ -22,10 +23,10 @@ public struct RecentServer: Codable, Identifiable {
 
 public struct ConnectView: View {
     @State var appState = AppState.shared
-    @StateObject var viewModel = ConnectViewModel()
-    @State var serverURL = ""
-    @State var username = ""
-    @State var password = ""
+    @State var viewModel = ConnectViewModel()
+    @State var serverURL = "https://audiobookshelf-app.vercel.app"
+    @State var username = "organic"
+    @State var password = "Audiobookshelf123!"
     @State var showPassword = false
     @State var isAnimating = false
 
@@ -37,7 +38,7 @@ public struct ConnectView: View {
             AnimatedGradientBackground()
 
             // Particle effects
-            GlassParticlesView(particleCount: 40, colors: [.white.opacity(0.3), .cyan.opacity(0.2)])
+            GlassParticlesView(particleCount: 20, colors: [.white.opacity(0.15), .appPrimary.opacity(0.1)])
 
             ScrollView {
                 VStack(spacing: 32) {
@@ -68,6 +69,25 @@ public struct ConnectView: View {
             withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
                 isAnimating = true
             }
+            // Auto login in simulator/debug for rapid testing
+            #if targetEnvironment(simulator) || DEBUG
+            Task {
+                try? await Task.sleep(for: .seconds(1.0))
+                if !serverURL.isEmpty && !username.isEmpty && !password.isEmpty && !appState.isAuthenticated {
+                    do {
+                        try await appState.login(
+                            serverURL: serverURL,
+                            username: username,
+                            password: password
+                        )
+                        viewModel.saveRecentServer(address: serverURL, username: username)
+                    } catch {
+                        viewModel.errorMessage = error.localizedDescription
+                        viewModel.showError = true
+                    }
+                }
+            }
+            #endif
         }
     }
 
@@ -76,23 +96,12 @@ public struct ConnectView: View {
     private var headerSection: some View {
         VStack(spacing: 16) {
             // App icon
-            ZStack {
-                Circle()
-                    .fill(.ultraThinMaterial)
-                    .frame(width: 120, height: 120)
-
-                Image(systemName: "books.vertical.fill")
-                    .font(.system(size: 50))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.cyan, .blue, .purple],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .scaleEffect(isAnimating ? 1.05 : 1.0)
-            }
-            .shadow(color: .cyan.opacity(0.3), radius: 20)
+            Image("Logo", bundle: .module)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 120, height: 120)
+                .scaleEffect(isAnimating ? 1.05 : 1.0)
+                .shadow(color: .appPrimary.opacity(0.3), radius: 20)
 
             // Title
             Text("Audiobookshelf")
@@ -162,7 +171,7 @@ public struct ConnectView: View {
                 .padding()
                 .foregroundStyle(.white)
                 .background(
-                    LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)
+                    LinearGradient(colors: [.appPrimary, .appSecondary], startPoint: .leading, endPoint: .trailing)
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             }
@@ -210,12 +219,13 @@ public struct ConnectView: View {
 
 // MARK: - ViewModel
 
+@Observable
 @MainActor
-class ConnectViewModel: ObservableObject {
-    @Published var isLoading = false
-    @Published var showError = false
-    @Published var errorMessage = ""
-    @Published var recentServers: [RecentServer] = []
+class ConnectViewModel {
+    var isLoading = false
+    var showError = false
+    var errorMessage = ""
+    var recentServers: [RecentServer] = []
 
     init() {
         loadRecentServers()
@@ -323,7 +333,7 @@ struct RecentServerRow: View {
         Button(action: onTap) {
             HStack {
                 Image(systemName: "server.rack")
-                    .foregroundStyle(.cyan)
+                    .foregroundStyle(Color.appPrimary)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(server.address)
@@ -357,9 +367,9 @@ public struct AnimatedGradientBackground: View {
     public var body: some View {
         LinearGradient(
             colors: [
-                Color(red: 0.1, green: 0.1, blue: 0.3),
-                Color(red: 0.2, green: 0.1, blue: 0.4),
-                Color(red: 0.1, green: 0.2, blue: 0.3)
+                Color(red: 0.07, green: 0.07, blue: 0.07),
+                Color(red: 0.12, green: 0.12, blue: 0.12),
+                Color(red: 0.09, green: 0.09, blue: 0.09)
             ],
             startPoint: animateGradient ? .topLeading : .bottomLeading,
             endPoint: animateGradient ? .bottomTrailing : .topTrailing
@@ -385,7 +395,7 @@ public struct LoadingView: View {
             AnimatedGradientBackground()
             VStack(spacing: 20) {
                 ProgressView()
-                    .tint(.cyan)
+                    .tint(.appPrimary)
                     .scaleEffect(1.5)
 
                 Text(message)

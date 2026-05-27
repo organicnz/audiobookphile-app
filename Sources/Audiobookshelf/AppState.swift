@@ -20,6 +20,15 @@ public class AppState {
     public var currentUser: User?
     public var showingPlayer = false
     public var selectedLibraryId: String?
+    public var selectedTab = 0
+    
+    // Real API loaded libraries
+    public var libraries: [Library] = []
+    public var currentLibraryId: String?
+
+    public var currentLibrary: Library? {
+        libraries.first { $0.id == currentLibraryId } ?? libraries.first
+    }
 
     public init() {
         checkAuthentication()
@@ -37,16 +46,47 @@ public class AppState {
             )
             isAuthenticated = true
 
-            // Connect socket
+            // Connect socket (no-op)
             SocketService.shared.connect(
                 serverAddress: credentials.serverURL,
                 token: credentials.token
             )
+            
+            // Asynchronously validate token by fetching libraries
+            Task {
+                await fetchLibraries()
+            }
         } else {
             isAuthenticated = false
         }
 
         isLoading = false
+    }
+
+    public func fetchLibraries() async {
+        do {
+            let fetched = try await AudiobookshelfAPI.shared.getLibraries()
+            self.libraries = fetched
+            if self.currentLibraryId == nil {
+                self.currentLibraryId = fetched.first?.id
+            }
+            print("[AppState] Successfully fetched \(fetched.count) libraries.")
+        } catch {
+            print("[AppState] Failed to fetch libraries: \(error)")
+            // If unauthorized/authenticated failed, log out
+            if let apiError = error as? APIError {
+                switch apiError {
+                case .authenticationFailed, .sessionExpired:
+                    logout()
+                case .serverError(let statusCode):
+                    if statusCode == 401 {
+                        logout()
+                    }
+                default:
+                    break
+                }
+            }
+        }
     }
 
     public func login(serverURL: String, username: String, password: String) async throws {
@@ -62,11 +102,14 @@ public class AppState {
             currentUser = user
             isAuthenticated = true
 
-            // Connect socket
+            // Connect socket (no-op)
             SocketService.shared.connect(
                 serverAddress: serverURL,
                 token: user.token
             )
+            
+            // Fetch libraries immediately
+            await fetchLibraries()
         } catch {
             isAuthenticated = false
             isLoading = false
@@ -81,5 +124,8 @@ public class AppState {
         SocketService.shared.disconnect()
         isAuthenticated = false
         currentUser = nil
+        libraries = []
+        currentLibraryId = nil
     }
 }
+

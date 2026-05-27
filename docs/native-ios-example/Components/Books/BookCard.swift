@@ -15,7 +15,7 @@ struct BookCard: View {
     let onTap: () -> Void
     
     @State private var coverColor: Color = .gray
-    @StateObject private var proMotion = ProMotionManager.shared
+    @ObservedObject private var proMotion = ProMotionManager.shared
     
     var body: some View {
         Button(action: {
@@ -77,7 +77,7 @@ struct BookCard: View {
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 .clipped()
-                .cornerRadius(12)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
                 .shadow(
                     color: coverColor.opacity(0.4),
                     radius: 15,
@@ -186,7 +186,7 @@ struct GlassBookCard: View {
                     Color.gray.opacity(0.3)
                 }
                 .frame(width: 60, height: 60)
-                .cornerRadius(8)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
                 
                 // Info
                 VStack(alignment: .leading, spacing: 6) {

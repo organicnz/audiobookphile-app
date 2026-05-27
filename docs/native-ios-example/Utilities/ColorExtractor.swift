@@ -200,7 +200,7 @@ extension View {
             .font(.title)
             .padding()
             .background(Color.blue.opacity(0.2))
-            .cornerRadius(10)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
 
         HStack(spacing: 10) {
             // Simulated extracted colors

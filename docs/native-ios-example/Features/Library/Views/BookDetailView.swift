@@ -33,12 +33,13 @@ struct BookDetailView: View {
                     actionButtons
 
                     // Description
-                    if let description = book.media?.metadata.description {
+                    if let description = book.description {
                         descriptionSection(description)
                     }
 
                     // Chapters
-                    if let chapters = book.media?.chapters, !chapters.isEmpty {
+                    let chapters = book.chapters
+                    if !chapters.isEmpty {
                         chaptersSection(chapters)
                     }
 
@@ -135,12 +136,12 @@ struct BookDetailView: View {
 
     private var infoSection: some View {
         VStack(spacing: 8) {
-            Text(book.media?.metadata.title ?? "Unknown Title")
+            Text(book.title)
                 .font(.title2.weight(.bold))
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.center)
 
-            if let author = book.media?.metadata.authorName {
+            if let author = book.author {
                 Text("by \(author)")
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.8))
@@ -148,11 +149,10 @@ struct BookDetailView: View {
 
             // Duration and progress
             HStack(spacing: 16) {
-                if let duration = book.media?.duration {
-                    Label(formatDuration(duration), systemImage: "clock")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.7))
-                }
+                let duration = book.duration
+                Label(formatDuration(duration), systemImage: "clock")
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.7))
 
                 if let progress = book.userMediaProgress {
                     Label("\(Int(progress.progress * 100))%", systemImage: "chart.bar")
@@ -340,27 +340,46 @@ struct ChapterRow: View {
 
 extension Book {
     static var preview: Book {
-        Book(
+        let metadata = BookMetadata(
+            title: "The Martian",
+            subtitle: nil,
+            authorName: "Andy Weir",
+            narratorName: "R.C. Bray",
+            seriesName: nil,
+            genres: ["Science Fiction"],
+            publishedYear: "2014",
+            publishedDate: nil,
+            publisher: "Crown",
+            description: "Six days ago, astronaut Mark Watney became one of the first people to walk on Mars. Now, he's sure he'll be the first person to die there.",
+            isbn: nil,
+            asin: nil,
+            language: "English",
+            explicit: false
+        )
+        let media = BookMedia(
+            libraryFiles: [],
+            chapters: [
+                Chapter(id: 1, title: "Chapter 1", start: 0, end: 3600),
+                Chapter(id: 2, title: "Chapter 2", start: 3600, end: 7200)
+            ],
+            duration: 7200,
+            size: 1000000,
+            metadata: metadata,
+            coverPath: nil,
+            tags: [],
+            audioFiles: [],
+            ebookFile: nil
+        )
+        return Book(
             id: "preview-book",
-            ino: "123",
             libraryId: "lib1",
             folderId: "folder1",
             path: "/books/preview",
             relPath: "preview",
-            isFile: false,
-            mtimeMs: 1000000,
-            ctimeMs: 1000000,
-            birthtimeMs: 1000000,
+            media: media,
+            userMediaProgress: nil,
             addedAt: Date(),
-            updatedAt: Date(),
-            lastScan: nil,
-            scanVersion: nil,
-            isMissing: false,
-            isInvalid: false,
-            mediaType: "book",
-            media: nil,
-            libraryFiles: nil,
-            userMediaProgress: nil
+            updatedAt: Date()
         )
     }
 }

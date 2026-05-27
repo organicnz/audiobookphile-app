@@ -16,7 +16,7 @@ struct ParallaxScrollView<Background: View, Content: View, Foreground: View>: Vi
     
     // Scroll offset tracking
     @State private var scrollOffset: CGFloat = 0
-    @StateObject private var proMotion = ProMotionManager.shared
+    @ObservedObject private var proMotion = ProMotionManager.shared
     
     // Parallax factors (how fast each layer moves)
     var backgroundSpeed: CGFloat = 0.3
@@ -107,18 +107,10 @@ struct SimpleParallaxView<Content: View>: View {
         }
     }
     
-    @StateObject private var proMotion = ProMotionManager.shared
+    @ObservedObject private var proMotion = ProMotionManager.shared
 }
 
-// MARK: - Scroll Offset Preference Key
 
-struct ScrollOffsetPreferenceKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-    }
-}
 
 // MARK: - Parallax Modifier
 

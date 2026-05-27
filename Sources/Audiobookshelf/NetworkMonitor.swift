@@ -6,7 +6,9 @@
 //
 
 import Foundation
+#if !SKIP && !os(Android)
 import Network
+#endif
 import SwiftUI
 
 /// Monitors network connectivity and connection type
@@ -29,7 +31,9 @@ public class NetworkMonitor: ObservableObject {
     /// Whether the device has cellular connectivity
     @Published public var hasCellular = false
 
+    #if !SKIP && !os(Android)
     private let monitor = NWPathMonitor()
+    #endif
     private let queue = DispatchQueue(label: "NetworkMonitor", qos: .utility)
 
     public enum ConnectionType: String {
@@ -45,14 +49,17 @@ public class NetworkMonitor: ObservableObject {
     }
 
     private func startMonitoring() {
+        #if !SKIP && !os(Android)
         monitor.pathUpdateHandler = { [weak self] path in
             Task { @MainActor in
                 self?.handlePathUpdate(path)
             }
         }
         monitor.start(queue: queue)
+        #endif
     }
 
+    #if !SKIP && !os(Android)
     private func handlePathUpdate(_ path: NWPath) {
         isConnected = path.status == .satisfied
         isMetered = path.isExpensive
@@ -73,6 +80,7 @@ public class NetworkMonitor: ObservableObject {
 
         print("[NetworkMonitor] Status: \(isConnected ? "Connected" : "Disconnected"), Type: \(connectionType.rawValue), Metered: \(isMetered)")
     }
+    #endif
 
     /// Check if streaming is allowed based on settings
     public func canStream(streamingPolicy: StreamingPolicy) -> Bool {
@@ -99,7 +107,9 @@ public class NetworkMonitor: ObservableObject {
     }
 
     deinit {
+        #if !SKIP && !os(Android)
         monitor.cancel()
+        #endif
     }
 }
 
@@ -136,7 +146,7 @@ public enum DownloadPolicy: String, Codable, CaseIterable {
 // MARK: - SwiftUI View
 
 public struct NetworkStatusView: View {
-    @StateObject var networkMonitor = NetworkMonitor.shared
+    @ObservedObject var networkMonitor = NetworkMonitor.shared
 
     public init() {}
 

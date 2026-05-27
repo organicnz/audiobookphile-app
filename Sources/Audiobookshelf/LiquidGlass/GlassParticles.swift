@@ -10,18 +10,18 @@ import SwiftUI
 /// Particle system for ambient floating particles behind glass
 struct GlassParticlesView: View {
     @State var particles: [Particle] = []
-    @StateObject var proMotion = ProMotionManager.shared
+    @ObservedObject var proMotion = ProMotionManager.shared
     
     let particleCount: Int
     let colors: [Color]
     
-    init(particleCount: Int = 50, colors: [Color] = [.white, .blue, .purple]) {
+    init(particleCount: Int = 20, colors: [Color] = [.white, .appPrimary, .appAccent]) {
         self.particleCount = particleCount
         self.colors = colors
     }
     
     var body: some View {
-        TimelineView(.animation) { timeline in
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { timeline in
             Canvas { context, size in
                 let date = timeline.date.timeIntervalSinceReferenceDate
                 
@@ -108,7 +108,7 @@ struct Particle {
     ZStack {
         // Background gradient
         LinearGradient(
-            colors: [.indigo, .purple, .pink],
+            colors: [.black, .appBackground, .black],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
@@ -117,7 +117,7 @@ struct Particle {
         // Particles
         GlassParticlesView(
             particleCount: 100,
-            colors: [.white, .cyan, .blue]
+            colors: [.white, .appPrimary, .appAccent]
         )
         
         // Foreground glass card

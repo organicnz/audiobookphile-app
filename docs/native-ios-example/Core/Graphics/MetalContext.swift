@@ -8,6 +8,7 @@
 import Metal
 import MetalKit
 import UIKit
+import SwiftUI
 
 /// Metal rendering context for GPU-accelerated effects
 @MainActor
@@ -159,6 +160,7 @@ class MetalContext: ObservableObject {
 
 // MARK: - Metal Renderer Protocol
 
+@MainActor
 protocol MetalRenderable {
     /// Render using Metal
     func render(in context: MetalContext, commandBuffer: MTLCommandBuffer) -> MTLTexture?
@@ -167,11 +169,13 @@ protocol MetalRenderable {
 // MARK: - Blur Renderer
 
 /// GPU-accelerated blur using Metal
+@MainActor
 class MetalBlurRenderer: MetalRenderable {
     private var pipelineState: MTLComputePipelineState?
     private let context: MetalContext
     
-    init(context: MetalContext = .shared) {
+    @MainActor
+    init(context: MetalContext) {
         self.context = context
         // In a real implementation, you'd create the blur compute pipeline here
         // self.pipelineState = context.makeComputePipelineState(functionName: "gaussian_blur")
@@ -257,18 +261,18 @@ extension View {
                 
                 GlassCard {
                     VStack(alignment: .leading, spacing: 12) {
-                        InfoRow(
+                        MetalInfoRow(
                             label: "Device",
                             value: MetalContext.shared.deviceName
                         )
                         
                         if let device = MetalContext.shared.device {
-                            InfoRow(
+                            MetalInfoRow(
                                 label: "Max Threads",
                                 value: "\(device.maxThreadsPerThreadgroup.width)×\(device.maxThreadsPerThreadgroup.height)"
                             )
                             
-                            InfoRow(
+                            MetalInfoRow(
                                 label: "Family",
                                 value: device.supportsFamily(.apple7) ? "Apple7+" : "Apple6+"
                             )
@@ -300,7 +304,7 @@ extension View {
     }
 }
 
-struct InfoRow: View {
+struct MetalInfoRow: View {
     let label: String
     let value: String
     

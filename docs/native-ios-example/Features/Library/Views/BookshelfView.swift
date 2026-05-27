@@ -11,7 +11,7 @@ import SwiftUI
 /// Main bookshelf/library view
 struct BookshelfView: View {
     @StateObject private var viewModel = BookshelfViewModel()
-    @StateObject private var proMotion = ProMotionManager.shared
+    @ObservedObject private var proMotion = ProMotionManager.shared
     @State private var showSearch = false
     @State private var searchText = ""
     @State private var scrollOffset: CGFloat = 0
@@ -256,7 +256,7 @@ struct BookshelfView: View {
                 ScrollView {
                     LazyVStack(spacing: 12) {
                         ForEach(viewModel.searchResults(for: searchText)) { book in
-                            GlassBookCard(book: book) {
+                            BookCard(book: book, aspectRatio: viewModel.coverAspectRatio) {
                                 viewModel.selectBook(book)
                                 showSearch = false
                             }
@@ -322,7 +322,7 @@ struct ContinueListeningCard: View {
                     Color.gray.opacity(0.3)
                 }
                 .frame(width: 160, height: 160)
-                .cornerRadius(12)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
                 .shadow(radius: 10)
                 
                 // Title
@@ -418,28 +418,12 @@ class BookshelfViewModel: ObservableObject {
     func showStats() {}
 }
 
-// MARK: - Book Detail View (Placeholder)
 
-struct BookDetailView: View {
-    let book: Book
-    
-    var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack {
-                    Text(book.title)
-                        .font(.title)
-                    // Full book detail UI would go here
-                }
-            }
-        }
-    }
-}
 
 // MARK: - Preview
 
 #Preview("Bookshelf") {
-    NavigationView {
+    NavigationStack {
         BookshelfView()
     }
     .preferredColorScheme(.dark)

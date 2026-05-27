@@ -190,7 +190,7 @@ struct StatusPill: View {
 // MARK: - Sync Status Badge
 
 struct SyncStatusBadge: View {
-    let status: AudioPlayerService.SyncStatus
+    let status: SyncStatus
 
     var body: some View {
         HStack(spacing: 6) {

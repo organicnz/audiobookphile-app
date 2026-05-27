@@ -7,6 +7,10 @@
 //
 
 import SwiftUI
+import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 public enum DownloadStatus: Int, Codable {
     case pending = 0
@@ -24,58 +28,365 @@ public struct Download: Identifiable, Codable {
     public var progress: Double
     public var totalSize: Int64
     public var status: DownloadStatus
+    public var audioTracks: [String]
 
-    public init(libraryItemId: String, title: String, author: String, progress: Double, totalSize: Int64, status: DownloadStatus) {
+    public init(libraryItemId: String, title: String, author: String, progress: Double, totalSize: Int64, status: DownloadStatus, audioTracks: [String] = []) {
         self.libraryItemId = libraryItemId
         self.title = title
         self.author = author
         self.progress = progress
         self.totalSize = totalSize
         self.status = status
+        self.audioTracks = audioTracks
     }
 }
 
 @MainActor
-public class DownloadService: ObservableObject {
+public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDelegate {
     public static let shared = DownloadService()
 
     @Published public var downloads: [Download] = []
     @Published public var activeDownloads: [String: Double] = [:]
     @Published public var downloadQueue: [String] = []
+    
+    private var activeBookId: String?
+    private var activeTrackIndex: Int = 0
+    private var activeDownloadTask: URLSessionDownloadTask?
+    
+    private var trackPathsMap: [String: [String]] = [:]
+    private var trackSizes: [String: [Int64]] = [:]
+    
+    private let fm = FileManager.default
+    
+    private var downloadsDirectory: URL {
+        let paths = fm.urls(for: .documentDirectory, in: .userDomainMask)
+        return paths[0].appendingPathComponent("Downloads", isDirectory: true)
+    }
 
-    private init() {
-        // Generate mock data for demonstration
-        downloads = [
-            Download(
-                libraryItemId: "book-1",
-                title: "The Midnight Library",
-                author: "Matt Haig",
-                progress: 1.0,
-                totalSize: 450000000,
-                status: .completed
-            ),
-            Download(
-                libraryItemId: "book-2",
-                title: "Project Hail Mary",
-                author: "Andy Weir",
-                progress: 0.65,
-                totalSize: 720000000,
-                status: .downloading
+    private override init() {
+        super.init()
+        createDownloadsDirectory()
+        loadDownloads()
+    }
+    
+    private func createDownloadsDirectory() {
+        try? fm.createDirectory(at: downloadsDirectory, withIntermediateDirectories: true)
+    }
+
+    public func downloadBook(_ book: Book) async {
+        if downloads.contains(where: { $0.libraryItemId == book.id && $0.status == .completed }) {
+            return
+        }
+        if downloadQueue.contains(book.id) || activeBookId == book.id {
+            return
+        }
+        
+        do {
+            print("[Download] Requesting playback session to retrieve direct track URLs for: \(book.title)")
+            let session = try await AudiobookshelfAPI.shared.startPlaybackSession(libraryItemId: book.id)
+            let tracks = session.audioTracks
+            guard !tracks.isEmpty else {
+                print("[Download] Error: no audio tracks found for \(book.title)")
+                return
+            }
+            
+            Task {
+                try? await AudiobookshelfAPI.shared.closePlaybackSession(
+                    sessionId: session.id,
+                    currentTime: 0,
+                    duration: session.duration
+                )
+            }
+            
+            let trackPaths = tracks.map { $0.contentUrl }
+            let totalSize = book.media.size > 0 ? book.media.size : Int64(session.duration * 32000 / 8)
+            
+            let download = Download(
+                libraryItemId: book.id,
+                title: book.title,
+                author: book.author ?? "Unknown Author",
+                progress: 0.0,
+                totalSize: totalSize,
+                status: .pending,
+                audioTracks: trackPaths
             )
-        ]
-        activeDownloads = ["book-2": 0.65]
+            
+            if let index = downloads.firstIndex(where: { $0.libraryItemId == book.id }) {
+                downloads[index] = download
+            } else {
+                downloads.append(download)
+            }
+            
+            saveDownloadsIndex()
+            
+            downloadQueue.append(book.id)
+            trackPathsMap[book.id] = trackPaths
+            
+            processQueue()
+        } catch {
+            print("[Download] Failed to start download for \(book.title): \(error)")
+        }
     }
 
     public func cancelDownload(bookId: String) {
+        if activeBookId == bookId {
+            activeDownloadTask?.cancel()
+            activeDownloadTask = nil
+            activeBookId = nil
+        }
+        
+        downloadQueue.removeAll { $0 == bookId }
         downloads.removeAll { $0.libraryItemId == bookId }
         activeDownloads.removeValue(forKey: bookId)
-        downloadQueue.removeAll { $0 == bookId }
+        
+        saveDownloadsIndex()
+        processQueue()
     }
 
     public func deleteDownload(bookId: String) throws {
+        cancelDownload(bookId: bookId)
+        
+        let bookDir = downloadsDirectory.appendingPathComponent(bookId)
+        try? fm.removeItem(at: bookDir)
+        
         downloads.removeAll { $0.libraryItemId == bookId }
+        saveDownloadsIndex()
+    }
+    
+    private func processQueue() {
+        guard activeBookId == nil, !downloadQueue.isEmpty else { return }
+        
+        let nextBookId = downloadQueue.removeFirst()
+        activeBookId = nextBookId
+        activeTrackIndex = 0
+        
+        if let paths = trackPathsMap[nextBookId] {
+            trackSizes[nextBookId] = Array(repeating: 0, count: paths.count)
+            downloadNextTrack()
+        } else if let index = downloads.firstIndex(where: { $0.libraryItemId == nextBookId }) {
+            let paths = downloads[index].audioTracks
+            if !paths.isEmpty {
+                trackPathsMap[nextBookId] = paths
+                trackSizes[nextBookId] = Array(repeating: 0, count: paths.count)
+                downloadNextTrack()
+            } else {
+                print("[Download] Missing tracks for book \(nextBookId)")
+                activeBookId = nil
+                processQueue()
+            }
+        }
+    }
+    
+    private func downloadNextTrack() {
+        guard let bookId = activeBookId,
+              let paths = trackPathsMap[bookId],
+              activeTrackIndex < paths.count else {
+            return
+        }
+        
+        let trackPath = paths[activeTrackIndex]
+        let baseURL = AudiobookshelfAPI.shared.baseURL
+        let token = AudiobookshelfAPI.shared.accessToken
+        
+        let fullPath: String
+        if trackPath.hasPrefix("http") {
+            fullPath = trackPath
+        } else {
+            fullPath = baseURL + (trackPath.hasPrefix("/") ? "" : "/") + trackPath
+        }
+        
+        guard var components = URLComponents(string: fullPath) else { return }
+        var queryItems = components.queryItems ?? []
+        if !queryItems.contains(where: { $0.name == "token" }) {
+            queryItems.append(URLQueryItem(name: "token", value: token))
+        }
+        components.queryItems = queryItems
+        
+        guard let url = components.url else { return }
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        
+        let session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
+        let task = session.downloadTask(with: request)
+        self.activeDownloadTask = task
+        
+        if let index = downloads.firstIndex(where: { $0.libraryItemId == bookId }) {
+            downloads[index].status = .downloading
+        }
+        activeDownloads[bookId] = 0.0
+        task.resume()
+    }
+    
+    private func handleActiveDownloadFailed(error: Error) {
+        guard let bookId = activeBookId else { return }
+        
+        if let index = downloads.firstIndex(where: { $0.libraryItemId == bookId }) {
+            downloads[index].status = .failed
+            downloads[index].progress = 0.0
+        }
         activeDownloads.removeValue(forKey: bookId)
-        downloadQueue.removeAll { $0 == bookId }
+        
+        activeBookId = nil
+        activeDownloadTask = nil
+        saveDownloadsIndex()
+        processQueue()
+    }
+    
+    private func fileExtension(for mimeType: String, urlPath: String) -> String {
+        if mimeType.contains("audio/mpeg") || mimeType.contains("mp3") {
+            return "mp3"
+        } else if mimeType.contains("audio/x-m4a") || mimeType.contains("m4a") || mimeType.contains("audio/mp4") {
+            return "m4a"
+        } else if mimeType.contains("audio/ogg") || mimeType.contains("ogg") {
+            return "ogg"
+        } else if mimeType.contains("audio/flac") || mimeType.contains("flac") {
+            return "flac"
+        }
+        let ext = URL(fileURLWithPath: urlPath).pathExtension
+        return ext.isEmpty ? "m4a" : ext
+    }
+    
+    private func loadDownloads() {
+        let fileURL = downloadsDirectory.appendingPathComponent("downloads.json")
+        guard let data = try? Data(contentsOf: fileURL),
+              let decoded = try? JSONDecoder().decode([Download].self, from: data) else {
+            return
+        }
+        self.downloads = decoded.map {
+            var dl = $0
+            if dl.status == .downloading || dl.status == .pending {
+                dl.status = .failed
+                dl.progress = 0.0
+            }
+            return dl
+        }
+    }
+    
+    private func saveDownloadsIndex() {
+        let fileURL = downloadsDirectory.appendingPathComponent("downloads.json")
+        try? fm.createDirectory(at: downloadsDirectory, withIntermediateDirectories: true)
+        if let data = try? JSONEncoder().encode(downloads) {
+            try? data.write(to: fileURL)
+        }
+    }
+    
+    public func getLocalTrackURL(bookId: String, trackPath: String) -> URL? {
+        guard let download = downloads.first(where: { $0.libraryItemId == bookId && $0.status == .completed }) else {
+            return nil
+        }
+        
+        let fileManager = FileManager.default
+        let docs = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let bookDir = docs.appendingPathComponent("Downloads/\(bookId)", isDirectory: true)
+        
+        let trackPaths = download.audioTracks
+        if let index = trackPaths.firstIndex(of: trackPath) {
+            if let files = try? fileManager.contentsOfDirectory(at: bookDir, includingPropertiesForKeys: nil),
+               let match = files.first(where: { $0.lastPathComponent.hasPrefix("track_\(index).") }) {
+                return match
+            }
+        }
+        
+        if let files = try? fileManager.contentsOfDirectory(at: bookDir, includingPropertiesForKeys: nil),
+           let match = files.first(where: { $0.lastPathComponent.hasPrefix("track_0.") }) {
+            return match
+        }
+        
+        return nil
+    }
+    
+    // MARK: - URLSessionDownloadDelegate conformances
+    
+    public nonisolated func urlSession(
+        _ session: URLSession,
+        downloadTask: URLSessionDownloadTask,
+        didWriteData bytesWritten: Int64,
+        totalBytesWritten: Int64,
+        totalBytesExpectedToWrite: Int64
+    ) {
+        Task { @MainActor in
+            guard let bookId = self.activeBookId else { return }
+            let completedTracksSize = self.trackSizes[bookId]?.prefix(self.activeTrackIndex).reduce(0, +) ?? 0
+            
+            if let index = self.downloads.firstIndex(where: { $0.libraryItemId == bookId }) {
+                let totalBookSize = self.downloads[index].totalSize
+                let currentTotalWritten = completedTracksSize + totalBytesWritten
+                
+                let progress = min(0.99, Double(currentTotalWritten) / Double(max(1, totalBookSize)))
+                self.downloads[index].progress = progress
+                self.activeDownloads[bookId] = progress
+            }
+        }
+    }
+    
+    public nonisolated func urlSession(
+        _ session: URLSession,
+        downloadTask: URLSessionDownloadTask,
+        didFinishDownloadingTo location: URL
+    ) {
+        Task { @MainActor in
+            guard let bookId = self.activeBookId else { return }
+            let trackPaths = self.trackPathsMap[bookId] ?? []
+            guard self.activeTrackIndex < trackPaths.count else { return }
+            
+            let trackPath = trackPaths[self.activeTrackIndex]
+            let bookDir = self.downloadsDirectory.appendingPathComponent(bookId)
+            
+            do {
+                try self.fm.createDirectory(at: bookDir, withIntermediateDirectories: true)
+                
+                let ext = self.fileExtension(for: downloadTask.response?.mimeType ?? "", urlPath: trackPath)
+                let destFile = bookDir.appendingPathComponent("track_\(self.activeTrackIndex).\(ext)")
+                
+                if self.fm.fileExists(atPath: destFile.path) {
+                    try? self.fm.removeItem(at: destFile)
+                }
+                
+                try self.fm.moveItem(at: location, to: destFile)
+                print("[Download] Saved track \(self.activeTrackIndex) to \(destFile.path)")
+                
+                let fileSize = (try? self.fm.attributesOfItem(atPath: destFile.path)[.size] as? Int64) ?? 0
+                if self.trackSizes[bookId] == nil {
+                    self.trackSizes[bookId] = Array(repeating: 0, count: trackPaths.count)
+                }
+                self.trackSizes[bookId]?[self.activeTrackIndex] = fileSize
+                
+                self.activeTrackIndex += 1
+                if self.activeTrackIndex >= trackPaths.count {
+                    if let index = self.downloads.firstIndex(where: { $0.libraryItemId == bookId }) {
+                        self.downloads[index].status = .completed
+                        self.downloads[index].progress = 1.0
+                    }
+                    self.activeDownloads.removeValue(forKey: bookId)
+                    print("[Download] Finished all tracks for book: \(bookId)")
+                    self.activeBookId = nil
+                    self.activeDownloadTask = nil
+                    self.saveDownloadsIndex()
+                    self.processQueue()
+                } else {
+                    self.downloadNextTrack()
+                }
+            } catch {
+                print("[Download] Error moving downloaded track: \(error)")
+                self.handleActiveDownloadFailed(error: error)
+            }
+        }
+    }
+    
+    public nonisolated func urlSession(
+        _ session: URLSession,
+        task: URLSessionTask,
+        didCompleteWithError error: Error?
+    ) {
+        if let error = error {
+            Task { @MainActor in
+                let nsError = error as NSError
+                if nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled {
+                    return
+                }
+                self.handleActiveDownloadFailed(error: error)
+            }
+        }
     }
 }
 
@@ -113,7 +424,7 @@ public struct DownloadsView: View {
                     ToolbarItem(placement: trailingPlacement) {
                         #if os(iOS) || SKIP
                         EditButton()
-                            .foregroundStyle(.cyan)
+                            .foregroundStyle(Color.appPrimary)
                         #endif
                     }
                 }
@@ -162,7 +473,7 @@ public struct DownloadsView: View {
                     }
                 } header: {
                     Text("Downloading")
-                        .foregroundStyle(.cyan)
+                        .foregroundStyle(Color.appPrimary)
                 }
                 .listRowBackground(Color.white.opacity(0.05))
             }
@@ -227,12 +538,12 @@ public struct ActiveDownloadRow: View {
                     .lineLimit(1)
 
                 ProgressView(value: download.progress)
-                    .tint(.cyan)
+                    .tint(.appPrimary)
 
                 HStack {
                     Text("\(Int(download.progress * 100))%")
                         .font(.caption)
-                        .foregroundStyle(.cyan)
+                        .foregroundStyle(Color.appPrimary)
 
                     Spacer()
 
@@ -296,7 +607,7 @@ public struct DownloadedBookRow: View {
         HStack(spacing: 16) {
             // Cover
             RoundedRectangle(cornerRadius: 6)
-                .fill(Color.blue.opacity(0.2))
+                .fill(Color.appPrimary.opacity(0.15))
                 .frame(width: 45, height: 68)
                 .overlay {
                     Image(systemName: "book.fill")

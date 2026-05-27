@@ -14,7 +14,7 @@ struct AudioPlayerView: View {
     
     // MARK: - Properties
     @StateObject private var viewModel: AudioPlayerViewModel
-    @StateObject private var proMotion = ProMotionManager.shared
+    @ObservedObject private var proMotion = ProMotionManager.shared
     @Environment(\.dismiss) private var dismiss
     
     // UI State
@@ -53,7 +53,9 @@ struct AudioPlayerView: View {
             ChapterListView(
                 chapters: viewModel.chapters,
                 currentChapter: viewModel.currentChapter,
-                onSelect: { chapter in
+                currentTime: viewModel.currentTime,
+                playbackRate: viewModel.playbackRate,
+                onSelectChapter: { chapter in
                     viewModel.seek(to: chapter.start)
                     showChapters = false
                 }
@@ -187,7 +189,7 @@ struct AudioPlayerView: View {
             }
             .frame(width: geometry.size.width * 0.7)
             .frame(maxWidth: .infinity)
-            .cornerRadius(20)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
             .shadow(
                 color: coverColor.opacity(0.5),
                 radius: 30,
@@ -392,6 +394,7 @@ struct AudioPlayerView: View {
                 color: coverIsLight ? .black : .white,
                 action: viewModel.jumpBackward
             )
+            .accessibilityLabel("Jump backward \(viewModel.jumpBackwardTime) seconds")
             
             Spacer()
             
@@ -407,6 +410,7 @@ struct AudioPlayerView: View {
                 color: coverIsLight ? .black : .white,
                 action: viewModel.jumpForward
             )
+            .accessibilityLabel("Jump forward \(viewModel.jumpForwardTime) seconds")
             
             Spacer()
             
@@ -441,6 +445,8 @@ struct AudioPlayerView: View {
                         .shadow(color: coverColor.opacity(0.5), radius: 20)
                 }
         }
+        .accessibilityLabel(viewModel.isPlaying ? "Pause" : "Play")
+        .accessibilityAddTraits(.isButton)
         .scaleEffect(viewModel.isPlaying ? 1.0 : 1.05)
         .animation(proMotion.optimizedSpring(response: 0.3), value: viewModel.isPlaying)
     }
@@ -462,7 +468,7 @@ struct AudioPlayerView: View {
                         Color.gray.opacity(0.3)
                     }
                     .frame(width: 50, height: 50)
-                    .cornerRadius(8)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
                     
                     // Title and author
                     VStack(alignment: .leading, spacing: 4) {
@@ -544,56 +550,7 @@ struct GlassIconButton: View {
     }
 }
 
-// MARK: - Chapter List View
 
-struct ChapterListView: View {
-    let chapters: [Chapter]
-    let currentChapter: Chapter?
-    let onSelect: (Chapter) -> Void
-    
-    @Environment(\.dismiss) private var dismiss
-    
-    var body: some View {
-        NavigationView {
-            List(chapters) { chapter in
-                Button(action: { onSelect(chapter) }) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(chapter.title)
-                                .font(.headline)
-                            
-                            Text(formatDuration(chapter.duration))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        
-                        Spacer()
-                        
-                        if chapter.id == currentChapter?.id {
-                            Image(systemName: "speaker.wave.2.fill")
-                                .foregroundStyle(.blue)
-                        }
-                    }
-                }
-            }
-            .navigationTitle("Chapters")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
-            }
-        }
-    }
-    
-    private func formatDuration(_ duration: TimeInterval) -> String {
-        let minutes = Int(duration) / 60
-        let seconds = Int(duration) % 60
-        return String(format: "%d:%02d", minutes, seconds)
-    }
-}
 
 // MARK: - View Model (Placeholder)
 

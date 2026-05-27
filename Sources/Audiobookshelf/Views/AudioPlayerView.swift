@@ -7,10 +7,11 @@
 //
 
 import SwiftUI
+import Observation
 
 public struct AudioPlayerView: View {
-    @StateObject var viewModel: AudioPlayerViewModel
-    @StateObject var proMotion = ProMotionManager.shared
+    @State var viewModel: AudioPlayerViewModel
+    @ObservedObject var proMotion = ProMotionManager.shared
     @Environment(\.dismiss) var dismiss
 
     @State var showChapters = false
@@ -18,11 +19,14 @@ public struct AudioPlayerView: View {
     @State var isDraggingSeeker = false
     @State var draggedTime: TimeInterval = 0
 
-    @State var coverColor: Color = .blue
-    @State var coverIsLight = false
+    @State var colorLoader = DynamicColorLoader()
+
+    private var coverIsLight: Bool {
+        colorLoader.textColor == .black
+    }
 
     public init(session: PlaybackSession) {
-        _viewModel = StateObject(wrappedValue: AudioPlayerViewModel(session: session))
+        _viewModel = State(wrappedValue: AudioPlayerViewModel(session: session))
     }
 
     public var body: some View {
@@ -45,27 +49,35 @@ public struct AudioPlayerView: View {
                 }
             )
         }
+        .task {
+            if let url = viewModel.coverURL {
+                await colorLoader.loadColor(from: url)
+            }
+        }
     }
 
     private var backgroundLayer: some View {
         ZStack {
-            coverColor
+            if colorLoader.isLoaded {
+                colorLoader.backgroundColor
+                    .ignoresSafeArea()
+
+                LinearGradient(
+                    colors: [
+                        colorLoader.backgroundColor.opacity(0.6),
+                        colorLoader.backgroundColor.opacity(0.2),
+                        Color.appBackground
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
                 .ignoresSafeArea()
+            } else {
+                Color.appBackground
+                    .ignoresSafeArea()
+            }
 
-            LinearGradient(
-                colors: [
-                    coverColor.opacity(0.8),
-                    coverColor.opacity(0.4),
-                    Color.black.opacity(0.6)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-
-            Rectangle()
-                .fill(.ultraThinMaterial)
-                .opacity(0.3)
+            Color.appBackground.opacity(0.75)
                 .ignoresSafeArea()
         }
     }
@@ -135,7 +147,7 @@ public struct AudioPlayerView: View {
         GeometryReader { geometry in
             Group {
                 if let url = viewModel.coverURL {
-                    AsyncImage(url: url) { image in
+                    CachedAsyncImage(url: url) { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fit)
@@ -148,9 +160,9 @@ public struct AudioPlayerView: View {
             }
             .frame(width: geometry.size.width * 0.7)
             .frame(maxWidth: .infinity)
-            .cornerRadius(20)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
             .shadow(
-                color: coverColor.opacity(0.5),
+                color: colorLoader.backgroundColor.opacity(0.5),
                 radius: 30,
                 y: 15
             )
@@ -159,13 +171,14 @@ public struct AudioPlayerView: View {
     }
 
     private var placeholderCover: some View {
-        RoundedRectangle(cornerRadius: 20)
-            .fill(.ultraThinMaterial)
-            .overlay {
-                Image(systemName: "book.fill")
-                    .font(.system(size: 80))
-                    .foregroundStyle(.secondary)
-            }
+        ZStack {
+            Image("BookPlaceholder", bundle: .module)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+            
+            Color.black.opacity(0.15)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 
     private var titleSection: some View {
@@ -203,7 +216,7 @@ public struct AudioPlayerView: View {
                         .frame(height: 2)
 
                     Capsule()
-                        .fill(coverColor)
+                        .fill(Color.appPrimary)
                         .frame(
                             width: geometry.size.width * CGFloat(viewModel.totalProgress),
                             height: 2
@@ -225,8 +238,19 @@ public struct AudioPlayerView: View {
 
             Spacer()
 
-            Button {
-                viewModel.showSpeedSelector()
+            Menu {
+                ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5], id: \.self) { rate in
+                    Button {
+                        viewModel.setPlaybackRate(Float(rate))
+                    } label: {
+                        HStack {
+                            Text(String(format: "%.2f×", rate))
+                            if abs(viewModel.playbackRate - Float(rate)) < 0.05 {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
             } label: {
                 Text("\(viewModel.playbackRate, specifier: "%.1f")×")
                     .font(.system(.body, design: .monospaced))
@@ -236,12 +260,35 @@ public struct AudioPlayerView: View {
 
             Spacer()
 
-            GlassIconButton(
-                icon: "moon",
-                fill: viewModel.sleepTimerActive,
-                color: viewModel.sleepTimerActive ? .green : (coverIsLight ? .black : .white),
-                action: viewModel.showSleepTimer
-            )
+            Menu {
+                if viewModel.sleepTimerActive {
+                    Button(role: .destructive) {
+                        AudioPlayerService.shared.stopSleepTimer()
+                    } label: {
+                        Label("Turn Off Timer", systemImage: "timer.circle.fill")
+                    }
+                    
+                    Divider()
+                }
+                
+                ForEach([5, 15, 30, 45, 60], id: \.self) { mins in
+                    Button {
+                        AudioPlayerService.shared.startSleepTimer(duration: TimeInterval(mins * 60))
+                    } label: {
+                        Text("\(mins) Minutes")
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "moon")
+                        .symbolVariant(viewModel.sleepTimerActive ? .fill : .none)
+                    if viewModel.sleepTimerActive {
+                        Text(viewModel.sleepTimerRemainingPretty)
+                            .font(.system(.caption, design: .monospaced))
+                    }
+                }
+                .foregroundStyle(viewModel.sleepTimerActive ? Color.appPrimary : (coverIsLight ? .black : .white))
+            }
 
             Spacer()
 
@@ -277,11 +324,11 @@ public struct AudioPlayerView: View {
                         .frame(width: geometry.size.width * CGFloat(viewModel.bufferedProgress))
 
                     Capsule()
-                        .fill(coverColor)
+                        .fill(Color.appPrimary)
                         .frame(width: geometry.size.width * CGFloat(viewModel.progress))
 
                     Circle()
-                        .fill(.white)
+                        .fill(Color.appPrimary)
                         .frame(width: 20, height: 20)
                         .shadow(color: .black.opacity(0.3), radius: 4)
                         .offset(x: geometry.size.width * CGFloat(viewModel.progress) - 10)
@@ -317,7 +364,7 @@ public struct AudioPlayerView: View {
             Spacer()
 
             GlassIconButton(
-                icon: "gobackward.10",
+                icon: "gobackward.\(viewModel.jumpBackwardTime)",
                 size: .medium,
                 color: coverIsLight ? .black : .white,
                 action: viewModel.jumpBackward
@@ -330,7 +377,7 @@ public struct AudioPlayerView: View {
             Spacer()
 
             GlassIconButton(
-                icon: "goforward.30",
+                icon: "goforward.\(viewModel.jumpForwardTime)",
                 size: .medium,
                 color: coverIsLight ? .black : .white,
                 action: viewModel.jumpForward
@@ -359,22 +406,25 @@ public struct AudioPlayerView: View {
                 .frame(width: 80, height: 80)
                 .background {
                     Circle()
-                        .fill(coverColor)
+                        .fill(Color.appPrimary)
                         .overlay {
                             Circle()
                                 .fill(.ultraThinMaterial)
-                                .opacity(0.4)
+                                .opacity(0.2)
                         }
-                        .shadow(color: coverColor.opacity(0.5), radius: 20)
+                        .shadow(color: Color.appPrimary.opacity(0.3), radius: 20)
                 }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(viewModel.isPlaying ? "Pause" : "Play"))
+        .accessibilityAddTraits(.isButton)
     }
 }
 
 // MARK: - Mini Player View
 
 public struct MiniPlayerView: View {
-    @State var audioPlayer: AudioPlayerService
+    let audioPlayer: AudioPlayerService
     let onTap: () -> Void
     let onClose: () -> Void
 
@@ -384,13 +434,25 @@ public struct MiniPlayerView: View {
         self.onClose = onClose
     }
 
+    private var coverURL: URL? {
+        guard let itemId = audioPlayer.session?.libraryItemId else { return nil }
+        return AudiobookshelfAPI.shared.getCoverURL(itemId: itemId)
+    }
+
     public var body: some View {
         HStack {
-            Image(systemName: "music.note")
-                .foregroundStyle(.cyan)
-                .padding()
-                .background(.white.opacity(0.1))
-                .clipShape(Circle())
+            CachedAsyncImage(url: coverURL) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } placeholder: {
+                Image("BookPlaceholder", bundle: .module)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            }
+            .frame(width: 48, height: 48)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(audioPlayer.session?.displayTitle ?? "Sample Book Title")
@@ -404,9 +466,9 @@ public struct MiniPlayerView: View {
             Spacer()
 
             Button {
-                onTap()
+                audioPlayer.togglePlayPause()
             } label: {
-                Image(systemName: "play.fill")
+                Image(systemName: audioPlayer.isPlaying ? "pause.fill" : "play.fill")
                     .font(.title2)
                     .foregroundStyle(.white)
             }
@@ -421,7 +483,7 @@ public struct MiniPlayerView: View {
         }
         .padding()
         .background(.ultraThinMaterial)
-        .cornerRadius(16)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
         .padding(.horizontal)
         .onTapGesture {
             onTap()
@@ -436,6 +498,7 @@ public struct GlassIconButton: View {
     public var fill: Bool = false
     public var size: ButtonSize = .medium
     public var color: Color = .white
+    public var label: String? = nil
     public let action: () -> Void
 
     public enum ButtonSize {
@@ -450,11 +513,31 @@ public struct GlassIconButton: View {
         }
     }
 
-    public init(icon: String, fill: Bool = false, size: ButtonSize = .medium, color: Color = .white, action: @escaping () -> Void) {
+    private var defaultLabel: String {
+        if icon.hasPrefix("goforward.") {
+            let seconds = icon.replacingOccurrences(of: "goforward.", with: "")
+            return "Seek Forward \(seconds) Seconds"
+        } else if icon.hasPrefix("gobackward.") {
+            let seconds = icon.replacingOccurrences(of: "gobackward.", with: "")
+            return "Seek Backward \(seconds) Seconds"
+        }
+
+        switch icon {
+        case "bookmark": return "Bookmarks"
+        case "moon": return "Sleep Timer"
+        case "list.bullet": return "Chapters"
+        case "backward.end.fill": return "Previous Chapter"
+        case "forward.end.fill": return "Next Chapter"
+        default: return "Button"
+        }
+    }
+
+    public init(icon: String, fill: Bool = false, size: ButtonSize = .medium, color: Color = .white, label: String? = nil, action: @escaping () -> Void) {
         self.icon = icon
         self.fill = fill
         self.size = size
         self.color = color
+        self.label = label
         self.action = action
     }
 
@@ -471,6 +554,9 @@ public struct GlassIconButton: View {
                 .symbolVariant(fill ? .fill : .none)
                 .foregroundStyle(color)
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(label ?? defaultLabel))
+        .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -497,25 +583,27 @@ public struct ChapterListView: View {
 
     public var body: some View {
         NavigationStack {
-            List(chapters) { chapter in
-                Button {
-                    onSelect(chapter)
-                } label: {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(chapter.title)
-                                .font(.headline)
+            List {
+                ForEach(chapters) { chapter in
+                    Button {
+                        onSelect(chapter)
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(chapter.title)
+                                    .font(.headline)
 
-                            Text(formatDuration(chapter.duration))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
+                                Text(formatDuration(chapter.duration))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
 
-                        Spacer()
+                            Spacer()
 
-                        if chapter.id == currentChapter?.id {
-                            Image(systemName: "speaker.wave.2.fill")
-                                .foregroundStyle(.cyan)
+                            if chapter.id == currentChapter?.id {
+                                Image(systemName: "speaker.wave.2.fill")
+                                    .foregroundStyle(Color.appPrimary)
+                            }
                         }
                     }
                 }
@@ -543,16 +631,21 @@ public struct ChapterListView: View {
 
 // MARK: - ViewModel
 
+@Observable
 @MainActor
-public class AudioPlayerViewModel: ObservableObject {
-    @Published public var isPlaying = false
-    @Published public var progress: Double = 0.0
-    @Published public var bufferedProgress: Double = 0.0
-    @Published public var currentTime: TimeInterval = 0
-    @Published public var playbackRate: Float = 1.0
-    @Published public var sleepTimerActive = false
-    @Published public var hasBookmarks = false
-    @Published public var useTotalTrack = true
+public class AudioPlayerViewModel {
+    public var hasBookmarks = false
+    public var useTotalTrack = true
+
+    public var jumpForwardTime: Int {
+        let val = UserDefaults.standard.integer(forKey: "jumpForwardTime")
+        return val == 0 ? 30 : val
+    }
+
+    public var jumpBackwardTime: Int {
+        let val = UserDefaults.standard.integer(forKey: "jumpBackwardTime")
+        return val == 0 ? 10 : val
+    }
 
     public let session: PlaybackSession
 
@@ -562,8 +655,38 @@ public class AudioPlayerViewModel: ObservableObject {
     public var chapters: [Chapter] { session.chapters }
 
     public var coverURL: URL? {
-        guard let path = session.coverPath else { return nil }
-        return URL(string: path)
+        AudiobookshelfAPI.shared.getCoverURL(itemId: session.libraryItemId)
+    }
+
+    public var isPlaying: Bool {
+        AudioPlayerService.shared.isPlaying
+    }
+
+    public var currentTime: TimeInterval {
+        AudioPlayerService.shared.currentTime
+    }
+
+    public var playbackRate: Float {
+        AudioPlayerService.shared.playbackRate
+    }
+
+    public var progress: Double {
+        duration > 0 ? currentTime / duration : 0.0
+    }
+
+    public var bufferedProgress: Double {
+        min(1.0, progress + 0.05)
+    }
+
+    public var sleepTimerActive: Bool {
+        AudioPlayerService.shared.sleepTimerRemaining != nil
+    }
+
+    public var sleepTimerRemainingPretty: String {
+        guard let remaining = AudioPlayerService.shared.sleepTimerRemaining else { return "" }
+        let minutes = Int(remaining) / 60
+        let seconds = Int(remaining) % 60
+        return String(format: "%d:%02d", minutes, seconds)
     }
 
     public var currentChapter: Chapter? {
@@ -602,24 +725,27 @@ public class AudioPlayerViewModel: ObservableObject {
 
     public init(session: PlaybackSession) {
         self.session = session
-        self.currentTime = session.currentTime
-        self.playbackRate = session.playbackRate
+        
+        // Start playback if it's a new or different session
+        if AudioPlayerService.shared.session?.id != session.id {
+            AudioPlayerService.shared.startPlayback(session: session)
+        }
     }
 
     public func togglePlayPause() {
-        isPlaying.toggle()
+        AudioPlayerService.shared.togglePlayPause()
     }
 
     public func seek(to time: TimeInterval) {
-        currentTime = time
+        AudioPlayerService.shared.seek(to: time)
     }
 
     public func jumpForward() {
-        seek(to: currentTime + 30)
+        AudioPlayerService.shared.skipForward()
     }
 
     public func jumpBackward() {
-        seek(to: max(0, currentTime - 10))
+        AudioPlayerService.shared.skipBackward()
     }
 
     public func jumpToChapterStart() {
@@ -634,9 +760,11 @@ public class AudioPlayerViewModel: ObservableObject {
         }
     }
 
+    public func setPlaybackRate(_ rate: Float) {
+        AudioPlayerService.shared.setPlaybackRate(rate)
+    }
+
     public func showBookmarks() {}
-    public func showSpeedSelector() {}
-    public func showSleepTimer() {}
 
     private func formatTime(_ time: TimeInterval) -> String {
         let hours = Int(time) / 3600

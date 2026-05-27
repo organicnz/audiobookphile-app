@@ -7,6 +7,10 @@
 //
 
 import SwiftUI
+import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 public struct SearchView: View {
     @State var query = ""
@@ -56,8 +60,8 @@ public struct SearchView: View {
                 placement: .automatic,
                 prompt: "Title, Author, or Series"
             )
-            .onChange(of: query) { newQuery in
-                performSearch(newQuery)
+            .onChange(of: query) { oldValue, newValue in
+                performSearch(newValue)
             }
             .sheet(item: $selectedBook) { book in
                 BookDetailView(book: book)
@@ -111,7 +115,7 @@ public struct SearchView: View {
                     }
                 }
                 .font(.caption)
-                .foregroundStyle(.cyan)
+                .foregroundStyle(Color.appPrimary)
             }
             .padding(.horizontal, 16)
 
@@ -165,7 +169,7 @@ public struct SearchView: View {
                                 .padding(.vertical, 12)
                                 .background(
                                     LinearGradient(
-                                        colors: [.cyan.opacity(0.2), .blue.opacity(0.2)],
+                                        colors: [.appPrimary.opacity(0.15), .appSecondary.opacity(0.15)],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     )
@@ -206,19 +210,12 @@ public struct SearchView: View {
             await MainActor.run { isSearching = true }
 
             do {
-                if let credentials = try? KeychainManager.shared.loadCredentials(),
-                   let url = URL(string: "\(credentials.serverURL)/api/libraries/\(UserDefaults.standard.string(forKey: StorageKeys.lastLibraryId) ?? "")/search?q=\(text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")") {
-
-                    var request = URLRequest(url: url)
-                    request.setValue("Bearer \(credentials.token)", forHTTPHeaderField: "Authorization")
-
-                    let (data, _) = try await URLSession.shared.data(for: request)
-                    let response = try JSONDecoder().decode(SearchResponse.self, from: data)
-
-                    await MainActor.run {
-                        self.results = response.results.map { $0.libraryItem }
-                        self.isSearching = false
-                    }
+                let libraryId = AppState.shared.currentLibraryId ?? ""
+                let response = try await AudiobookshelfAPI.shared.searchLibrary(libraryId: libraryId, query: text)
+                
+                await MainActor.run {
+                    self.results = response.results.map { $0.libraryItem }
+                    self.isSearching = false
                 }
             } catch {
                 print("Search failed: \(error)")

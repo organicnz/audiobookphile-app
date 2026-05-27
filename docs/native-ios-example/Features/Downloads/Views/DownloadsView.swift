@@ -32,9 +32,16 @@ struct DownloadsView: View {
                     }
                 }
             }
-            .navigationDestination(item: $selectedBook, destination: { book in
-                BookDetailView(book: book)
-            })
+            .navigationDestination(
+                isPresented: Binding(
+                    get: { selectedBook != nil },
+                    set: { if !$0 { selectedBook = nil } }
+                )
+            ) {
+                if let book = selectedBook {
+                    BookDetailView(book: book)
+                }
+            }
         }
     }
 

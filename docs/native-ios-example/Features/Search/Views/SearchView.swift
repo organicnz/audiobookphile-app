@@ -54,8 +54,15 @@ struct SearchView: View {
             .onChange(of: query) { newQuery in
                 performSearch(newQuery)
             }
-            .navigationDestination(item: $selectedBook) { book in
-                BookDetailView(book: book)
+            .navigationDestination(
+                isPresented: Binding(
+                    get: { selectedBook != nil },
+                    set: { if !$0 { selectedBook = nil } }
+                )
+            ) {
+                if let book = selectedBook {
+                    BookDetailView(book: book)
+                }
             }
         }
     }
@@ -65,10 +72,9 @@ struct SearchView: View {
     private var resultsGrid: some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 160), spacing: 16)], spacing: 24) {
             ForEach(results) { book in
-                BookCard(book: book)
-                    .onTapGesture {
-                        selectedBook = book
-                    }
+                BookCard(book: book) {
+                    selectedBook = book
+                }
                     .scaleEffect(0.95)
             }
         }
@@ -213,7 +219,7 @@ struct SearchView: View {
                     let response = try JSONDecoder().decode(SearchResponse.self, from: data)
 
                     await MainActor.run {
-                        self.results = response.book
+                        self.results = response.results.map { $0.libraryItem }
                         self.isSearching = false
                     }
                 }
@@ -225,12 +231,7 @@ struct SearchView: View {
     }
 }
 
-// Search Response Model
-struct SearchResponse: Codable {
-    let book: [Book]
-    let podcast: [Book]?
-    let authors: [String]? // Simplified
-}
+
 
 #Preview {
     SearchView()

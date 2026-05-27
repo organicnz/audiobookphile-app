@@ -31,14 +31,13 @@ public struct ContentView: View {
 public struct MainTabView: View {
     @State var appState = AppState.shared
     @State var audioPlayer = AudioPlayerService.shared
-    @State var selectedTab = 0
-    @State var showFullPlayer = false
 
     public init() {}
 
     public var body: some View {
-        ZStack(alignment: .bottom) {
-            TabView(selection: $selectedTab) {
+        @Bindable var bindableAppState = appState
+        return ZStack(alignment: .bottom) {
+            TabView(selection: $bindableAppState.selectedTab) {
                 // Library Tab
                 NavigationStack {
                     BookshelfView()
@@ -91,14 +90,14 @@ public struct MainTabView: View {
                 }
                 .tag(3)
             }
-            .tint(.cyan)
+            .tint(.appPrimary)
 
             // Mini Player (when audio is playing)
-            if audioPlayer.session != nil && !showFullPlayer {
+            if audioPlayer.session != nil && !appState.showingPlayer {
                 MiniPlayerView(
                     audioPlayer: audioPlayer,
                     onTap: {
-                        showFullPlayer = true
+                        appState.showingPlayer = true
                     },
                     onClose: {
                         Task {
@@ -111,13 +110,13 @@ public struct MainTabView: View {
             }
         }
         #if os(iOS) || SKIP
-        .fullScreenCover(isPresented: $showFullPlayer) {
+        .fullScreenCover(isPresented: $appState.showingPlayer) {
             if let session = audioPlayer.session {
                 AudioPlayerView(session: session)
             }
         }
         #else
-        .sheet(isPresented: $showFullPlayer) {
+        .sheet(isPresented: $appState.showingPlayer) {
             if let session = audioPlayer.session {
                 AudioPlayerView(session: session)
             }

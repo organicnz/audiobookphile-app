@@ -39,7 +39,7 @@ struct ChapterListView: View {
                         ScrollView(.vertical, showsIndicators: false) {
                             LazyVStack(spacing: 0) {
                                 ForEach(Array(filteredChapters.enumerated()), id: \.element.id) { index, chapter in
-                                    ChapterRow(
+                                    ChapterRowEnhanced(
                                         index: index + 1,
                                         chapter: chapter,
                                         isCurrentChapter: chapter.id == currentChapter?.id,
@@ -279,21 +279,31 @@ struct CompactChapterCard: View {
 // MARK: - Preview
 
 #Preview("Chapter List") {
-    let sampleChapters = (1...20).map { i in
-        Chapter(
-            id: i,
-            start: TimeInterval((i - 1) * 600),
-            end: TimeInterval(i * 600),
-            title: "Chapter \(i): The Journey Continues"
-        )
+    struct PreviewWrapper: View {
+        var sampleChapters: [Chapter] {
+            var items: [Chapter] = []
+            for i in 1...20 {
+                items.append(Chapter(
+                    id: i,
+                    title: "Chapter \(i): The Journey Continues",
+                    start: TimeInterval((i - 1) * 600),
+                    end: TimeInterval(i * 600)
+                ))
+            }
+            return items
+        }
+
+        var body: some View {
+            ChapterListView(
+                chapters: sampleChapters,
+                currentChapter: sampleChapters.count > 4 ? sampleChapters[4] : nil,
+                currentTime: 2850,
+                playbackRate: 1.0
+            ) { chapter in
+                print("Selected chapter: \(chapter.title)")
+            }
+        }
     }
 
-    return ChapterListView(
-        chapters: sampleChapters,
-        currentChapter: sampleChapters[4],
-        currentTime: 2850,
-        playbackRate: 1.0
-    ) { chapter in
-        print("Selected chapter: \(chapter.title)")
-    }
+    return PreviewWrapper()
 }

@@ -127,7 +127,7 @@ struct AnimatedGlassModifier: ViewModifier {
             }
             .onAppear {
                 withAnimation(
-                    .easeInOut(duration: 3.0)
+                    .easeInOut(duration: 10.0)
                     .repeatForever(autoreverses: true)
                 ) {
                     animateGradient.toggle()
@@ -207,7 +207,7 @@ struct ShimmerModifier: ViewModifier {
                     .offset(x: phase * geometry.size.width * 2 - geometry.size.width)
                     .onAppear {
                         withAnimation(
-                            .linear(duration: 2.0)
+                            .linear(duration: 4.0)
                             .repeatForever(autoreverses: false)
                         ) {
                             phase = 1

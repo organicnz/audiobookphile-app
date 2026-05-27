@@ -100,7 +100,7 @@ struct ConnectView: View {
                 placeholder: "Server URL",
                 icon: "server.rack",
                 keyboardType: .URL,
-                autocapitalization: .none
+                autocapitalization: .never
             )
 
             // Username
@@ -108,7 +108,7 @@ struct ConnectView: View {
                 text: $username,
                 placeholder: "Username",
                 icon: "person.fill",
-                autocapitalization: .none
+                autocapitalization: .never
             )
 
             // Password
@@ -121,7 +121,7 @@ struct ConnectView: View {
 
             // Connect button
             GlassButton(
-                appState.isLoading ? "Connecting..." : "Connect",
+                title: appState.isLoading ? "Connecting..." : "Connect",
                 icon: appState.isLoading ? "arrow.2.circlepath" : "arrow.right.circle.fill",
                 size: .large,
                 colors: [.blue, .purple],

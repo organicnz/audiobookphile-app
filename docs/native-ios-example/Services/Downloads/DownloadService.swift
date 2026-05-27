@@ -41,9 +41,7 @@ class DownloadService: ObservableObject {
     }
 
     private func setupURLSession() {
-        let config = URLSessionConfiguration.background(withIdentifier: "com.audiobookshelf.downloads")
-        config.isDiscretionary = false
-        config.sessionSendsLaunchEvents = true
+        let config = URLSessionConfiguration.default
         urlSession = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
     }
 
@@ -72,7 +70,8 @@ class DownloadService: ObservableObject {
         // Start playback session to get audio URLs
         let session = try await AudiobookshelfAPI.shared.startPlaybackSession(libraryItemId: book.id)
 
-        guard let audioTracks = session.audioTracks, !audioTracks.isEmpty else {
+        let audioTracks = session.audioTracks
+        guard !audioTracks.isEmpty else {
             throw DownloadError.noAudioTracks
         }
 
@@ -80,8 +79,8 @@ class DownloadService: ObservableObject {
         let download = Download(
             id: UUID().uuidString,
             libraryItemId: book.id,
-            title: book.media?.metadata.title ?? "Unknown",
-            author: book.media?.metadata.authorName ?? "Unknown",
+            title: book.title,
+            author: book.author ?? "Unknown",
             coverPath: nil,
             totalSize: 0,
             downloadedSize: 0,
@@ -154,9 +153,10 @@ class DownloadService: ObservableObject {
         let bookId = downloadQueue.removeFirst()
         guard let download = downloads.first(where: { $0.libraryItemId == bookId }) else { return }
 
-        Task {
+        let task = Task {
             await startDownload(download)
         }
+        activeDownloads[bookId] = DownloadTask(task: task, bookId: bookId)
     }
 
     private func startDownload(_ download: Download) async {
@@ -178,10 +178,13 @@ class DownloadService: ObservableObject {
                 request.setValue("Bearer \(credentials.token)", forHTTPHeaderField: "Authorization")
             }
 
+            if Task.isCancelled { break }
+
             let destination = bookDirectory.appendingPathComponent("track_\(trackIndex).m4a")
 
             do {
                 let (tempURL, _) = try await urlSession.download(for: request)
+                if Task.isCancelled { break }
                 try fileManager.moveItem(at: tempURL, to: destination)
 
                 // Update progress
@@ -189,12 +192,21 @@ class DownloadService: ObservableObject {
                 downloads[index].downloadedSize += fileSize
 
             } catch {
+                if Task.isCancelled { break }
                 downloads[index].status = .failed
                 downloads[index].error = error.localizedDescription
                 saveDownloads()
+                activeDownloads.removeValue(forKey: download.libraryItemId)
                 processQueue()
                 return
             }
+        }
+
+        if Task.isCancelled {
+            // Clean up files if cancelled mid-way
+            try? fileManager.removeItem(at: bookDirectory)
+            activeDownloads.removeValue(forKey: download.libraryItemId)
+            return
         }
 
         // Download complete
@@ -291,7 +303,7 @@ enum DownloadStatus: String, Codable {
 }
 
 struct DownloadTask {
-    let task: URLSessionDownloadTask
+    let task: Task<Void, Never>
     let bookId: String
     var progress: Double = 0
 }

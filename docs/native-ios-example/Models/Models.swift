@@ -276,6 +276,7 @@ struct User: Identifiable, Codable {
     let email: String?
     let type: String
     let token: String
+    let refreshToken: String?
     let mediaProgress: [MediaProgress]
     let seriesHideFromContinueListening: [String]
     let bookmarks: [Bookmark]
@@ -364,6 +365,12 @@ struct ServerConnection: Codable {
     var displayName: String {
         name ?? url
     }
+}
+
+struct RecentServer: Identifiable, Codable, Hashable {
+    let id: String
+    let address: String
+    let username: String?
 }
 
 // MARK: - App Settings

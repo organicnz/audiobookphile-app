@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import SwiftUI
 
 /// WebSocket service for real-time updates from Audiobookshelf server
 /// Uses Socket.IO protocol
@@ -68,7 +69,8 @@ class SocketService: ObservableObject {
         receiveMessage()
 
         // Send initial ping
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        Task {
+            try? await Task.sleep(nanoseconds: 500_000_000)
             self.sendPing()
         }
 
@@ -97,25 +99,26 @@ class SocketService: ObservableObject {
     /// Receive messages
     private func receiveMessage() {
         webSocketTask?.receive { [weak self] result in
-            switch result {
-            case .success(let message):
-                switch message {
-                case .string(let text):
-                    self?.handleMessage(text)
-                case .data(let data):
-                    if let text = String(data: data, encoding: .utf8) {
-                        self?.handleMessage(text)
+            Task { @MainActor in
+                guard let self = self else { return }
+                switch result {
+                case .success(let message):
+                    switch message {
+                    case .string(let text):
+                        self.handleMessage(text)
+                    case .data(let data):
+                        if let text = String(data: data, encoding: .utf8) {
+                            self.handleMessage(text)
+                        }
+                    @unknown default:
+                        break
                     }
-                @unknown default:
-                    break
-                }
-                // Continue receiving
-                self?.receiveMessage()
+                    // Continue receiving
+                    self.receiveMessage()
 
-            case .failure(let error):
-                print("[SocketService] Receive error: \(error)")
-                Task { @MainActor in
-                    self?.handleDisconnect(error: error)
+                case .failure(let error):
+                    print("[SocketService] Receive error: \(error)")
+                    self.handleDisconnect(error: error)
                 }
             }
         }
@@ -143,18 +146,14 @@ class SocketService: ObservableObject {
             handleEvent(message)
         } else if message.hasPrefix("41") {
             // Namespace disconnect
-            Task { @MainActor in
-                handleDisconnect(error: nil)
-            }
+            handleDisconnect(error: nil)
         }
     }
 
     private func handleConnect() {
         print("[SocketService] Socket connected")
-        Task { @MainActor in
-            isConnected = true
-            reconnectAttempts = 0
-        }
+        isConnected = true
+        reconnectAttempts = 0
     }
 
     private func handleNamespaceConnect() {
@@ -170,9 +169,10 @@ class SocketService: ObservableObject {
         send(message: "2")
 
         // Schedule next ping in 25 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 25) { [weak self] in
-            if self?.isConnected == true {
-                self?.sendPing()
+        Task {
+            try? await Task.sleep(nanoseconds: 25_000_000_000)
+            if self.isConnected {
+                self.sendPing()
             }
         }
     }
@@ -193,36 +193,34 @@ class SocketService: ObservableObject {
             if let array = try JSONSerialization.jsonObject(with: jsonData) as? [Any],
                let eventName = array.first as? String {
 
-                Task { @MainActor in
-                    switch eventName {
-                    case "init":
-                        print("[SocketService] Auth successful")
-                        isAuthenticated = true
+                switch eventName {
+                case "init":
+                    print("[SocketService] Auth successful")
+                    isAuthenticated = true
 
-                    case "user_item_progress_updated":
-                        if let data = array[safe: 1] as? [String: Any],
-                           let progressData = data["data"] as? [String: Any] {
-                            handleProgressUpdate(progressData)
-                        }
-
-                    case "user_updated":
-                        if let data = array[safe: 1] as? [String: Any] {
-                            handleUserUpdate(data)
-                        }
-
-                    case "item_updated":
-                        if let data = array[safe: 1] as? [String: Any],
-                           let id = data["id"] as? String {
-                            onLibraryItemUpdated?(id)
-                        }
-
-                    case "auth_failed":
-                        print("[SocketService] Auth failed")
-                        isAuthenticated = false
-
-                    default:
-                        print("[SocketService] Unhandled event: \(eventName)")
+                case "user_item_progress_updated":
+                    if let data = array[safe: 1] as? [String: Any],
+                       let progressData = data["data"] as? [String: Any] {
+                        handleProgressUpdate(progressData)
                     }
+
+                case "user_updated":
+                    if let data = array[safe: 1] as? [String: Any] {
+                        handleUserUpdate(data)
+                    }
+
+                case "item_updated":
+                    if let data = array[safe: 1] as? [String: Any],
+                       let id = data["id"] as? String {
+                        onLibraryItemUpdated?(id)
+                    }
+
+                case "auth_failed":
+                    print("[SocketService] Auth failed")
+                    isAuthenticated = false
+
+                default:
+                    print("[SocketService] Unhandled event: \(eventName)")
                 }
             }
         } catch {
@@ -230,11 +228,22 @@ class SocketService: ObservableObject {
         }
     }
 
+    private var customDecoder: JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let timestamp = try container.decode(Double.self)
+            return Date(timeIntervalSince1970: timestamp / 1000.0)
+        }
+        return decoder
+    }
+
     /// Handle progress update from another device
     private func handleProgressUpdate(_ data: [String: Any]) {
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: data)
-            let progress = try JSONDecoder().decode(MediaProgress.self, from: jsonData)
+            let progress = try customDecoder.decode(MediaProgress.self, from: jsonData)
             print("[SocketService] Progress update: \(progress.libraryItemId) - \(progress.progress)")
             onProgressUpdated?(progress)
         } catch {
@@ -246,7 +255,7 @@ class SocketService: ObservableObject {
     private func handleUserUpdate(_ data: [String: Any]) {
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: data)
-            let user = try JSONDecoder().decode(User.self, from: jsonData)
+            let user = try customDecoder.decode(User.self, from: jsonData)
             onUserUpdated?(user)
         } catch {
             print("[SocketService] Failed to decode user: \(error)")
@@ -270,9 +279,9 @@ class SocketService: ObservableObject {
             let delay = min(pow(2.0, Double(reconnectAttempts)), 30.0)
             print("[SocketService] Reconnecting in \(delay)s (attempt \(reconnectAttempts))")
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
-                guard let self = self,
-                      let serverAddress = self.serverAddress,
+            Task {
+                try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                guard let serverAddress = self.serverAddress,
                       let token = self.token else { return }
                 self.connect(serverAddress: serverAddress, token: token)
             }

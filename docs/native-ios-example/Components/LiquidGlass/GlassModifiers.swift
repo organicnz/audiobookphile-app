@@ -127,7 +127,7 @@ struct AnimatedGlassModifier: ViewModifier {
             }
             .onAppear {
                 withAnimation(
-                    .easeInOut(duration: 3.0)
+                    .easeInOut(duration: 10.0)
                     .repeatForever(autoreverses: true)
                 ) {
                     animateGradient.toggle()
@@ -207,7 +207,7 @@ struct ShimmerModifier: ViewModifier {
                     .offset(x: phase * geometry.size.width * 2 - geometry.size.width)
                     .onAppear {
                         withAnimation(
-                            .linear(duration: 2.0)
+                            .linear(duration: 4.0)
                             .repeatForever(autoreverses: false)
                         ) {
                             phase = 1
@@ -242,7 +242,7 @@ extension View {
                 .foregroundStyle(.white)
                 .padding()
                 .liquidGradient(colors: [.blue, .purple, .pink])
-                .cornerRadius(12)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
             
             // Glass overlay on image
             ZStack {
@@ -257,7 +257,7 @@ extension View {
             }
             .frame(height: 150)
             .glassOverlay(opacity: 0.4)
-            .cornerRadius(16)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
             
             // Animated glass
             Text("Animated Glass")
@@ -266,14 +266,14 @@ extension View {
                 .padding()
                 .frame(maxWidth: .infinity)
                 .animatedGlass()
-                .cornerRadius(16)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
             
             // Glass shadow
             Text("Glass Shadow")
                 .font(.headline)
                 .padding()
                 .background(Color.white)
-                .cornerRadius(12)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
                 .glassShadow(color: .blue, opacity: 0.3, radius: 20)
             
             // Shimmer effect

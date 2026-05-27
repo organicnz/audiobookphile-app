@@ -170,44 +170,7 @@ struct BookCardSkeleton: View {
     }
 }
 
-// MARK: - Shimmer Modifier
 
-struct ShimmerModifier: ViewModifier {
-    @State private var phase: CGFloat = 0
-
-    func body(content: Content) -> some View {
-        content
-            .overlay {
-                GeometryReader { geometry in
-                    Rectangle()
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    .clear,
-                                    .white.opacity(0.3),
-                                    .clear
-                                ],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .frame(width: geometry.size.width * 0.5)
-                        .offset(x: -geometry.size.width * 0.5 + phase * geometry.size.width * 2)
-                        .animation(.linear(duration: 1.5).repeatForever(autoreverses: false), value: phase)
-                }
-                .mask(content)
-            }
-            .onAppear {
-                phase = 1
-            }
-    }
-}
-
-extension View {
-    func shimmer() -> some View {
-        modifier(ShimmerModifier())
-    }
-}
 
 // MARK: - Progress Loading
 

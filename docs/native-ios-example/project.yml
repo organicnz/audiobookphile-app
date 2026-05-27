@@ -1,0 +1,18 @@
+name: NativeIOSExample
+options:
+  bundleIdPrefix: com.audiobookshelf
+targets:
+  NativeIOSExample:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources: 
+      - App
+      - Components
+      - Core
+      - Features
+      - Models
+      - Services
+      - Utilities
+    info:
+      path: Resources/Info.plist

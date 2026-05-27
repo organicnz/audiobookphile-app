@@ -12,6 +12,9 @@ Welcome to the Audiobookshelf app documentation! This directory contains all pla
 - **[Implementation Plan](./plan/native-ios-implementation.md)** - Technical implementation details
 - **[Task Breakdown](./plan/task-breakdown.md)** - Detailed task checklist
 - **[Build Walkthrough](./plan/build-walkthrough.md)** - Step-by-step component guide
+- **[UI-UX Benchmark](./UI-UX-BENCHMARK.md)** - Parity guidelines from the official Capacitor app
+- **[AI Agent Context](./AGENTS.md)** - Instructions, guidelines, and constraints for AI coding assistants
+
 
 ### Code Examples
 

@@ -1,0 +1,335 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project NativeIOSExample.xcodeproj -scheme NativeIOSExample -destination id=AA6E1A1D-4141-453D-9A5F-76BCA4834AE1 build
+
+2026-05-20 22:01:08.494 xcodebuild[54981:293375] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+/Users/organic/Library/Developer/Toolchains/swift-6.3-DEVELOPMENT-SNAPSHOT-2026-02-14-a.xctoolchain:1:1: warning: failed to load toolchain: toolchain 'org.swift.630202602141a' already registered from /Library/Developer/Toolchains/swift-6.3-DEVELOPMENT-SNAPSHOT-2026-02-14-a.xctoolchain
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (1 target)
+    Target 'NativeIOSExample' in project 'NativeIOSExample' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: 7b3f7a3e488ab15d02c6c0eb3361bb87
+Build description path: /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/XCBuildData/7b3f7a3e488ab15d02c6c0eb3361bb87.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk /Users/organic/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/NativeIOSExample.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -o /Users/organic/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache
+
+ProcessInfoPlistFile /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/Info.plist /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Resources/Info.plist (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    builtin-infoPlistUtility /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Resources/Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -o /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/Info.plist
+
+SwiftDriver NativeIOSExample normal arm64 com.apple.xcode.tools.swift.compiler (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name NativeIOSExample -Onone @/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios16.0-simulator -g -module-cache-path /Users/organic/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator -F /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator -c -j12 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/organic/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/organic/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/organic/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/organic/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample_const_extract_protocols.json -Xcc -iquote -Xcc /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample-generated-files.hmap -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample-own-target-headers.hmap -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample-all-target-headers.hmap -Xcc -iquote -Xcc /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample-project-headers.hmap -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/DerivedSources-normal/arm64 -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/DerivedSources/arm64 -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample-Swift.h -working-directory /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example -experimental-emit-module-separately -disable-cmo
+
+SwiftCompile normal arm64 Compiling\ BookDetailView.swift,\ BookshelfView.swift,\ ChapterListView.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Features/Library/Views/BookDetailView.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Features/Library/Views/BookshelfView.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/Chapters/ChapterListView.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Features/Library/Views/BookDetailView.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+/Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Features/Library/Views/BookDetailView.swift:276:21: warning: initialization of immutable value 'session' was never used; consider replacing with assignment to '_' or removing it
+                let session = try await AudiobookshelfAPI.shared.startPlaybackSession(libraryItemId: book.id)
+                ~~~~^~~~~~~
+                _
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Features/Library/Views/BookshelfView.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/Chapters/ChapterListView.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 Compiling\ ColorExtractor.swift,\ ConnectView.swift,\ Constants.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Utilities/ColorExtractor.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Features/Authentication/Views/ConnectView.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Utilities/Constants.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Utilities/ColorExtractor.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Features/Authentication/Views/ConnectView.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Utilities/Constants.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 Compiling\ AudioPlayerService.swift,\ AudioPlayerView.swift,\ AudiobookshelfAPI.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Services/Audio/AudioPlayerService.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Features/Player/Views/AudioPlayerView.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Services/Networking/AudiobookshelfAPI.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Services/Audio/AudioPlayerService.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+/Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Services/Audio/AudioPlayerService.swift:227:19: warning: call to main actor-isolated instance method 'updateTime' in a synchronous nonisolated context
+            self?.updateTime(time.seconds)
+                  ^
+/Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Services/Audio/AudioPlayerService.swift:296:18: note: calls to instance method 'updateTime' from outside of its actor context are implicitly asynchronous
+    private func updateTime(_ time: TimeInterval) {
+                 ^
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Features/Player/Views/AudioPlayerView.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Services/Networking/AudiobookshelfAPI.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 Compiling\ AudiobookshelfApp.swift,\ BookCard.swift,\ BookCoverView.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/App/AudiobookshelfApp.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/Books/BookCard.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/Books/BookCoverView.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/App/AudiobookshelfApp.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/Books/BookCard.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/Books/BookCoverView.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 Compiling\ GlassCard.swift,\ GlassModifiers.swift,\ GlassNavigationBar.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/LiquidGlass/GlassCard.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/LiquidGlass/GlassModifiers.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/Navigation/GlassNavigationBar.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/LiquidGlass/GlassCard.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/LiquidGlass/GlassModifiers.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/Navigation/GlassNavigationBar.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 Compiling\ SearchView.swift,\ SettingsView.swift,\ SleepTimerView.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Features/Search/Views/SearchView.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Features/Settings/Views/SettingsView.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/Player/SleepTimerView.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Features/Search/Views/SearchView.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Features/Settings/Views/SettingsView.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/Player/SleepTimerView.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 Compiling\ TimeFormatter.swift,\ View+Extensions.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Utilities/TimeFormatter.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Utilities/View+Extensions.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Utilities/TimeFormatter.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Utilities/View+Extensions.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 Compiling\ SocketService.swift,\ StatusBadge.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Services/Socket/SocketService.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/UI/StatusBadge.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Services/Socket/SocketService.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/UI/StatusBadge.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 Compiling\ DownloadService.swift,\ DownloadsView.swift,\ GlassButton.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Services/Downloads/DownloadService.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Features/Downloads/Views/DownloadsView.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/LiquidGlass/GlassButton.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Services/Downloads/DownloadService.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+/Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Services/Downloads/DownloadService.swift:118:19: warning: value 'download' was defined but never used; consider replacing with boolean test
+        guard let download = downloads.first(where: { $0.libraryItemId == bookId }) else {
+              ~~~~^~~~~~~~~~~
+                                                                                    != nil
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Features/Downloads/Views/DownloadsView.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/LiquidGlass/GlassButton.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ NativeIOSExample (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+EmitSwiftModule normal arm64 (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 Compiling\ MiniPlayerView.swift,\ Models.swift,\ NetworkMonitor.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/Player/MiniPlayerView.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Models/Models.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Utilities/NetworkMonitor.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/Player/MiniPlayerView.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Models/Models.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Utilities/NetworkMonitor.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 Compiling\ ParallaxScrollView.swift,\ PlaybackSpeedView.swift,\ ProMotionManager.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/Effects/ParallaxScrollView.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/Player/PlaybackSpeedView.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Core/Animation/ProMotionManager.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/Effects/ParallaxScrollView.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/Player/PlaybackSpeedView.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Core/Animation/ProMotionManager.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 Compiling\ GlassParticles.swift,\ LoadingView.swift,\ MetalContext.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/LiquidGlass/GlassParticles.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/Loading/LoadingView.swift /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Core/Graphics/MetalContext.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/LiquidGlass/GlassParticles.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Components/Loading/LoadingView.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+
+SwiftCompile normal arm64 /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Core/Graphics/MetalContext.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+/Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example/Core/Graphics/MetalContext.swift:200:19: warning: immutable value 'device' was never used; consider replacing with '_' or removing it
+              let device = context.device else { return nil }
+              ~~~~^~~~~~
+              _
+
+SwiftDriverJobDiscovery normal arm64 Compiling TimeFormatter.swift, View+Extensions.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for NativeIOSExample (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftDriver\ Compilation\ Requirements NativeIOSExample normal arm64 com.apple.xcode.tools.swift.compiler (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name NativeIOSExample -Onone @/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios16.0-simulator -g -module-cache-path /Users/organic/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator -F /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator -c -j12 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/organic/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/organic/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/organic/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/organic/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample_const_extract_protocols.json -Xcc -iquote -Xcc /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample-generated-files.hmap -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample-own-target-headers.hmap -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample-all-target-headers.hmap -Xcc -iquote -Xcc /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample-project-headers.hmap -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/DerivedSources-normal/arm64 -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/DerivedSources/arm64 -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample-Swift.h -working-directory /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example -experimental-emit-module-separately -disable-cmo
+
+Copy /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.swiftmodule/arm64-apple-ios-simulator.abi.json /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample.abi.json (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample.abi.json /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample.swiftsourceinfo (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample.swiftsourceinfo /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+SwiftDriverJobDiscovery normal arm64 Compiling SocketService.swift, StatusBadge.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftDriverJobDiscovery normal arm64 Compiling GlassCard.swift, GlassModifiers.swift, GlassNavigationBar.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ParallaxScrollView.swift, PlaybackSpeedView.swift, ProMotionManager.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ColorExtractor.swift, ConnectView.swift, Constants.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftDriverJobDiscovery normal arm64 Compiling AudiobookshelfApp.swift, BookCard.swift, BookCoverView.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftDriverJobDiscovery normal arm64 Compiling DownloadService.swift, DownloadsView.swift, GlassButton.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftDriverJobDiscovery normal arm64 Compiling SearchView.swift, SettingsView.swift, SleepTimerView.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftDriverJobDiscovery normal arm64 Compiling AudioPlayerService.swift, AudioPlayerView.swift, AudiobookshelfAPI.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftDriverJobDiscovery normal arm64 Compiling MiniPlayerView.swift, Models.swift, NetworkMonitor.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftDriverJobDiscovery normal arm64 Compiling GlassParticles.swift, LoadingView.swift, MetalContext.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftDriverJobDiscovery normal arm64 Compiling BookDetailView.swift, BookshelfView.swift, ChapterListView.swift (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+SwiftDriver\ Compilation NativeIOSExample normal arm64 com.apple.xcode.tools.swift.compiler (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name NativeIOSExample -Onone @/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios16.0-simulator -g -module-cache-path /Users/organic/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator -F /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator -c -j12 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/organic/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/organic/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/organic/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/organic/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample_const_extract_protocols.json -Xcc -iquote -Xcc /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample-generated-files.hmap -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample-own-target-headers.hmap -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample-all-target-headers.hmap -Xcc -iquote -Xcc /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample-project-headers.hmap -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/DerivedSources-normal/arm64 -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/DerivedSources/arm64 -Xcc -I/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample-Swift.h -working-directory /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example -experimental-emit-module-separately -disable-cmo
+
+Ld /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/NativeIOSExample.debug.dylib normal (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios16.0-simulator -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -O0 -L/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator -F/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator -filelist /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample.LinkFileList -install_name @rpath/NativeIOSExample.debug.dylib -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -Xlinker -object_path_lto -Xlinker /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample.swiftmodule @/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample-linker-args.resp -Xlinker -alias -Xlinker _main -Xlinker ___debug_main_executable_dylib_entry_point -Xlinker -no_adhoc_codesign -o /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/NativeIOSExample.debug.dylib
+
+ConstructStubExecutorLinkFileList /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample-ExecutorLinkFileList-normal-arm64.txt (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    construct-stub-executor-link-file-list /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/NativeIOSExample.debug.dylib /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample-ExecutorLinkFileList-normal-arm64.txt
+note: Using stub executor library with Swift entry point. (in target 'NativeIOSExample' from project 'NativeIOSExample')
+
+Ld /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/NativeIOSExample normal (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios16.0-simulator -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -O0 -L/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator -F/Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker @executable_path/Frameworks -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample-ExecutorLinkFileList-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __entitlements -Xlinker /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample.app-Simulated.xcent -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __ents_der -Xlinker /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample.app-Simulated.xcent.der /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/NativeIOSExample.debug.dylib -Xlinker -no_adhoc_codesign -o /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/NativeIOSExample
+
+CopySwiftLibs /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/NativeIOSExample.debug.dylib --scan-folder /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/Frameworks --scan-folder /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/PlugIns --scan-folder /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/SystemExtensions --scan-folder /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ExtractAppIntentsMetadata (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name NativeIOSExample --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk --xcode-version 17F42 --platform-family iOS --deployment-target 16.0 --bundle-identifier com.audiobookshelf.NativeIOSExample --output /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app --target-triple arm64-apple-ios16.0-simulator --binary-file /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/NativeIOSExample --dependency-file /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample_dependency_info.dat --stringsdata-file /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample.SwiftFileList --metadata-file-list /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample.DependencyMetadataFileList --static-metadata-file-list /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample.DependencyStaticMetadataFileList --swift-const-vals-list /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/Objects-normal/arm64/NativeIOSExample.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-05-20 22:01:13.403 appintentsmetadataprocessor[55127:294163] Starting appintentsmetadataprocessor export
+2026-05-20 22:01:13.411 appintentsmetadataprocessor[55127:294163] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+AppIntentsSSUTraining (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/Info.plist --temp-dir-path /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/ssu --bundle-id com.audiobookshelf.NativeIOSExample --product-path /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app --extracted-metadata-path /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/Metadata.appintents --metadata-file-list /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Intermediates.noindex/NativeIOSExample.build/Debug-iphonesimulator/NativeIOSExample.build/NativeIOSExample.DependencyMetadataFileList --source-file /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/Info.plist --archive-ssu-assets
+2026-05-20 22:01:13.433 appintentsnltrainingprocessor[55128:294164] Parsing options for appintentsnltrainingprocessor
+2026-05-20 22:01:13.433 appintentsnltrainingprocessor[55128:294164] Starting AppIntents SSU YAML Generation
+2026-05-20 22:01:13.436 appintentsnltrainingprocessor[55128:294164] No AppShortcuts found - Skipping.
+
+CodeSign /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/NativeIOSExample.debug.dylib (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/NativeIOSExample.debug.dylib
+
+CodeSign /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/__preview.dylib (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app/__preview.dylib
+
+CodeSign /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app
+
+RegisterExecutionPolicyException /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    builtin-RegisterExecutionPolicyException /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app
+
+Validate /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    builtin-validationUtility /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app -shallow-bundle -infoplist-subpath Info.plist
+
+Touch /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app (in target 'NativeIOSExample' from project 'NativeIOSExample')
+    cd /Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/native-ios-example
+    /usr/bin/touch -c /Users/organic/Library/Developer/Xcode/DerivedData/NativeIOSExample-amrjhpezkvtvslfagmhkltvcqirn/Build/Products/Debug-iphonesimulator/NativeIOSExample.app
+
+** BUILD SUCCEEDED **
+

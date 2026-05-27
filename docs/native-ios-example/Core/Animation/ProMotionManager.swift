@@ -162,7 +162,7 @@ private class DisplayLinkTarget {
 
 /// Environment key for ProMotion manager
 struct ProMotionManagerKey: EnvironmentKey {
-    static let defaultValue = ProMotionManager.shared
+    static let defaultValue: ProMotionManager = MainActor.assumeIsolated { .shared }
 }
 
 extension EnvironmentValues {
@@ -182,7 +182,7 @@ extension View {
 }
 
 struct ProMotionOptimizedModifier: ViewModifier {
-    @StateObject private var proMotion = ProMotionManager.shared
+    @ObservedObject private var proMotion = ProMotionManager.shared
     
     func body(content: Content) -> some View {
         content
@@ -199,7 +199,7 @@ struct ProMotionOptimizedModifier: ViewModifier {
 // MARK: - Performance Monitoring View
 
 struct FPSMonitorView: View {
-    @StateObject private var proMotion = ProMotionManager.shared
+    @ObservedObject private var proMotion = ProMotionManager.shared
     @State private var currentFPS: Int = 60
     
     var body: some View {
@@ -249,17 +249,17 @@ struct FPSMonitorView: View {
             Text("ProMotion Info")
                 .font(.headline)
             
-            InfoRow(
+            ProMotionInfoRow(
                 title: "Available",
                 value: ProMotionManager.shared.isProMotionAvailable ? "Yes" : "No"
             )
             
-            InfoRow(
+            ProMotionInfoRow(
                 title: "Max Frame Rate",
                 value: "\(ProMotionManager.shared.currentFrameRate)Hz"
             )
             
-            InfoRow(
+            ProMotionInfoRow(
                 title: "High Performance",
                 value: ProMotionManager.shared.isHighPerformanceMode ? "Enabled" : "Disabled"
             )
@@ -291,7 +291,7 @@ struct FPSMonitorView: View {
     }
 }
 
-struct InfoRow: View {
+struct ProMotionInfoRow: View {
     let title: String
     let value: String
     

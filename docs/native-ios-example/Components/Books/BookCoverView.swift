@@ -127,8 +127,8 @@ extension BookCoverView {
             .frame(width: 100, height: 160)
 
         BookCoverView(url: nil, size: CGSize(width: 100, height: 160))
-            .frame(width: 100, height: 160)
             .glassStyle()
+            .frame(width: 100, height: 160)
     }
     .padding()
     .background(Color.black)
