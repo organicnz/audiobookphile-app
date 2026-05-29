@@ -31,7 +31,8 @@ public struct ContentView: View {
 public struct MainTabView: View {
     @State var appState = AppState.shared
     @State var audioPlayer = AudioPlayerService.shared
-
+    @State var playerCoordinator = PlayerCoordinator.shared
+    
     public init() {}
 
     public var body: some View {
@@ -93,11 +94,11 @@ public struct MainTabView: View {
             .tint(.appPrimary)
 
             // Mini Player (when audio is playing)
-            if audioPlayer.session != nil && !appState.showingPlayer {
+            if audioPlayer.session != nil && !playerCoordinator.isPlayerPresented {
                 MiniPlayerView(
                     audioPlayer: audioPlayer,
                     onTap: {
-                        appState.showingPlayer = true
+                        playerCoordinator.presentPlayer(delayMilliseconds: 0)
                     },
                     onClose: {
                         Task {
@@ -110,13 +111,13 @@ public struct MainTabView: View {
             }
         }
         #if os(iOS) || SKIP
-        .fullScreenCover(isPresented: $appState.showingPlayer) {
+        .fullScreenCover(isPresented: Bindable(playerCoordinator).isPlayerPresented) {
             if let session = audioPlayer.session {
                 AudioPlayerView(session: session)
             }
         }
         #else
-        .sheet(isPresented: $appState.showingPlayer) {
+        .sheet(isPresented: Bindable(playerCoordinator).isPlayerPresented) {
             if let session = audioPlayer.session {
                 AudioPlayerView(session: session)
             }

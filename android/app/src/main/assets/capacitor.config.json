@@ -1,0 +1,17 @@
+{
+	"appId": "com.audiobookshelf.app",
+	"appName": "audiobookshelf-app",
+	"webDir": "dist",
+	"plugins": {
+		"CapacitorHttp": {
+			"enabled": false
+		},
+		"StatusBar": {
+			"backgroundColor": "#232323",
+			"style": "DARK"
+		}
+	},
+	"server": {
+		"androidScheme": "http"
+	}
+}

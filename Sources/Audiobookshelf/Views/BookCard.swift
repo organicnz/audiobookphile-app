@@ -24,76 +24,66 @@ public struct BookCard: View {
     }
     
     public var body: some View {
-        Button(action: {
-            #if os(iOS) && !SKIP
-            let generator = UIImpactFeedbackGenerator(style: .light)
-            generator.impactOccurred()
-            #endif
-            onTap()
-        }) {
-            VStack(alignment: .leading, spacing: 12) {
-                // Cover image with glass shadow
-                coverImage
+        VStack(alignment: .leading, spacing: 12) {
+            // Cover image with glass shadow
+            coverImage
+            
+            // Book info
+            VStack(alignment: .leading, spacing: 4) {
+                Text(book.title)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .lineLimit(2)
+                    .foregroundStyle(.white)
                 
-                // Book info
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(book.title)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .lineLimit(2)
-                        .foregroundStyle(.white)
-                    
-                    if let author = book.author {
-                        Text(author)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-                    
-                    // Progress indicator
-                    if let progress = book.userMediaProgress {
-                        progressBar(progress: progress.progress)
-                    }
+                if let author = book.author {
+                    Text(author)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
-                .frame(height: 68, alignment: .topLeading)
+                
+                // Progress indicator
+                if let progress = book.userMediaProgress {
+                    progressBar(progress: progress.progress)
+                }
             }
+            .frame(height: 68, alignment: .topLeading)
         }
-        .buttonStyle(ScaleButtonStyle())
+        .contentShape(Rectangle())
     }
     
     // MARK: - Cover Image
     
     private var coverImage: some View {
-        GeometryReader { geometry in
-            ZStack(alignment: .topTrailing) {
-                // Cover
-                CachedAsyncImage(url: coverURL) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    placeholderCover
-                }
-                .frame(width: geometry.size.width, height: geometry.size.height)
-                .clipped()
-                .cornerRadius(12)
-                .shadow(
-                    color: coverColor.opacity(0.4),
-                    radius: 15,
-                    y: 8
-                )
-                
-                // Download badge (if downloaded)
-                if isDownloaded {
-                    downloadBadge
-                        .padding(8)
-                } else if book.isMissing == true {
-                    missingBadge
-                        .padding(8)
-                }
+        ZStack(alignment: .topTrailing) {
+            // Cover
+            CachedAsyncImage(url: coverURL) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } placeholder: {
+                placeholderCover
+            }
+            .frame(minWidth: 0, maxWidth: .infinity)
+            .aspectRatio(aspectRatio, contentMode: .fit)
+            .clipped()
+            .cornerRadius(12)
+            .shadow(
+                color: coverColor.opacity(0.4),
+                radius: 15,
+                y: 8
+            )
+            
+            // Download badge (if downloaded)
+            if isDownloaded {
+                downloadBadge
+                    .padding(8)
+            } else if book.isMissing == true {
+                missingBadge
+                    .padding(8)
             }
         }
-        .aspectRatio(aspectRatio, contentMode: .fit)
     }
     
     private var placeholderCover: some View {
@@ -161,8 +151,10 @@ public struct BookCard: View {
     // MARK: - Helpers
     
     private var coverURL: URL? {
-        guard let path = book.coverPath else { return nil }
-        return URL(string: path)
+        if let path = book.coverPath, path.hasPrefix("http") {
+            return URL(string: path)
+        }
+        return AudiobookshelfAPI.shared.getCoverURL(itemId: book.id)
     }
     
     private var isDownloaded: Bool {
@@ -193,64 +185,66 @@ public struct GlassBookCard: View {
     }
     
     public var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: 16) {
-                // Small cover
-                CachedAsyncImage(url: coverURL) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    Color.gray.opacity(0.3)
-                }
-                .frame(width: 60, height: 60)
-                .cornerRadius(8)
-                
-                // Info
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(book.title)
-                        .font(.headline)
-                        .lineLimit(2)
-                        .foregroundStyle(.white)
-                    
-                    if let author = book.author {
-                        Text(author)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-                    
-                    if let progress = book.userMediaProgress {
-                        HStack {
-                            Image(systemName: "clock.fill")
-                                .font(.caption2)
-                            Text("\(progress.progressPercentage)% complete")
-                                .font(.caption)
-                        }
-                        .foregroundStyle(.blue)
-                    } else if book.isMissing == true {
-                        HStack {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .font(.caption2)
-                            Text("Missing Files")
-                                .font(.caption)
-                        }
-                        .foregroundStyle(.red)
-                    }
-                }
-                
-                Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+        HStack(spacing: 16) {
+            // Small cover
+            CachedAsyncImage(url: coverURL) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } placeholder: {
+                Color.gray.opacity(0.3)
             }
+            .frame(width: 60, height: 60)
+            .cornerRadius(8)
+            
+            // Info
+            VStack(alignment: .leading, spacing: 6) {
+                Text(book.title)
+                    .font(.headline)
+                    .lineLimit(2)
+                    .foregroundStyle(.white)
+                
+                if let author = book.author {
+                    Text(author)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+                
+                if let progress = book.userMediaProgress {
+                    HStack {
+                        Image(systemName: "clock.fill")
+                            .font(.caption2)
+                        Text("\(progress.progressPercentage)% complete")
+                            .font(.caption)
+                    }
+                    .foregroundStyle(.blue)
+                } else if book.isMissing == true {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.caption2)
+                        Text("Missing Files")
+                            .font(.caption)
+                    }
+                    .foregroundStyle(.red)
+                }
+            }
+            
+            Spacer()
+            
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onTap)
         .glassCard()
     }
     
     private var coverURL: URL? {
-        guard let path = book.coverPath else { return nil }
-        return URL(string: path)
+        if let path = book.coverPath, path.hasPrefix("http") {
+            return URL(string: path)
+        }
+        return AudiobookshelfAPI.shared.getCoverURL(itemId: book.id)
     }
 }

@@ -73,10 +73,16 @@ public class AudiobookshelfAPI {
         }
 
         guard (200...299).contains(httpResponse.statusCode) else {
+            if let errorResponse = try? JSONDecoder().decode(APIErrorResponse.self, from: data), let errorDetail = errorResponse.error {
+                if httpResponse.statusCode == 401 {
+                    throw APIError.authenticationFailed
+                }
+                throw APIError.serverError(statusCode: httpResponse.statusCode, message: errorDetail.message, code: errorDetail.code)
+            }
             if httpResponse.statusCode == 401 {
                 throw APIError.authenticationFailed
             }
-            throw APIError.serverError(statusCode: httpResponse.statusCode)
+            throw APIError.serverError(statusCode: httpResponse.statusCode, message: "Unknown server error", code: nil)
         }
 
         let loginResponse = try JSONDecoder().decode(LoginResponse.self, from: data)
@@ -169,11 +175,13 @@ public class AudiobookshelfAPI {
             }
 
             guard (200...299).contains(httpResponse.statusCode) else {
-                throw APIError.serverError(statusCode: httpResponse.statusCode)
+                if let errorResponse = try? JSONDecoder().decode(APIErrorResponse.self, from: data), let errorDetail = errorResponse.error {
+                    throw APIError.serverError(statusCode: httpResponse.statusCode, message: errorDetail.message, code: errorDetail.code)
+                }
+                throw APIError.serverError(statusCode: httpResponse.statusCode, message: "Unknown server error", code: nil)
             }
 
             let decoder = JSONDecoder()
-            decoder.keyDecodingStrategy = .convertFromSnakeCase
             decoder.dateDecodingStrategy = .custom { decoder in
                 let container = try decoder.singleValueContainer()
                 let timestamp = try container.decode(Double.self)
@@ -181,9 +189,20 @@ public class AudiobookshelfAPI {
             }
 
             do {
+                // Dump raw JSON for PlaybackSession debugging
+                if T.self == PlaybackSession.self {
+                    let jsonStr = String(data: data, encoding: .utf8) ?? "unable to decode"
+                    let dumpPath = NSTemporaryDirectory() + "playback_session_raw.json"
+                    try? jsonStr.write(toFile: dumpPath, atomically: true, encoding: .utf8)
+                    print("[API] PlaybackSession raw JSON dumped to: \(dumpPath) (\(data.count) bytes)")
+                }
                 return try decoder.decode(T.self, from: data)
             } catch let decodingError as DecodingError {
                 let errorDetails = "[DecodingError] Details: \(decodingError)\nFor type: \(T.self)\nJSON length: \(data.count) bytes\n"
+                if T.self == PlaybackSession.self {
+                    let errorPath = NSTemporaryDirectory() + "playback_session_decode_error.txt"
+                    try? errorDetails.write(toFile: errorPath, atomically: true, encoding: .utf8)
+                }
                 try? errorDetails.write(toFile: "/Users/organic/dev/work/audiobookshelf/audiobookshelf-app/decoding_error.txt", atomically: true, encoding: .utf8)
                 throw decodingError
             } catch {
@@ -374,7 +393,7 @@ public class AudiobookshelfAPI {
 
         do {
             return try await executeRequest(request, responseType: MediaProgress.self)
-        } catch APIError.serverError(statusCode: 404) {
+        } catch APIError.serverError(let statusCode, _, _) where statusCode == 404 {
             return nil
         }
     }
@@ -437,7 +456,7 @@ public struct SearchResponse: Codable {
 public enum APIError: LocalizedError {
     case invalidResponse
     case authenticationFailed
-    case serverError(statusCode: Int)
+    case serverError(statusCode: Int, message: String, code: String?)
     case networkError(underlying: Error)
     case noRefreshToken
     case tokenRefreshFailed
@@ -450,8 +469,11 @@ public enum APIError: LocalizedError {
             return "Invalid response from server"
         case .authenticationFailed:
             return "Authentication failed. Check your credentials."
-        case .serverError(let statusCode):
-            return "Server error (status: \(statusCode))"
+        case .serverError(let statusCode, let message, let code):
+            if let code = code {
+                return "\(message) (\(code))"
+            }
+            return "\(message) (status: \(statusCode))"
         case .networkError(let underlying):
             return "Network error: \(underlying.localizedDescription)"
         case .noRefreshToken:

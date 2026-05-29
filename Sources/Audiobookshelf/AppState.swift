@@ -18,7 +18,6 @@ public class AppState {
     public var isAuthenticated = false
     public var isLoading = true
     public var currentUser: User?
-    public var showingPlayer = false
     public var selectedLibraryId: String?
     public var selectedTab = 0
     
@@ -78,8 +77,8 @@ public class AppState {
                 switch apiError {
                 case .authenticationFailed, .sessionExpired:
                     logout()
-                case .serverError(let statusCode):
-                    if statusCode == 401 {
+                case .serverError(let statusCode, _, let code):
+                    if statusCode == 401 || code == "UNAUTHORIZED" {
                         logout()
                     }
                 default:

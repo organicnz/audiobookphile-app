@@ -67,6 +67,7 @@ public class MockLibraryService: LibraryServiceProtocol {
                 path: "/books/book\(index)",
                 relPath: "book\(index)",
                 isMissing: nil,
+                libraryFiles: nil,
                 media: BookMedia(
                     libraryFiles: [],
                     chapters: [],

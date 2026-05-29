@@ -32,6 +32,7 @@ public class AudioPlayerService {
     #if !SKIP && !os(Android)
     private var player: AVPlayer?
     private var timeObserverToken: Any?
+    private var playerItemObserverToken: Any?
     #endif
     
     private var progressSyncTimer: Timer?
@@ -52,6 +53,23 @@ public class AudioPlayerService {
                 await closeSession()
             }
         }
+
+        print("[Player] startPlayback called - session id: \(session.id)")
+        print("[Player] duration: \(session.duration), currentTime: \(session.currentTime), tracks: \(session.audioTracks.count)")
+        // Write debug info to file for diagnostics
+        var debugInfo = "[Player] startPlayback called\n"
+        debugInfo += "Session ID: \(session.id)\n"
+        debugInfo += "Duration: \(session.duration)\n"
+        debugInfo += "CurrentTime: \(session.currentTime)\n"
+        debugInfo += "PlaybackRate: \(session.playbackRate)\n"
+        debugInfo += "LibraryItemId: \(session.libraryItemId)\n"
+        debugInfo += "Track count: \(session.audioTracks.count)\n"
+        for (i, track) in session.audioTracks.enumerated() {
+            debugInfo += "Track[\(i)]: contentUrl=\(track.contentUrl), duration=\(track.duration), startOffset=\(track.startOffset)\n"
+        }
+        let debugPath = NSTemporaryDirectory() + "audiobookshelf_playback_debug.txt"
+        try? debugInfo.write(toFile: debugPath, atomically: true, encoding: .utf8)
+        print("[Player] Debug info written to: \(debugPath)")
 
         self.session = session
         self.duration = session.duration
@@ -213,6 +231,10 @@ public class AudioPlayerService {
             player?.removeTimeObserver(token)
             timeObserverToken = nil
         }
+        if let token = playerItemObserverToken {
+            NotificationCenter.default.removeObserver(token)
+            playerItemObserverToken = nil
+        }
         player = nil
         #endif
 
@@ -254,16 +276,20 @@ public class AudioPlayerService {
         let track = session.audioTracks[index]
 
         guard let url = getFullTrackURL(from: track.contentUrl, libraryItemId: session.libraryItemId) else {
-            print("[Player] Error: No playable track URL found for track index \(index).")
+            print("[Player] Error: No playable track URL found for track index \(index). contentUrl was: \(track.contentUrl)")
             return
         }
 
-        print("[Player] Loading track \(index) at URL: \(url)")
+        print("[Player] Loading track \(index) at resolved URL: \(url)")
 
         #if !SKIP && !os(Android)
         if let token = timeObserverToken {
             player?.removeTimeObserver(token)
             timeObserverToken = nil
+        }
+        if let token = playerItemObserverToken {
+            NotificationCenter.default.removeObserver(token)
+            playerItemObserverToken = nil
         }
 
         let playerItem = AVPlayerItem(url: url)
@@ -272,6 +298,33 @@ public class AudioPlayerService {
             setupRemoteCommandCenter()
         } else {
             player?.replaceCurrentItem(with: playerItem)
+        }
+
+        // Diagnostic task to check AVPlayerItem status
+        Task {
+            var statusLog = "Checking AVPlayerItem status for \(url.absoluteString)...\n"
+            for i in 0..<10 {
+                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
+                let status = playerItem.status
+                let err = playerItem.error
+                let logLine = "[\(i*500)ms] Status: \(status.rawValue), Error: \(String(describing: err))\n"
+                statusLog += logLine
+                print(logLine)
+                if status == .failed || status == .readyToPlay {
+                    break
+                }
+            }
+            try? statusLog.write(toFile: NSTemporaryDirectory() + "audiobookshelf_avplayer_load_error.txt", atomically: true, encoding: .utf8)
+        }
+
+        playerItemObserverToken = NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime,
+            object: playerItem,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.handleTrackFinished()
+            }
         }
 
         let cmTime = CMTime(seconds: seekTimeWithinTrack, preferredTimescale: 600)
@@ -293,8 +346,35 @@ public class AudioPlayerService {
 
                 self.updateNowPlaying(elapsedTime: absoluteTime)
 
-                let trackDuration = track.duration
-                if time.seconds >= trackDuration - 0.5 {
+                var trackDuration = track.duration
+                // Fallback to AVPlayerItem duration if API didn't provide one
+                if let item = self.player?.currentItem {
+                    // Log status to a temp file
+                    let statusStr: String
+                    switch item.status {
+                    case .unknown: statusStr = "unknown"
+                    case .readyToPlay: statusStr = "readyToPlay"
+                    case .failed: statusStr = "failed (error: \(String(describing: item.error)))"
+                    @unknown default: statusStr = "default"
+                    }
+                    let logMsg = "Player status: \(statusStr), duration: \(item.duration.seconds), isPlaying: \(self.player?.timeControlStatus == .playing)\n"
+                    try? logMsg.write(toFile: NSTemporaryDirectory() + "audiobookshelf_avplayer_status.txt", atomically: true, encoding: .utf8)
+
+                    if trackDuration <= 0 && item.status == .readyToPlay {
+                        let itemDur = item.duration.seconds
+                        if itemDur > 0 && !itemDur.isNaN {
+                            trackDuration = itemDur
+                            if self.duration <= 0 {
+                                self.duration = itemDur
+                                if let currentSession = self.session {
+                                    self.setupNowPlayingInfo(for: currentSession)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if trackDuration > 0 && time.seconds >= trackDuration - 0.5 {
                     self.handleTrackFinished()
                 }
             }
@@ -371,6 +451,59 @@ public class AudioPlayerService {
 
     // MARK: - Progress Syncing
 
+    private let offlineProgressQueueKey = "abs_offlineProgressQueue"
+    
+    private func queueOfflineProgress(item: ProgressSyncQueueItem) {
+        var queue = getOfflineProgressQueue()
+        // If we already have a pending sync for this session, replace it with the latest one
+        if let idx = queue.firstIndex(where: { $0.sessionId == item.sessionId }) {
+            queue[idx] = item
+        } else {
+            queue.append(item)
+        }
+        if let data = try? JSONEncoder().encode(queue) {
+            UserDefaults.standard.set(data, forKey: offlineProgressQueueKey)
+        }
+        print("[Player] Queued offline progress for session \(item.sessionId)")
+    }
+    
+    private func getOfflineProgressQueue() -> [ProgressSyncQueueItem] {
+        if let data = UserDefaults.standard.data(forKey: offlineProgressQueueKey),
+           let queue = try? JSONDecoder().decode([ProgressSyncQueueItem].self, from: data) {
+            return queue
+        }
+        return []
+    }
+    
+    private func flushOfflineProgressQueue() {
+        let queue = getOfflineProgressQueue()
+        guard !queue.isEmpty else { return }
+        guard NetworkMonitor.shared.isConnected else { return }
+        
+        print("[Player] Flushing \(queue.count) offline progress items")
+        Task {
+            var failedItems: [ProgressSyncQueueItem] = []
+            for item in queue {
+                do {
+                    try await AudiobookshelfAPI.shared.syncProgress(
+                        sessionId: item.sessionId,
+                        currentTime: item.currentTime,
+                        duration: item.duration,
+                        timeListened: item.timeListened
+                    )
+                    print("[Player] Offline sync succeeded for session \(item.sessionId)")
+                } catch {
+                    print("[Player] Offline sync failed for session \(item.sessionId): \(error)")
+                    failedItems.append(item)
+                }
+            }
+            // Save remaining failed items back to queue
+            if let data = try? JSONEncoder().encode(failedItems) {
+                UserDefaults.standard.set(data, forKey: offlineProgressQueueKey)
+            }
+        }
+    }
+
     private func startSyncTimer() {
         stopSyncTimer()
         
@@ -378,6 +511,7 @@ public class AudioPlayerService {
         progressSyncTimer = Timer.scheduledTimer(withTimeInterval: 15.0, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.syncProgress()
+                self?.flushOfflineProgressQueue()
             }
         }
     }
@@ -393,7 +527,15 @@ public class AudioPlayerService {
         let elapsedListened = currentTime - lastSyncedTime
         guard elapsedListened >= 1.0 || abs(elapsedListened) > 5.0 else { return }
 
+        let timeListenedToSync = elapsedListened > 0 ? elapsedListened : 0
         lastSyncedTime = currentTime
+        
+        guard NetworkMonitor.shared.isConnected else {
+            print("[Player] Device offline, queueing sync...")
+            let item = ProgressSyncQueueItem(sessionId: session.id, currentTime: currentTime, duration: duration, timeListened: timeListenedToSync)
+            queueOfflineProgress(item: item)
+            return
+        }
         
         Task {
             do {
@@ -401,17 +543,20 @@ public class AudioPlayerService {
                     sessionId: session.id,
                     currentTime: currentTime,
                     duration: duration,
-                    timeListened: elapsedListened > 0 ? elapsedListened : 0
+                    timeListened: timeListenedToSync
                 )
                 print("[Player] Synced progress to server: \(currentTime)s / \(duration)s")
             } catch {
-                print("[Player] Progress sync failed: \(error)")
+                print("[Player] Progress sync failed: \(error). Queueing for later.")
+                let item = ProgressSyncQueueItem(sessionId: session.id, currentTime: currentTime, duration: duration, timeListened: timeListenedToSync)
+                queueOfflineProgress(item: item)
             }
         }
     }
 
     private func syncProgressImmediately() {
         syncProgress()
+        flushOfflineProgressQueue()
     }
 
     // MARK: - URL Resolver
@@ -423,15 +568,17 @@ public class AudioPlayerService {
             return localURL
         }
 
+        // External pre-signed URLs (e.g. S3) — use as-is, do NOT append token
+        // Adding query params to a pre-signed URL invalidates its signature
+        if trackPath.hasPrefix("http") {
+            return URL(string: trackPath)
+        }
+
+        // Relative path to our own server — build full URL with auth token
         let baseURL = AudiobookshelfAPI.shared.baseURL
         let token = AudiobookshelfAPI.shared.accessToken
 
-        let fullPath: String
-        if trackPath.hasPrefix("http") {
-            fullPath = trackPath
-        } else {
-            fullPath = baseURL + (trackPath.hasPrefix("/") ? "" : "/") + trackPath
-        }
+        let fullPath = baseURL + (trackPath.hasPrefix("/") ? "" : "/") + trackPath
 
         guard var components = URLComponents(string: fullPath) else {
             return URL(string: fullPath)

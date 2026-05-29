@@ -12,9 +12,11 @@ import SwiftUI
 public struct BookshelfView: View {
     @StateObject var viewModel = BookshelfViewModel()
     @StateObject var proMotion = ProMotionManager.shared
+    @State var appState = AppState.shared
     @State var showSearch = false
     @State var searchText = ""
     @State var scrollOffset: CGFloat = 0
+    @State var selectedBookForDetails: Book?
     
     public init() {}
     
@@ -38,19 +40,6 @@ public struct BookshelfView: View {
                     // Main library grid
                     libraryGridSection
                 }
-                .background(
-                    GeometryReader { geometry in
-                        Color.clear
-                            .preference(
-                                key: ScrollOffsetPreferenceKey.self,
-                                value: geometry.frame(in: .global).minY
-                            )
-                    }
-                )
-            }
-            .coordinateSpace(name: "scroll")
-            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
-                scrollOffset = value
             }
             #if os(iOS) || SKIP
             .refreshable {
@@ -64,17 +53,29 @@ public struct BookshelfView: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
+        .navigationDestination(item: $selectedBookForDetails) { book in
+            BookDetailView(book: book)
+        }
         #if os(iOS) || SKIP
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .toolbar {
             toolbarContent
         }
-        .sheet(item: $viewModel.selectedBook) { book in
-            BookDetailView(book: book)
-        }
         .task {
             await viewModel.loadLibrary()
+        }
+        .onChange(of: appState.currentLibraryId) { _ in
+            Task {
+                await viewModel.loadLibrary()
+            }
+        }
+        .onChange(of: appState.isAuthenticated) { _ in
+            if appState.isAuthenticated {
+                Task {
+                    await viewModel.loadLibrary()
+                }
+            }
         }
     }
     
@@ -93,14 +94,8 @@ public struct BookshelfView: View {
                 endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
-            
-            // Particles
-            GlassParticlesView(
-                particleCount: 30,
-                colors: [.blue, .purple, .cyan]
-            )
-            .opacity(0.4)
         }
+        .allowsHitTesting(false)
     }
     
     // MARK: - Header Section
@@ -171,7 +166,7 @@ public struct BookshelfView: View {
                 HStack(spacing: 16) {
                     ForEach(viewModel.continueListening) { book in
                         ContinueListeningCard(book: book) {
-                            viewModel.playBook(book)
+                            selectedBookForDetails = book
                         }
                     }
                 }
@@ -216,7 +211,11 @@ public struct BookshelfView: View {
                         book: book,
                         aspectRatio: viewModel.coverAspectRatio
                     ) {
-                        viewModel.selectBook(book)
+                        selectedBookForDetails = book
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        selectedBookForDetails = book
                     }
                 }
             }
@@ -338,7 +337,14 @@ public struct ContinueListeningCard: View {
     }
     
     public var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        Button(action: {
+            #if os(iOS) && !SKIP
+            let generator = UIImpactFeedbackGenerator(style: .light)
+            generator.impactOccurred()
+            #endif
+            onTap()
+        }) {
+            VStack(alignment: .leading, spacing: 8) {
             // Cover image
             Group {
                 if let url = coverURL {
@@ -387,7 +393,8 @@ public struct ContinueListeningCard: View {
         }
         .frame(width: 120)
         .contentShape(Rectangle())
-        .onTapGesture(perform: onTap)
+        }
+        .buttonStyle(.plain)
     }
     
     private var fallbackCover: some View {
@@ -412,8 +419,10 @@ public struct ContinueListeningCard: View {
     }
     
     private var coverURL: URL? {
-        guard let path = book.coverPath else { return nil }
-        return URL(string: path)
+        if let path = book.coverPath, path.hasPrefix("http") {
+            return URL(string: path)
+        }
+        return AudiobookshelfAPI.shared.getCoverURL(itemId: book.id)
     }
 }
 

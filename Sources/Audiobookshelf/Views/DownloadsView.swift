@@ -99,7 +99,8 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
             }
             
             let trackPaths = tracks.map { $0.contentUrl }
-            let totalSize = book.media.size > 0 ? book.media.size : Int64(session.duration * 32000 / 8)
+            let mediaSize = book.media.size ?? 0
+            let totalSize = mediaSize > 0 ? mediaSize : Int64(session.duration * 32000 / 8)
             
             let download = Download(
                 libraryItemId: book.id,
@@ -135,12 +136,54 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
             activeBookId = nil
         }
         
+        // Remove any resume data
+        let fileURL = downloadsDirectory.appendingPathComponent("\(bookId)_resume.dat")
+        try? fm.removeItem(at: fileURL)
+        
         downloadQueue.removeAll { $0 == bookId }
         downloads.removeAll { $0.libraryItemId == bookId }
         activeDownloads.removeValue(forKey: bookId)
         
         saveDownloadsIndex()
         processQueue()
+    }
+
+    public func pauseDownload(bookId: String) {
+        guard activeBookId == bookId, let task = activeDownloadTask else { return }
+        
+        task.cancel { [weak self] resumeDataOrNil in
+            guard let self = self else { return }
+            Task { @MainActor in
+                if let resumeData = resumeDataOrNil {
+                    let fileURL = self.downloadsDirectory.appendingPathComponent("\(bookId)_resume.dat")
+                    try? resumeData.write(to: fileURL)
+                }
+                
+                if let index = self.downloads.firstIndex(where: { $0.libraryItemId == bookId }) {
+                    self.downloads[index].status = .paused
+                }
+                self.activeDownloads.removeValue(forKey: bookId)
+                self.activeDownloadTask = nil
+                self.activeBookId = nil
+                self.saveDownloadsIndex()
+                self.processQueue()
+            }
+        }
+    }
+
+    public func resumeDownload(bookId: String) {
+        if let index = downloads.firstIndex(where: { $0.libraryItemId == bookId }) {
+            downloads[index].status = .pending
+        }
+        
+        downloadQueue.removeAll { $0 == bookId }
+        downloadQueue.insert(bookId, at: 0)
+        
+        saveDownloadsIndex()
+        
+        if activeBookId == nil {
+            processQueue()
+        }
     }
 
     public func deleteDownload(bookId: String) throws {
@@ -207,14 +250,22 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         
         let session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
-        let task = session.downloadTask(with: request)
-        self.activeDownloadTask = task
+        
+        let fileURL = downloadsDirectory.appendingPathComponent("\(bookId)_resume.dat")
+        if let resumeData = try? Data(contentsOf: fileURL) {
+            try? fm.removeItem(at: fileURL)
+            let task = session.downloadTask(withResumeData: resumeData)
+            self.activeDownloadTask = task
+        } else {
+            let task = session.downloadTask(with: request)
+            self.activeDownloadTask = task
+        }
         
         if let index = downloads.firstIndex(where: { $0.libraryItemId == bookId }) {
             downloads[index].status = .downloading
         }
-        activeDownloads[bookId] = 0.0
-        task.resume()
+        activeDownloads[bookId] = downloads.first(where: { $0.libraryItemId == bookId })?.progress ?? 0.0
+        activeDownloadTask?.resume()
     }
     
     private func handleActiveDownloadFailed(error: Error) {
@@ -458,16 +509,13 @@ public struct DownloadsView: View {
     private var downloadsList: some View {
         List {
             // Active Downloads
-            if !downloadService.activeDownloads.isEmpty || !downloadService.downloadQueue.isEmpty {
+            let pendingDownloads = downloadService.downloads.filter { $0.status != .completed }
+            if !pendingDownloads.isEmpty {
                 Section {
-                    ForEach(downloadService.activeDownloads.keys.sorted(), id: \.self) { id in
-                        if let download = downloadService.downloads.first(where: { $0.libraryItemId == id }) {
+                    ForEach(pendingDownloads) { download in
+                        if download.status == .downloading || download.status == .paused {
                             ActiveDownloadRow(download: download)
-                        }
-                    }
-
-                    ForEach(downloadService.downloadQueue, id: \.self) { id in
-                        if let download = downloadService.downloads.first(where: { $0.libraryItemId == id }) {
+                        } else {
                             QueueRow(download: download)
                         }
                     }
@@ -538,18 +586,36 @@ public struct ActiveDownloadRow: View {
                     .lineLimit(1)
 
                 ProgressView(value: download.progress)
-                    .tint(.appPrimary)
+                    .tint(download.status == .paused ? .gray : .appPrimary)
 
                 HStack {
-                    Text("\(Int(download.progress * 100))%")
+                    Text(download.status == .paused ? "Paused" : "\(Int(download.progress * 100))%")
                         .font(.caption)
-                        .foregroundStyle(Color.appPrimary)
+                        .foregroundStyle(download.status == .paused ? .gray : Color.appPrimary)
 
                     Spacer()
 
                     Text(ByteCountFormatter.string(fromByteCount: download.totalSize, countStyle: .file))
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.5))
+                }
+            }
+
+            if download.status == .paused {
+                Button {
+                    DownloadService.shared.resumeDownload(bookId: download.libraryItemId)
+                } label: {
+                    Image(systemName: "play.circle.fill")
+                        .foregroundStyle(.white.opacity(0.8))
+                        .font(.title2)
+                }
+            } else {
+                Button {
+                    DownloadService.shared.pauseDownload(bookId: download.libraryItemId)
+                } label: {
+                    Image(systemName: "pause.circle.fill")
+                        .foregroundStyle(.white.opacity(0.8))
+                        .font(.title2)
                 }
             }
 
@@ -590,6 +656,21 @@ public struct QueueRow: View {
             }
 
             Spacer()
+            
+            Button {
+                DownloadService.shared.resumeDownload(bookId: download.libraryItemId)
+            } label: {
+                Image(systemName: "arrow.up.circle.fill")
+                    .foregroundStyle(Color.appPrimary)
+                    .font(.title3)
+            }
+            
+            Button {
+                DownloadService.shared.cancelDownload(bookId: download.libraryItemId)
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(.white.opacity(0.4))
+            }
         }
     }
 }

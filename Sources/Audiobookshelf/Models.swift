@@ -22,11 +22,12 @@ public enum MediaType: String, Codable {
 // MARK: - Book
 public struct Book: Identifiable, Codable, Hashable {
     public let id: String
-    public let libraryId: String
+    public let libraryId: String?
     public let folderId: String?
-    public let path: String
-    public let relPath: String
+    public let path: String?
+    public let relPath: String?
     public let isMissing: Bool?
+    public let libraryFiles: [LibraryFile]?
     
     // Media Info
     public let media: BookMedia
@@ -49,37 +50,37 @@ public struct Book: Identifiable, Codable, Hashable {
     }
     
     public var duration: TimeInterval {
-        media.duration
+        media.duration ?? 0
     }
     
     public var chapters: [Chapter] {
-        media.chapters
+        media.chapters ?? []
     }
     
     // Progress
     public let userMediaProgress: MediaProgress?
     
     // Timestamps
-    public let addedAt: Date
-    public let updatedAt: Date
+    public let addedAt: Date?
+    public let updatedAt: Date?
     
     public enum CodingKeys: String, CodingKey {
         case id, libraryId, folderId, path, relPath, media
-        case userMediaProgress, addedAt, updatedAt
-        case isMissing = "is_missing"
+        case userMediaProgress, addedAt, updatedAt, libraryFiles
+        case isMissing
     }
 }
 
 // MARK: - Book Media
 public struct BookMedia: Codable, Hashable {
-    public let libraryFiles: [LibraryFile]
-    public let chapters: [Chapter]
-    public let duration: TimeInterval
-    public let size: Int64
+    public let libraryFiles: [LibraryFile]?
+    public let chapters: [Chapter]?
+    public let duration: TimeInterval?
+    public let size: Int64?
     public let metadata: BookMetadata
     public let coverPath: String?
-    public let tags: [String]
-    public let audioFiles: [AudioFile]
+    public let tags: [String]?
+    public let audioFiles: [AudioFile]?
     public let ebookFile: EbookFile?
     
     public enum CodingKeys: String, CodingKey {
@@ -189,9 +190,9 @@ public struct MediaProgress: Codable, Hashable {
     public let progress: Double // 0.0 to 1.0
     public let currentTime: TimeInterval
     public let isFinished: Bool
-    public let hideFromContinueListening: Bool
+    public let hideFromContinueListening: Bool?
     public let lastUpdate: Date
-    public let startedAt: Date
+    public let startedAt: Date?
     public let finishedAt: Date?
     
     public var progressPercentage: Int {
@@ -252,28 +253,33 @@ public struct AudioTrack: Identifiable, Codable, Sendable {
 public struct Library: Identifiable, Codable {
     public let id: String
     public let name: String
-    public let folders: [LibraryFolder]
-    public let displayOrder: Int
-    public let icon: String
-    public let mediaType: MediaType
-    public let provider: String
-    public let settings: LibrarySettings
-    public let createdAt: Date
-    public let lastUpdate: Date
+    public let folders: [LibraryFolder]?
+    public let displayOrder: Int?
+    public let icon: String?
+    public let mediaType: String? // Changed to String? since MediaType enum might not match
+    public let provider: String?
+    public let settings: LibrarySettings?
+    public let createdAt: Date?
+    public let updatedAt: Date?
+    
+    public enum CodingKeys: String, CodingKey {
+        case id, name, folders, displayOrder, icon, mediaType, provider, settings, createdAt
+        case updatedAt = "updatedAt"
+    }
 }
 
 public struct LibraryFolder: Identifiable, Codable {
     public let id: String
-    public let fullPath: String
-    public let libraryId: String
-    public let addedAt: Date
+    public let fullPath: String?
+    public let libraryId: String?
+    public let addedAt: Date?
 }
 
 public struct LibrarySettings: Codable {
-    public let coverAspectRatio: Int
-    public let disableWatcher: Bool
-    public let skipMatchingMediaWithAsin: Bool
-    public let skipMatchingMediaWithIsbn: Bool
+    public let coverAspectRatio: Int?
+    public let disableWatcher: Bool?
+    public let skipMatchingMediaWithAsin: Bool?
+    public let skipMatchingMediaWithIsbn: Bool?
     public let autoScanCronExpression: String?
 }
 
@@ -409,3 +415,31 @@ public enum BookCoverAspectRatio: Int, Codable {
     }
     #endif
 }
+
+// MARK: - API Error
+public struct APIErrorResponse: Codable {
+    public struct ErrorDetail: Codable {
+        public let message: String
+        public let code: String?
+    }
+    public let error: ErrorDetail?
+    public let success: Bool
+}
+
+public struct ProgressSyncQueueItem: Codable {
+    public let sessionId: String
+    public let currentTime: TimeInterval
+    public let duration: TimeInterval
+    public let timeListened: TimeInterval
+    public let dateAdded: Date
+    
+    public init(sessionId: String, currentTime: TimeInterval, duration: TimeInterval, timeListened: TimeInterval, dateAdded: Date = Date()) {
+        self.sessionId = sessionId
+        self.currentTime = currentTime
+        self.duration = duration
+        self.timeListened = timeListened
+        self.dateAdded = dateAdded
+    }
+}
+
+

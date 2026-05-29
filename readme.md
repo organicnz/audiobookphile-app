@@ -1,59 +1,203 @@
-# Audiobookshelf
+# Audiobookshelf Mobile App
 
-This is a [Skip](https://skip.dev) dual-platform app project.
+Audiobookshelf is a self-hosted audiobook and podcast server.
 
+### Android (beta)
 
-<!-- TODO: add iOS screenshots to fastlane metadata
-## iPhone Screenshots
+Get the Android app on the [Google Play Store](https://play.google.com/store/apps/details?id=com.audiobookshelf.app)
 
-<img alt="iPhone Screenshot" src="Darwin/fastlane/screenshots/en-US/1_en-US.png" style="width: 18%" /> <img alt="iPhone Screenshot" src="Darwin/fastlane/screenshots/en-US/2_en-US.png" style="width: 18%" /> <img alt="iPhone Screenshot" src="Darwin/fastlane/screenshots/en-US/3_en-US.png" style="width: 18%" /> <img alt="iPhone Screenshot" src="Darwin/fastlane/screenshots/en-US/4_en-US.png" style="width: 18%" /> <img alt="iPhone Screenshot" src="Darwin/fastlane/screenshots/en-US/5_en-US.png" style="width: 18%" />
--->
+### iOS (early beta)
 
-<!-- TODO: add Android screenshots to fastlane metadata
-## Android Screenshots
+**Beta is currently full. Apple has a hard limit of 10k beta testers. Updates will be posted in Discord.**
 
-<img alt="Android Screenshot" src="Android/fastlane/metadata/android/en-US/images/phoneScreenshots/1_en-US.png" style="width: 18%" /> <img alt="Android Screenshot" src="Android/fastlane/metadata/android/en-US/images/phoneScreenshots/2_en-US.png" style="width: 18%" /> <img alt="Android Screenshot" src="Android/fastlane/metadata/android/en-US/images/phoneScreenshots/3_en-US.png" style="width: 18%" /> <img alt="Android Screenshot" src="Android/fastlane/metadata/android/en-US/images/phoneScreenshots/4_en-US.png" style="width: 18%" /> <img alt="Android Screenshot" src="Android/fastlane/metadata/android/en-US/images/phoneScreenshots/5_en-US.png" style="width: 18%" />
--->
+Using Test Flight: https://testflight.apple.com/join/wiic7QIW **_(beta is full)_**
 
-## Building
+---
 
-This project is both a stand-alone Swift Package Manager module,
-as well as an Xcode project that builds and translates the project
-into a Kotlin Gradle project for Android using the skipstone plugin.
+[Go to the main project repo github.com/advplyr/audiobookshelf](https://github.com/advplyr/audiobookshelf) or the project site [audiobookshelf.org](https://audiobookshelf.org)
 
-## Running
+Join us on [discord](https://discord.gg/pJsjuNCKRq)
 
-Xcode and Android Studio must be downloaded and installed in order to
-run the app in the iOS simulator / Android emulator.
-An Android emulator must already be running, which can be launched from
-Android Studio's Device Manager.
+**Requires an Audiobookshelf server to connect with**
 
-The project can be opened and run in Xcode from
-`Project.xcworkspace`, which also enabled parallel
-development of any Skip libary dependencies.
+<img alt="Screenshot" src="https://github.com/advplyr/audiobookshelf-app/raw/master/screenshots/DeviceDemoScreens.png" />
 
-To run both the Swift and Kotlin apps simultaneously,
-launch the "Audiobookshelf App" target from Xcode.
-A build phases runs the "Launch Android APK" script that
-will deploy the Skip app to a running Android emulator or connected device.
-Logging output for the iOS app can be viewed in the Xcode console, and in
-Android Studio's logcat tab for the transpiled Kotlin app, or
-using `adb logcat` from a terminal.
+## Contributing
 
-## Testing
+This application is built using [NuxtJS](https://nuxtjs.org/), [Capacitor](https://capacitorjs.com/), and [Bun](https://bun.sh/) in order to run on both iOS and Android with rapid build times and native performance.
 
-The module can be tested using the standard `swift test` command
-or by running the test target for the macOS destination in Xcode,
-which will run the Swift tests as well as the transpiled
-Kotlin JUnit tests in the Robolectric Android simulation environment.
+### Localization
 
-Parity testing can be performed with `skip test`,
-which will output a table of the test results for both platforms.
+Thank you to [Weblate](https://hosted.weblate.org/engage/audiobookshelf/) for hosting our localization infrastructure pro-bono. If you want to see Audiobookshelf in your language, please help us localize. Additional information on helping with the translations [here](https://www.audiobookshelf.org/faq#how-do-i-help-with-translations). <a href="https://hosted.weblate.org/engage/audiobookshelf/"> <img src="https://hosted.weblate.org/widget/audiobookshelf/abs-mobile-app/horizontal-auto.svg" alt="Translation status" /> </a>
 
-## 🤖 AI Agent Guidelines
+### Windows Environment Setup for Android
 
-For all AI coding assistants working in this repository:
-- **Upstream Benchmark**: Refer directly to [advplyr/audiobookshelf-app](https://github.com/advplyr/audiobookshelf-app) (the Capacitor-based Client app) as the absolute source of truth for all user flows, features, state patterns, and API interactions.
-- **Reference Documentation**: Prioritize reading [docs/UI-UX-BENCHMARK.md](file:///Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/UI-UX-BENCHMARK.md) and [docs/AGENTS.md](file:///Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/AGENTS.md) to align with existing design systems and state requirements.
-- **Visual Design Standard**: Maintain the custom native **Liquid Glass (LG)** visual system in SwiftUI/Compose (Metal shaders, spring animation dynamics, ProMotion 120Hz support, and haptics) while achieving exact parity with the upstream client's functional flows.
+Required Software:
+
+- [Git](https://git-scm.com/downloads)
+- [Bun](https://bun.sh/) (or Node.js version 20 as fallback)
+- Code editor of choice([VSCode](https://code.visualstudio.com/download), etc)
+- [Android Studio](https://developer.android.com/studio)
+- [Android SDK](https://developer.android.com/studio)
+
+<details>
+<summary>Install the required software with <a href=(https://docs.microsoft.com/en-us/windows/package-manager/winget/#production-recommended)>winget</a></summary>
+
+<p>
+Note: This requires a PowerShell prompt with winget installed.  You should be able to copy and paste the code block to install.  If you use an elevated PowerShell prompt, UAC will not pop up during the installs.
+
+```PowerShell
+winget install -e --id Git.Git; `
+winget install -e --id Microsoft.VisualStudioCode; `
+winget install -e --id  Google.AndroidStudio; `
+winget install -e --id JarredSumner.Bun;
+```
+
+</p>
+</details>
+<br>
+
+Your Windows environment should now be set up and ready to proceed!
+
+### Mac Environment Setup for Android
+
+Required Software:
+
+- [Android Studio](https://developer.android.com/studio)
+- [Bun](https://bun.sh/)
+- [Cocoapods](https://guides.cocoapods.org/using/getting-started.html#installation)
+- [Android SDK](https://developer.android.com/studio)
+
+<details>
+<summary>Install the required software with <a href=(https://brew.sh/)>homebrew</a></summary>
+
+<p>
+
+```zsh
+brew install android-studio oven-sh/bun/bun cocoapods
+```
+
+</p>
+</details>
+
+### Start working on the Android app
+
+Clone or fork the project from terminal or powershell and `cd` into the project directory.
+
+Install the required node packages:
+
+```shell
+bun install
+```
+
+<br>
+
+Generate static web app:
+
+```shell
+bun run generate
+```
+
+<br>
+
+Copy web app into native android/ios folders:
+
+```shell
+bunx cap sync
+```
+
+<br>
+
+Open Android Studio:
+
+```shell
+bunx cap open android
+```
+
+<br>
+
+Start coding!
+
+After making changes to the JS layer you need to rebuild the nuxt pages and sync them to the native shells:
+
+```shell
+bun run sync
+```
+
+### Mac Environment Setup for iOS
+
+Required Software:
+
+- [Xcode](https://developer.apple.com/xcode/)
+- [Bun](https://bun.sh/)
+- [Cocoapods](https://guides.cocoapods.org/using/getting-started.html#installation)
+
+### Start working on the iOS app
+
+Clone or fork the project in the terminal and `cd` into the project directory.
+
+Install the required packages:
+
+```shell
+bun install
+```
+
+<br>
+
+Generate static web app:
+
+```shell
+bun run generate
+```
+
+<br>
+
+Copy web app into native android/ios folders:
+
+```shell
+bunx cap sync
+```
+
+<br>
+
+Open Xcode:
+
+```shell
+bunx cap open ios
+```
+
+<br>
+
+Start coding!
+
+After making changes to the JS layer you need to rebuild the nuxt pages and sync them to the native shells:
+
+```shell
+bun run sync
+```
+
+---
+
+## Xcode Cloud Build Pipeline
+
+The iOS client uses **Xcode Cloud** for automated TestFlight building and distribution. The pipeline uses **Bun** in combination with Node.js in the post-clone script step for rapid compilation.
+
+### How it Works (Post-Clone Shell)
+When Xcode Cloud triggers a build, it executes the custom post-clone script located at `ios/App/ci_scripts/ci_post_clone.sh`. This script:
+1. Installs Node.js via Homebrew (required to support capacitor shebang environments).
+2. Installs Bun natively on the Apple build container.
+3. Runs `bun install --frozen-lockfile` to install all packages.
+4. Executes `bun run generate` to compile Nuxt static pages.
+5. Runs `bunx cap sync ios` to move compile outputs into Xcode.
+6. Installs CocoaPods dependencies via `pod install`.
+
+### Environment Variables Setup
+To allow Nuxt to bake the Supabase credentials into the client bundle at build-time, you **MUST** configure the following environment variables in your Xcode Cloud Workflow settings under the **Environment** tab:
+
+| Variable | Description |
+|---|---|
+| `NUXT_ENV_SUPABASE_URL` | Your Supabase Project API URL (e.g. `https://xxxx.supabase.co`) |
+| `NUXT_ENV_SUPABASE_ANON_KEY` | Your Supabase publishable anonymous key |
+
+Ensure both are marked as **Required** in your Xcode Cloud workflow parameters so the build pipeline has access to them.
 

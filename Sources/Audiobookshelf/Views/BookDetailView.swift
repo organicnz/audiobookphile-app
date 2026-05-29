@@ -463,21 +463,22 @@ public struct BookDetailView: View {
             do {
                 let session = try await AudiobookshelfAPI.shared.startPlaybackSession(libraryItemId: detailed.id)
                 
-                // Set the session on the audio player
-                AudioPlayerService.shared.session = session
-                
-                // If a seek time is supplied (e.g. from tapping a chapter), seek to it!
+                // If a seek time is supplied (e.g. from tapping a chapter), store it before starting
                 if let seekTime = seekToTime {
-                    // Update state to let the player seek immediately upon startup
                     UserDefaults.standard.set(seekTime, forKey: "pendingSeekTime-\(session.id)")
                 }
                 
+                // Actually start playback (loads tracks, sets up AVPlayer, starts playing)
+                AudioPlayerService.shared.startPlayback(session: session)
+                
                 dismiss()
                 
-                // Open full player
-                AppState.shared.showingPlayer = true
+                // Open full player using the Coordinator with a slight delay
+                // to allow the dismissal animation to complete.
+                PlayerCoordinator.shared.presentPlayer(delayMilliseconds: 500)
+                
             } catch {
-                print("Failed to start playback session from detail view: \(error)")
+                print("Failed to start playback session: \(error)")
             }
         }
     }
