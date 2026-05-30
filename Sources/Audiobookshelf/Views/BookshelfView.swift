@@ -263,7 +263,7 @@ public struct BookshelfView: View {
                     LazyVStack(spacing: 12) {
                         ForEach(viewModel.searchResults(for: searchText)) { book in
                             GlassBookCard(book: book) {
-                                viewModel.selectBook(book)
+                                selectedBookForDetails = book
                                 showSearch = false
                             }
                         }
