@@ -65,12 +65,12 @@ public struct BookshelfView: View {
         .task {
             await viewModel.loadLibrary()
         }
-        .onChange(of: appState.currentLibraryId) { _ in
+        .onChange(of: appState.currentLibraryId) { _, _ in
             Task {
                 await viewModel.loadLibrary()
             }
         }
-        .onChange(of: appState.isAuthenticated) { _ in
+        .onChange(of: appState.isAuthenticated) { _, _ in
             if appState.isAuthenticated {
                 Task {
                     await viewModel.loadLibrary()
