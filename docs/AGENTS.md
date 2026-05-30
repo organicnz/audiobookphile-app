@@ -22,11 +22,19 @@ Your goal is to **replicate all core functionality** of the official client whil
 *   Implement real-time progress syncing (REST fallback + Socket.io WebSockets) using the same events and thresholds as the official app (e.g., 4-second chapter threshold).
 *   Handle token refreshes (automatic 401 handling with Keychain credentials storage) and cellular metered network restrictions seamlessly.
 
-### 2. Premium Design System: Liquid Glass (LG)
+### 2. Custom Next.js & Supabase Backend
+*   **CRITICAL DEVIATION**: This client connects to a custom Next.js/Supabase backend, NOT the official Audiobookshelf Node.js server.
+*   **Authentication**: The backend uses Supabase Auth via JWTs. Requests to `/api/*` must include `Authorization: Bearer <token>`.
+*   **Storage Architecture**: The backend uses a Hybrid Storage approach:
+    * Small files (< 25MB, e.g., covers) are stored in Supabase Storage (`supabase://`).
+    * Large files (>= 25MB, e.g., audiobooks) are stored in Backblaze B2 (`b2://`).
+*   **Playback API**: The `/api/playback/start` endpoint generates signed URLs dynamically based on the hybrid storage provider. Wait for these signed URLs before initializing the AVPlayer/ExoPlayer.
+
+### 3. Premium Design System: Liquid Glass (LG)
 *   Every screen must feel premium and visually impressive. Ensure that all SwiftUI/Compose components respect the visual identity defined in [docs/UI-UX-BENCHMARK.md](file:///Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/UI-UX-BENCHMARK.md).
 *   Avoid basic solid layouts. Use dynamic glassmorphism (ultra-thin material blurs, light-refracting borders, and floating particles), spring-based interactive transitions, and dominant color extractions from audiobook cover art.
 
-### 3. The Skip Dual-Platform Paradigm
+### 4. The Skip Dual-Platform Paradigm
 *   Write your main app code in Swift inside the `Sources/Audiobookshelf` directory. Skip will compile and transpile this to native Kotlin/Jetpack Compose for Android.
 *   Keep the transpilation bridge in mind. Check that your code compiles on both Swift and Kotlin targets.
 *   Segregate any platform-specific code (e.g., AVFoundation and Android MediaPlayer hookups) using:
@@ -38,7 +46,7 @@ Your goal is to **replicate all core functionality** of the official client whil
     #endif
     ```
 
-### 4. Verification Workflow
+### 5. Verification Workflow
 *   Always test compilation and execution on the booted iOS Simulator (`iPhone 17 Pro` is currently booted and verified in the development environment).
 *   Run validation builds using:
     ```bash
