@@ -24,7 +24,7 @@ public struct RecentServer: Codable, Identifiable {
 public struct ConnectView: View {
     @State var appState = AppState.shared
     @State var viewModel = ConnectViewModel()
-    @State var serverURL = "https://uopnmbwryqydzmslgxtk.supabase.co/functions/v1"
+    @State var serverURL = "https://iambzzclljayqdxkeepy.supabase.co/functions/v1/api"
     @State var username = ""
     @State var password = ""
     @State var showPassword = false

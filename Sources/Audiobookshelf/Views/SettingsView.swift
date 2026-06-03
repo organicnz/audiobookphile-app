@@ -58,9 +58,11 @@ public struct SettingsView: View {
                 }
                 .onChange(of: viewModel.autoSleepTimer) { oldValue, newValue in
                     UserDefaults.standard.set(newValue, forKey: "autoSleepTimer")
+                    viewModel.syncPreferences()
                 }
                 .onChange(of: viewModel.autoResume) { oldValue, newValue in
                     UserDefaults.standard.set(newValue, forKey: "autoResume")
+                    viewModel.syncPreferences()
                 }
                 .onChange(of: viewModel.hapticsEnabled) { oldValue, newValue in
                     UserDefaults.standard.set(newValue, forKey: "hapticsEnabled")
@@ -325,16 +327,76 @@ public class SettingsViewModel {
         lockOrientation = defaults.bool(forKey: "lockOrientation")
         selectedTheme = defaults.string(forKey: "selectedTheme") ?? "System"
         serverURL = defaults.string(forKey: "serverURL") ?? ""
+        
+        Task {
+            do {
+                let settings = try await AudiobookshelfAPI.shared.getPreferences()
+                
+                let defaults = UserDefaults.standard
+                self.jumpForwardTime = settings.jumpForwardTime
+                defaults.set(settings.jumpForwardTime, forKey: "jumpForwardTime")
+                
+                self.jumpBackwardTime = settings.jumpBackwardsTime
+                defaults.set(settings.jumpBackwardsTime, forKey: "jumpBackwardTime")
+                
+                let themeString: String
+                switch settings.theme {
+                case .dark: themeString = "Dark"
+                case .light: themeString = "Light"
+                case .system: themeString = "System"
+                }
+                self.selectedTheme = themeString
+                defaults.set(themeString, forKey: "selectedTheme")
+                
+                self.autoResume = settings.autoResume
+                defaults.set(settings.autoResume, forKey: "autoResume")
+                
+                self.hapticsEnabled = settings.hapticsEnabled
+                defaults.set(settings.hapticsEnabled, forKey: "hapticsEnabled")
+                
+                self.lockOrientation = settings.lockOrientation
+                defaults.set(settings.lockOrientation, forKey: "lockOrientation")
+                
+            } catch {
+                print("Failed to sync preferences from server: \(error)")
+            }
+        }
+    }
+    
+    public func syncPreferences() {
+        Task {
+            var settings = AppSettings()
+            settings.jumpForwardTime = self.jumpForwardTime
+            settings.jumpBackwardsTime = self.jumpBackwardTime
+            
+            switch self.selectedTheme {
+            case "Dark": settings.theme = .dark
+            case "Light": settings.theme = .light
+            default: settings.theme = .system
+            }
+            
+            settings.autoResume = self.autoResume
+            settings.hapticsEnabled = self.hapticsEnabled
+            settings.lockOrientation = self.lockOrientation
+            
+            do {
+                _ = try await AudiobookshelfAPI.shared.updatePreferences(settings)
+            } catch {
+                print("Failed to update preferences to server: \(error)")
+            }
+        }
     }
 
     public func saveJumpForwardTime(_ val: Int) {
         jumpForwardTime = val
         UserDefaults.standard.set(val, forKey: "jumpForwardTime")
+        syncPreferences()
     }
 
     public func saveJumpBackwardTime(_ val: Int) {
         jumpBackwardTime = val
         UserDefaults.standard.set(val, forKey: "jumpBackwardTime")
+        syncPreferences()
     }
 
     public func saveDefaultPlaybackSpeed(_ val: Double) {
@@ -345,6 +407,7 @@ public class SettingsViewModel {
     public func saveTheme(_ val: String) {
         selectedTheme = val
         UserDefaults.standard.set(val, forKey: "selectedTheme")
+        syncPreferences()
     }
 
     public func logout() {

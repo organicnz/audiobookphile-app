@@ -306,15 +306,16 @@ public struct AudioPlayerView: View {
     private var trackView: some View {
         VStack(spacing: 8) {
             HStack {
-                Text(viewModel.currentChapterTimePretty)
+                Text(isDraggingSeeker ? viewModel.formatTime(draggedTime) : viewModel.currentTimePretty)
                     .font(.system(.caption, design: .monospaced))
                 Spacer()
-                Text(viewModel.timeRemainingPretty)
+                Text(isDraggingSeeker ? "-" + viewModel.formatTime(viewModel.duration - draggedTime) : viewModel.totalTimeRemainingPretty)
                     .font(.system(.caption, design: .monospaced))
             }
             .foregroundStyle(coverIsLight ? .black : .white)
 
             GeometryReader { geometry in
+                let currentVisualProgress = isDraggingSeeker ? (viewModel.duration > 0 ? draggedTime / viewModel.duration : 0) : viewModel.progress
                 ZStack(alignment: .leading) {
                     Capsule()
                         .fill(.white.opacity(0.3))
@@ -325,13 +326,13 @@ public struct AudioPlayerView: View {
 
                     Capsule()
                         .fill(Color.appPrimary)
-                        .frame(width: geometry.size.width * CGFloat(viewModel.progress))
+                        .frame(width: geometry.size.width * CGFloat(currentVisualProgress))
 
                     Circle()
                         .fill(Color.appPrimary)
                         .frame(width: 20, height: 20)
                         .shadow(color: .black.opacity(0.3), radius: 4)
-                        .offset(x: geometry.size.width * CGFloat(viewModel.progress) - 10)
+                        .offset(x: geometry.size.width * CGFloat(currentVisualProgress) - 10)
                 }
                 .frame(height: 6)
                 .gesture(

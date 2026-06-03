@@ -31,7 +31,7 @@ public class AudiobookshelfAPI {
     public var serverConnectionId: String = ""
 
     private let session: URLSession
-    private var isRefreshingToken = false
+    private var refreshTask: Task<Void, Error>?
 
     private init() {
         let config = URLSessionConfiguration.default
@@ -85,7 +85,13 @@ public class AudiobookshelfAPI {
             throw APIError.serverError(statusCode: httpResponse.statusCode, message: "Unknown server error", code: nil)
         }
 
-        let loginResponse = try JSONDecoder().decode(LoginResponse.self, from: data)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let timestamp = try container.decode(Double.self)
+            return Date(timeIntervalSince1970: timestamp / 1000.0)
+        }
+        let loginResponse = try decoder.decode(LoginResponse.self, from: data)
 
         self.accessToken = loginResponse.user.token
         self.refreshToken = loginResponse.user.refreshToken ?? ""
@@ -108,6 +114,7 @@ public class AudiobookshelfAPI {
         refreshToken = ""
         currentUser = nil
         isAuthenticated = false
+        AppState.shared.isAuthenticated = false
 
         try? KeychainManager.shared.clearCredentials()
     }
@@ -116,43 +123,71 @@ public class AudiobookshelfAPI {
 
     /// Refresh the access token using the refresh token
     private func refreshAccessToken() async throws {
-        guard !refreshToken.isEmpty else {
-            throw APIError.noRefreshToken
+        if let existingTask = refreshTask {
+            print("[API] Awaiting existing token refresh task...")
+            return try await existingTask.value
         }
 
-        print("[API] Refreshing access token...")
+        let task = Task<Void, Error> { [weak self] in
+            guard let self = self else { throw APIError.invalidResponse }
+            
+            guard !self.refreshToken.isEmpty else {
+                throw APIError.noRefreshToken
+            }
 
-        guard let url = URL(string: "\(baseURL)/auth/refresh") else {
-            throw APIError.invalidResponse
+            print("[API] Refreshing access token...")
+
+            guard let url = URL(string: "\(self.baseURL)/auth/refresh") else {
+                throw APIError.invalidResponse
+            }
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue(self.refreshToken, forHTTPHeaderField: "x-refresh-token")
+            request.httpBody = "{}".data(using: .utf8)
+
+            let (data, response) = try await self.session.data(for: request)
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw APIError.invalidResponse
+            }
+
+            if (400...403).contains(httpResponse.statusCode) {
+                throw APIError.authenticationFailed
+            }
+
+            guard (200...299).contains(httpResponse.statusCode) else {
+                throw APIError.tokenRefreshFailed
+            }
+
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .custom { decoder in
+                let container = try decoder.singleValueContainer()
+                let timestamp = try container.decode(Double.self)
+                return Date(timeIntervalSince1970: timestamp / 1000.0)
+            }
+            let refreshResponse = try decoder.decode(LoginResponse.self, from: data)
+
+            await MainActor.run {
+                self.accessToken = refreshResponse.user.token
+                if let newRefreshToken = refreshResponse.user.refreshToken {
+                    self.refreshToken = newRefreshToken
+                }
+
+                // Update Keychain/Secure preferences
+                try? KeychainManager.shared.saveCredentials(
+                    serverURL: self.baseURL,
+                    token: self.accessToken,
+                    refreshToken: self.refreshToken
+                )
+                print("[API] Token refreshed successfully")
+            }
         }
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(refreshToken, forHTTPHeaderField: "x-refresh-token")
-        request.httpBody = "{}".data(using: .utf8)
-
-        let (data, response) = try await session.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw APIError.tokenRefreshFailed
-        }
-
-        let refreshResponse = try JSONDecoder().decode(LoginResponse.self, from: data)
-
-        self.accessToken = refreshResponse.user.token
-        if let newRefreshToken = refreshResponse.user.refreshToken {
-            self.refreshToken = newRefreshToken
-        }
-
-        // Update Keychain/Secure preferences
-        try KeychainManager.shared.saveCredentials(
-            serverURL: baseURL,
-            token: accessToken,
-            refreshToken: self.refreshToken
-        )
-
-        print("[API] Token refreshed successfully")
+        
+        refreshTask = task
+        defer { refreshTask = nil }
+        
+        return try await task.value
     }
 
     // MARK: - Request Execution
@@ -218,24 +253,17 @@ public class AudiobookshelfAPI {
 
     /// Handle 401 unauthorized - refresh token and retry
     private func handleUnauthorized<T: Decodable>(originalRequest: URLRequest, responseType: T.Type) async throws -> T {
-        // Prevent multiple simultaneous refresh attempts
-        if isRefreshingToken {
-            // Wait for refresh to complete, then retry
-            try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
-            return try await executeRequest(originalRequest, responseType: responseType)
-        }
-
-        isRefreshingToken = true
-        defer { isRefreshingToken = false }
-
         do {
             try await refreshAccessToken()
             // Retry original request with new token
             return try await executeRequest(originalRequest, responseType: responseType)
-        } catch {
-            // Refresh failed - logout
+        } catch APIError.authenticationFailed, APIError.invalidResponse {
+            // Refresh explicitly rejected - logout
             logout()
             throw APIError.sessionExpired
+        } catch {
+            // Other errors (e.g. network offline) - propagate error without logging out
+            throw error
         }
     }
 
@@ -580,5 +608,38 @@ public final class KeychainManager: Sendable {
     public enum KeychainError: Error {
         case saveFailed
         case loadFailed
+    }
+    
+    // MARK: - Preferences
+    
+    public struct PreferencesResponse: Codable {
+        public let preferences: AppSettings?
+    }
+    
+    public func getPreferences() async throws -> AppSettings {
+        guard let url = URL(string: "\(baseURL)/api/users/me/preferences") else {
+            throw APIError.invalidResponse
+        }
+        
+        let request = URLRequest(url: url)
+        
+        let response = try await executeRequest(request, responseType: PreferencesResponse.self)
+        return response.preferences ?? AppSettings()
+    }
+    
+    public func updatePreferences(_ settings: AppSettings) async throws -> AppSettings {
+        guard let url = URL(string: "\(baseURL)/api/users/me/preferences") else {
+            throw APIError.invalidResponse
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "PATCH"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let encoder = JSONEncoder()
+        request.httpBody = try encoder.encode(settings)
+        
+        let response = try await executeRequest(request, responseType: PreferencesResponse.self)
+        return response.preferences ?? settings
     }
 }

@@ -1,0 +1,2 @@
+1. Add a `private var refreshTask: Task<Void, Error>?` to AudiobookshelfAPI.
+2. In `refreshAccessToken()`, if `refreshTask` exists, await it. Otherwise, create a new task, assign it to `refreshTask`, run the refresh logic, and then set `refreshTask = nil`.

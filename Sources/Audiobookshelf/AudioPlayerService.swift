@@ -147,21 +147,30 @@ public class AudioPlayerService {
 
     public func seek(to time: TimeInterval) {
         guard let session = session else { return }
-        let targetTime = min(max(0, time), duration)
+        
+        let targetTime = max(0, min(time, duration))
+        print("[Player] SEEK CALLED: requestedTime=\(time), duration=\(duration), targetTime=\(targetTime)")
         self.currentTime = targetTime
         
         // Find the correct track for targetTime
-        var targetTrackIndex = 0
+        var targetTrackIndex = session.audioTracks.count > 0 ? session.audioTracks.count - 1 : 0
         var seekTimeWithinTrack = targetTime
 
         for (index, track) in session.audioTracks.enumerated() {
             let trackStart = track.startOffset
             let trackEnd = trackStart + track.duration
-            if targetTime >= trackStart && targetTime <= trackEnd {
+            if targetTime >= trackStart && targetTime < trackEnd {
                 targetTrackIndex = index
                 seekTimeWithinTrack = targetTime - trackStart
+                print("[Player] SEEK MATCHED TRACK \(index): start=\(trackStart), end=\(trackEnd), seekTimeWithinTrack=\(seekTimeWithinTrack)")
                 break
             }
+        }
+        
+        if targetTrackIndex == session.audioTracks.count - 1 && session.audioTracks.count > 0 {
+            let trackStart = session.audioTracks[targetTrackIndex].startOffset
+            seekTimeWithinTrack = max(0, targetTime - trackStart)
+            print("[Player] SEEK FALLBACK TO LAST TRACK \(targetTrackIndex): start=\(trackStart), seekTimeWithinTrack=\(seekTimeWithinTrack)")
         }
 
         #if !SKIP && !os(Android)
@@ -359,17 +368,28 @@ public class AudioPlayerService {
                     }
                     let logMsg = "Player status: \(statusStr), duration: \(item.duration.seconds), isPlaying: \(self.player?.timeControlStatus == .playing)\n"
                     try? logMsg.write(toFile: NSTemporaryDirectory() + "audiobookshelf_avplayer_status.txt", atomically: true, encoding: .utf8)
+                }
 
-                    if trackDuration <= 0 && item.status == .readyToPlay {
-                        let itemDur = item.duration.seconds
-                        if itemDur > 0 && !itemDur.isNaN {
-                            trackDuration = itemDur
-                            if self.duration <= 0 {
-                                self.duration = itemDur
-                                if let currentSession = self.session {
-                                    self.setupNowPlayingInfo(for: currentSession)
-                                }
+                self.lastSyncedTime = self.currentTime
+
+                // Update track duration if needed (handle estimates)
+                var trackDuration = self.session?.audioTracks[self.currentTrackIndex].duration ?? track.duration
+                if let item = self.player?.currentItem, item.status == .readyToPlay {
+                    let itemDur = item.duration.seconds
+                    // Update if the track duration is 0, or if the actual duration is significantly different from the estimate
+                    if itemDur > 0 && !itemDur.isNaN && (trackDuration <= 0 || abs(itemDur - trackDuration) > 2) {
+                        trackDuration = itemDur
+                        
+                        // Update session track durations and offsets to enable accurate seeking
+                        self.session?.audioTracks[self.currentTrackIndex].duration = itemDur
+                        
+                        var currentOffset: TimeInterval = 0
+                        if let tracks = self.session?.audioTracks {
+                            for i in 0..<tracks.count {
+                                self.session?.audioTracks[i].startOffset = currentOffset
+                                currentOffset += self.session?.audioTracks[i].duration ?? 0
                             }
+                            self.duration = currentOffset
                         }
                     }
                 }

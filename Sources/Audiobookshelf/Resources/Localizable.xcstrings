@@ -166,15 +166,6 @@
     "Clear" : {
 
     },
-    "Connect" : {
-
-    },
-    "Connect to your server" : {
-
-    },
-    "Connecting..." : {
-
-    },
     "Connection Error" : {
 
     },
@@ -389,6 +380,12 @@
         }
       }
     },
+    "Missing Audio Files" : {
+
+    },
+    "Missing Files" : {
+
+    },
     "Name" : {
       "comment" : "Placeholder title for the Name field in a form",
       "extractionState" : "stale",
@@ -464,10 +461,16 @@
     "Pause" : {
 
     },
+    "Paused" : {
+
+    },
     "Pending..." : {
 
     },
     "Play" : {
+
+    },
+    "Playback Error" : {
 
     },
     "Powered by [Skip](https://skip.dev)" : {
@@ -504,9 +507,6 @@
 
     },
     "Recent Searches" : {
-
-    },
-    "Recent Servers" : {
 
     },
     "Retry" : {
@@ -580,6 +580,15 @@
     "Show Less" : {
 
     },
+    "Sign In" : {
+
+    },
+    "Sign in to your account" : {
+
+    },
+    "Signing in..." : {
+
+    },
     "Stats" : {
 
     },
@@ -614,6 +623,9 @@
           }
         }
       }
+    },
+    "The audio files for this book are missing from the server. Playback and downloads are unavailable." : {
+
     },
     "Title" : {
       "comment" : "Label for the item editor form indicating the title of the item",

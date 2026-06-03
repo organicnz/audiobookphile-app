@@ -224,7 +224,7 @@ public struct PlaybackSession: Codable {
     public let mediaType: String
     
     // Audio tracks and chapters
-    public let audioTracks: [AudioTrack]
+    public var audioTracks: [AudioTrack]
     public let chapters: [Chapter]
     
     // State
@@ -237,8 +237,8 @@ public struct PlaybackSession: Codable {
 // MARK: - Audio Track
 public struct AudioTrack: Identifiable, Codable, Sendable {
     public let index: Int
-    public let startOffset: TimeInterval
-    public let duration: TimeInterval
+    public var startOffset: TimeInterval
+    public var duration: TimeInterval
     public let title: String?
     public let contentUrl: String
     public let mimeType: String
@@ -391,6 +391,11 @@ public struct AppSettings: Codable {
     public var sleepTimerDefaultTime: Int = 900 // 15 minutes
     public var theme: AppTheme = .system
     public var bookCoverAspectRatio: BookCoverAspectRatio = .square
+    
+    // UI Settings
+    public var autoResume: Bool = true
+    public var hapticsEnabled: Bool = true
+    public var lockOrientation: Bool = false
     
     public init() {}
 }

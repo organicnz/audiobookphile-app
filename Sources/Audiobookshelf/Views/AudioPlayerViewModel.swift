@@ -23,7 +23,10 @@ public class AudioPlayerViewModel {
 
     public var title: String { session.displayTitle }
     public var author: String { session.displayAuthor }
-    public var duration: TimeInterval { session.duration }
+    public var duration: TimeInterval {
+        let actual = AudioPlayerService.shared.duration
+        return actual > 0 ? actual : session.duration
+    }
     public var chapters: [Chapter] { session.chapters }
 
     public var coverURL: URL? {
@@ -138,7 +141,7 @@ public class AudioPlayerViewModel {
 
     public func showBookmarks() {}
 
-    private func formatTime(_ time: TimeInterval) -> String {
+    public func formatTime(_ time: TimeInterval) -> String {
         let hours = Int(time) / 3600
         let minutes = (Int(time) % 3600) / 60
         let seconds = Int(time) % 60

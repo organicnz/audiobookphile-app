@@ -1,0 +1,33 @@
+1. Fix AudioPlayerService.swift:
+In `seek(to:)`:
+```swift
+        var targetTrackIndex = session.audioTracks.count - 1
+        var seekTimeWithinTrack: TimeInterval = 0
+
+        for (index, track) in session.audioTracks.enumerated() {
+            let trackStart = track.startOffset
+            let trackEnd = trackStart + track.duration
+            if targetTime >= trackStart && targetTime < trackEnd {
+                targetTrackIndex = index
+                seekTimeWithinTrack = targetTime - trackStart
+                break
+            }
+        }
+        
+        if targetTrackIndex == session.audioTracks.count - 1 {
+            let trackStart = session.audioTracks[targetTrackIndex].startOffset
+            seekTimeWithinTrack = max(0, targetTime - trackStart)
+        }
+```
+Wait, if it's Track 0, `session.audioTracks.count - 1` is 0.
+
+Also, when updating track duration from AVPlayer, UPDATE `self.duration`:
+```swift
+                            self.duration = self.session?.audioTracks.reduce(0) { $0 + $1.duration } ?? 0
+```
+So that the timeline scrubber bounds match the actual sum of track durations!
+
+2. Fix `playbackService.ts` to estimate duration even if `totalFilesSize` is 0:
+```ts
+    const needsDurationEstimation = totalBookDuration > 0 && sortedAudioFiles.some(af => af.duration === 0)
+```
