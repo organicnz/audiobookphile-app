@@ -13,6 +13,8 @@ public struct BookDetailView: View {
     
     @State var detailedBook: Book?
     @State var isLoading = true
+    @State private var playbackError: String? = nil
+    @State private var showPlaybackError = false
     @State var isDescriptionExpanded = false
     @State var colorLoader = DynamicColorLoader()
     @ObservedObject var downloadService = DownloadService.shared
@@ -45,6 +47,11 @@ public struct BookDetailView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .alert("Playback Error", isPresented: $showPlaybackError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(playbackError ?? "Unknown error")
+        }
         .task {
             await fetchDetails()
         }
@@ -454,6 +461,8 @@ public struct BookDetailView: View {
             }
         } catch {
             print("[BookDetailView] Error fetching detailed metadata: \(error)")
+            playbackError = error.localizedDescription
+            showPlaybackError = true
         }
         isLoading = false
     }
@@ -479,6 +488,10 @@ public struct BookDetailView: View {
                 
             } catch {
                 print("Failed to start playback session: \(error)")
+                playbackError = String(describing: error)
+                showPlaybackError = true
+                playbackError = error.localizedDescription
+                showPlaybackError = true
             }
         }
     }

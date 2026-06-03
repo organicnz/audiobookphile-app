@@ -24,9 +24,9 @@ public struct RecentServer: Codable, Identifiable {
 public struct ConnectView: View {
     @State var appState = AppState.shared
     @State var viewModel = ConnectViewModel()
-    @State var serverURL = "https://audiobookshelf-app.vercel.app"
-    @State var username = "organic"
-    @State var password = "Audiobookshelf123!"
+    @State var serverURL = "https://uopnmbwryqydzmslgxtk.supabase.co/functions/v1"
+    @State var username = ""
+    @State var password = ""
     @State var showPassword = false
     @State var isAnimating = false
 
@@ -47,11 +47,6 @@ public struct ConnectView: View {
 
                     // Connection form
                     formSection
-
-                    // Recent servers (if any)
-                    if !viewModel.recentServers.isEmpty {
-                        recentServersSection
-                    }
 
                     Spacer(minLength: 100)
                 }
@@ -108,7 +103,7 @@ public struct ConnectView: View {
                 .font(.system(size: 36, weight: .bold))
                 .foregroundStyle(.white)
 
-            Text("Connect to your server")
+            Text("Sign in to your account")
                 .font(.subheadline)
                 .foregroundStyle(.white.opacity(0.7))
         }
@@ -118,19 +113,11 @@ public struct ConnectView: View {
 
     private var formSection: some View {
         VStack(spacing: 16) {
-            // Server URL
-            GlassTextField(
-                text: $serverURL,
-                placeholder: "Server URL",
-                icon: "server.rack",
-                autocapitalize: false
-            )
-
-            // Username
+            // Username / Email
             GlassTextField(
                 text: $username,
-                placeholder: "Username",
-                icon: "person.fill",
+                placeholder: "Email address",
+                icon: "envelope.fill",
                 autocapitalize: false
             )
 
@@ -164,7 +151,7 @@ public struct ConnectView: View {
                             .tint(.white)
                             .padding(.trailing, 8)
                     }
-                    Text(appState.isLoading ? "Connecting..." : "Connect")
+                    Text(appState.isLoading ? "Signing in..." : "Sign In")
                         .bold()
                 }
                 .frame(maxWidth: .infinity)
@@ -191,24 +178,6 @@ public struct ConnectView: View {
                     ),
                     lineWidth: 1
                 )
-        }
-    }
-
-    // MARK: - Recent Servers
-
-    private var recentServersSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Recent Servers")
-                .font(.headline)
-                .foregroundStyle(.white.opacity(0.8))
-                .padding(.leading, 4)
-
-            ForEach(viewModel.recentServers) { server in
-                RecentServerRow(server: server) {
-                    serverURL = server.address
-                    username = server.username ?? ""
-                }
-            }
         }
     }
 

@@ -16,6 +16,6 @@ let package = Package(
     targets: [
         .target(name: "Audiobookshelf", dependencies: [
             .product(name: "SkipFuseUI", package: "skip-fuse-ui")
-        ], resources: [.process("Resources")], plugins: [.plugin(name: "skipstone", package: "skip")]),
+        ], resources: [.process("Resources")]),
     ]
 )
