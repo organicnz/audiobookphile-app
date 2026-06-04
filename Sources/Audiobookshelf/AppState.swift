@@ -42,6 +42,7 @@ public class AppState {
             if !credentials.serverURL.contains("supabase.co") {
                 print("[AppState] Found old non-Supabase server credentials. Migrating/Clearing...")
                 logout()
+                isLoading = false
                 return
             }
 
