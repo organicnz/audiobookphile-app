@@ -385,7 +385,7 @@ public class AudioPlayerService {
                 self.lastSyncedTime = self.currentTime
 
                 // Update track duration if needed (handle estimates)
-                var trackDuration = self.session?.audioTracks[self.currentTrackIndex].duration ?? track.duration
+                trackDuration = self.session?.audioTracks[self.currentTrackIndex].duration ?? track.duration
                 if let item = self.player?.currentItem, item.status == .readyToPlay {
                     let itemDur = item.duration.seconds
                     // Update if the track duration is 0, or if the actual duration is significantly different from the estimate

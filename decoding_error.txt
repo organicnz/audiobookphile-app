@@ -1,3 +1,3 @@
-[DecodingError] Details: DecodingError.keyNotFound: Key 'libraryId' not found in keyed decoding container. Path: results[0]. Debug description: No value associated with key CodingKeys(stringValue: "libraryId", intValue: nil) ("libraryId").
-For type: LibraryItemsResponse
-JSON length: 3550859 bytes
+[DecodingError] Details: DecodingError.keyNotFound: Key 'jumpForwardTime' not found in keyed decoding container. Path: preferences. Debug description: No value associated with key CodingKeys(stringValue: "jumpForwardTime", intValue: nil) ("jumpForwardTime").
+For type: PreferencesResponse
+JSON length: 18 bytes

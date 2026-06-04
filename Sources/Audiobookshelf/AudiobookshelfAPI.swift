@@ -451,6 +451,39 @@ public class AudiobookshelfAPI {
         UserDefaults.standard.set(newId, forKey: "absDeviceId")
         return newId
     }
+
+    // MARK: - Preferences
+    
+    public struct PreferencesResponse: Codable {
+        public let preferences: AppSettings?
+    }
+    
+    public func getPreferences() async throws -> AppSettings {
+        guard let url = URL(string: "\(baseURL)/api/users/me/preferences") else {
+            throw APIError.invalidResponse
+        }
+        
+        let request = URLRequest(url: url)
+        
+        let response = try await executeRequest(request, responseType: PreferencesResponse.self)
+        return response.preferences ?? AppSettings()
+    }
+    
+    public func updatePreferences(_ settings: AppSettings) async throws -> AppSettings {
+        guard let url = URL(string: "\(baseURL)/api/users/me/preferences") else {
+            throw APIError.invalidResponse
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "PATCH"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let encoder = JSONEncoder()
+        request.httpBody = try encoder.encode(settings)
+        
+        let response = try await executeRequest(request, responseType: PreferencesResponse.self)
+        return response.preferences ?? settings
+    }
 }
 
 // MARK: - Response Models
@@ -608,38 +641,5 @@ public final class KeychainManager: Sendable {
     public enum KeychainError: Error {
         case saveFailed
         case loadFailed
-    }
-    
-    // MARK: - Preferences
-    
-    public struct PreferencesResponse: Codable {
-        public let preferences: AppSettings?
-    }
-    
-    public func getPreferences() async throws -> AppSettings {
-        guard let url = URL(string: "\(baseURL)/api/users/me/preferences") else {
-            throw APIError.invalidResponse
-        }
-        
-        let request = URLRequest(url: url)
-        
-        let response = try await executeRequest(request, responseType: PreferencesResponse.self)
-        return response.preferences ?? AppSettings()
-    }
-    
-    public func updatePreferences(_ settings: AppSettings) async throws -> AppSettings {
-        guard let url = URL(string: "\(baseURL)/api/users/me/preferences") else {
-            throw APIError.invalidResponse
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "PATCH"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let encoder = JSONEncoder()
-        request.httpBody = try encoder.encode(settings)
-        
-        let response = try await executeRequest(request, responseType: PreferencesResponse.self)
-        return response.preferences ?? settings
     }
 }
