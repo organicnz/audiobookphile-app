@@ -1,6 +1,6 @@
 //
 //  BookCoverView.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  Reusable book cover component with caching and glass effects
 //

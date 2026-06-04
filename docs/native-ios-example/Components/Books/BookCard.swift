@@ -1,6 +1,6 @@
 //
 //  BookCard.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  Book card component with Liquid Glass design
 //  Translates: components/cards/ from Vue app

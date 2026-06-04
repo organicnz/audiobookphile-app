@@ -1,6 +1,6 @@
 //
 //  AudioPlayerView.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  Full-screen audio player with bleeding-edge Liquid Glass design
 //  Translates: components/app/AudioPlayer.vue

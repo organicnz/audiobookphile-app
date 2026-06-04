@@ -2,13 +2,13 @@
 
 ## 🎯 Goal: Ship Native iOS App in Record Time
 
-This guide contains EVERYTHING you need to build and ship the Audiobookshelf iOS app in 3-5 days.
+This guide contains EVERYTHING you need to build and ship the Audiobookphile iOS app in 3-5 days.
 
 **Prerequisites:**
 
 - ✅ Mac with Xcode 15+ installed
 - ✅ Apple Developer account
-- ✅ Audiobookshelf server running (for testing)
+- ✅ Audiobookphile server running (for testing)
 - ✅ 8+ hours per day focused development time
 
 ---
@@ -23,8 +23,8 @@ This guide contains EVERYTHING you need to build and ship the Audiobookshelf iOS
 
 ```bash
 # 1. Open Xcode -> Create New Project -> iOS App
-# 2. Product Name: AudiobookshelfClient
-# 3. Organization Identifier: com.audiobookshelf
+# 2. Product Name: AudiobookphileClient
+# 3. Organization Identifier: com.audiobookphile
 # 4. Interface: SwiftUI / Language: Swift
 # 5. Create in your working directory
 
@@ -63,28 +63,28 @@ This guide contains EVERYTHING you need to build and ship the Audiobookshelf iOS
 
 ```bash
 # Navigate to your project root
-cd AudiobookshelfClient
+cd AudiobookphileClient
 
 # Copy source files from docs
-cp -R ../docs/native-ios-example/App/ AudiobookshelfClient/App/
-cp -R ../docs/native-ios-example/Core/ AudiobookshelfClient/Core/
-cp -R ../docs/native-ios-example/Components/ AudiobookshelfClient/Components/
-cp -R ../docs/native-ios-example/Features/ AudiobookshelfClient/Features/
-cp -R ../docs/native-ios-example/Models/ AudiobookshelfClient/Models/
-cp -R ../docs/native-ios-example/Services/ AudiobookshelfClient/Services/
-cp -R ../docs/native-ios-example/Utilities/ AudiobookshelfClient/Utilities/
+cp -R ../docs/native-ios-example/App/ AudiobookphileClient/App/
+cp -R ../docs/native-ios-example/Core/ AudiobookphileClient/Core/
+cp -R ../docs/native-ios-example/Components/ AudiobookphileClient/Components/
+cp -R ../docs/native-ios-example/Features/ AudiobookphileClient/Features/
+cp -R ../docs/native-ios-example/Models/ AudiobookphileClient/Models/
+cp -R ../docs/native-ios-example/Services/ AudiobookphileClient/Services/
+cp -R ../docs/native-ios-example/Utilities/ AudiobookphileClient/Utilities/
 
 # IMPORTANT: Drag these folders into Xcode to link them!
 ```
 
 **Manifest of Files to Link:**
 
-1.  **App:** `AudiobookshelfApp.swift`
+1.  **App:** `AudiobookphileApp.swift`
 2.  **Core:** `ProMotionManager.swift`, `MetalContext.swift`, `ParallaxScrollView.swift`
 3.  **Models:** `Models.swift`
 4.  **Utilities:** `ColorExtractor.swift`, `NetworkMonitor.swift`, `TimeFormatter.swift`, `View+Extensions.swift`, `Constants.swift`
 5.  **Services:**
-    - `AudiobookshelfAPI.swift`
+    - `AudiobookphileAPI.swift`
     - `AudioPlayerService.swift`
     - `DownloadService.swift`
     - `SocketService.swift`
@@ -132,12 +132,12 @@ cp -R ../docs/native-ios-example/Utilities/ AudiobookshelfClient/Utilities/
 
 #### Hour 3: Configuration
 
-**Update `AudiobookshelfApp.swift` if not already correctly linked:**
+**Update `AudiobookphileApp.swift` if not already correctly linked:**
 
 Ensure the `MainTabView` correctly references all the views you just linked.
 
 ```swift
-// Check for this structure in AudiobookshelfApp.swift
+// Check for this structure in AudiobookphileApp.swift
 if authManager.isAuthenticated {
     MainTabView() // This handles the TabBar navigation
 } else {

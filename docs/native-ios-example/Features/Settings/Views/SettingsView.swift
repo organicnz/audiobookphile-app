@@ -1,6 +1,6 @@
 //
 //  SettingsView.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  App settings with Liquid Glass design
 //
@@ -253,7 +253,7 @@ class SettingsViewModel: ObservableObject {
 
     init() {
         loadSettings()
-        currentUser = AudiobookshelfAPI.shared.currentUser
+        currentUser = AudiobookphileAPI.shared.currentUser
     }
 
     func loadSettings() {
@@ -275,7 +275,7 @@ class SettingsViewModel: ObservableObject {
     }
 
     func logout() {
-        AudiobookshelfAPI.shared.logout()
+        AudiobookphileAPI.shared.logout()
     }
 }
 

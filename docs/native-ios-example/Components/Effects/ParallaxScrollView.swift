@@ -1,6 +1,6 @@
 //
 //  ParallaxScrollView.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  Multi-layer parallax scrolling with depth effects (120fps optimized)
 //

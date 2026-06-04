@@ -1,10 +1,10 @@
-# Audiobookshelf Mobile App
+# Audiobookphile Mobile App
 
-Audiobookshelf is a self-hosted audiobook and podcast server.
+Audiobookphile is a self-hosted audiobook and podcast server.
 
 ### Android (beta)
 
-Get the Android app on the [Google Play Store](https://play.google.com/store/apps/details?id=com.audiobookshelf.app)
+Get the Android app on the [Google Play Store](https://play.google.com/store/apps/details?id=com.audiobookphile.app)
 
 ### iOS (early beta)
 
@@ -14,13 +14,13 @@ Using Test Flight: https://testflight.apple.com/join/wiic7QIW **_(beta is full)_
 
 ---
 
-[Go to the main project repo github.com/advplyr/audiobookshelf](https://github.com/advplyr/audiobookshelf) or the project site [audiobookshelf.org](https://audiobookshelf.org)
+[Go to the main project repo github.com/advplyr/audiobookphile](https://github.com/advplyr/audiobookphile) or the project site [audiobookphile.org](https://audiobookphile.org)
 
 Join us on [discord](https://discord.gg/pJsjuNCKRq)
 
-**Requires an Audiobookshelf server to connect with**
+**Requires an Audiobookphile server to connect with**
 
-<img alt="Screenshot" src="https://github.com/advplyr/audiobookshelf-app/raw/master/screenshots/DeviceDemoScreens.png" />
+<img alt="Screenshot" src="https://github.com/advplyr/audiobookphile-app/raw/master/screenshots/DeviceDemoScreens.png" />
 
 ## Contributing
 
@@ -28,7 +28,7 @@ This application is built using [NuxtJS](https://nuxtjs.org/), [Capacitor](https
 
 ### Localization
 
-Thank you to [Weblate](https://hosted.weblate.org/engage/audiobookshelf/) for hosting our localization infrastructure pro-bono. If you want to see Audiobookshelf in your language, please help us localize. Additional information on helping with the translations [here](https://www.audiobookshelf.org/faq#how-do-i-help-with-translations). <a href="https://hosted.weblate.org/engage/audiobookshelf/"> <img src="https://hosted.weblate.org/widget/audiobookshelf/abs-mobile-app/horizontal-auto.svg" alt="Translation status" /> </a>
+Thank you to [Weblate](https://hosted.weblate.org/engage/audiobookphile/) for hosting our localization infrastructure pro-bono. If you want to see Audiobookphile in your language, please help us localize. Additional information on helping with the translations [here](https://www.audiobookphile.org/faq#how-do-i-help-with-translations). <a href="https://hosted.weblate.org/engage/audiobookphile/"> <img src="https://hosted.weblate.org/widget/audiobookphile/abs-mobile-app/horizontal-auto.svg" alt="Translation status" /> </a>
 
 ### Windows Environment Setup for Android
 

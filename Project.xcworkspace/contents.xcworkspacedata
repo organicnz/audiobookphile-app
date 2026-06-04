@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:Darwin/Audiobookshelf.xcodeproj">
+      location = "group:Darwin/Audiobookphile.xcodeproj">
    </FileRef>
 </Workspace>

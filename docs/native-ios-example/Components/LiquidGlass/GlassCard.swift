@@ -1,6 +1,6 @@
 //
 //  GlassCard.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  Liquid Glass card component with blur effects and translucency
 //

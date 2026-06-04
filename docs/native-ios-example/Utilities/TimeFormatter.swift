@@ -1,6 +1,6 @@
 //
 //  TimeFormatter.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  Duration and time formatting utilities
 //

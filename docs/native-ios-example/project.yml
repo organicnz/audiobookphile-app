@@ -1,6 +1,6 @@
 name: NativeIOSExample
 options:
-  bundleIdPrefix: com.audiobookshelf
+  bundleIdPrefix: com.audiobookphile
 targets:
   NativeIOSExample:
     type: application

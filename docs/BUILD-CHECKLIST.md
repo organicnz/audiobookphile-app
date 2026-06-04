@@ -13,7 +13,7 @@ This is your master checklist. Follow it step-by-step, and you WILL have a worki
 - [ ] Mac with macOS 13+ installed
 - [ ] Xcode 15+ installed
 - [ ] Apple Developer account (for TestFlight/App Store)
-- [ ] Audiobookshelf server running (for API testing)
+- [ ] Audiobookphile server running (for API testing)
 - [ ] Git installed
 - [ ] GitHub/GitLab repo created (optional but recommended)
 
@@ -31,14 +31,14 @@ This is your master checklist. Follow it step-by-step, and you WILL have a worki
 ### Hour 1-2: Xcode Project
 
 - [ ] Create new iOS App project in Xcode
-- [ ] Set Product Name: `AudiobookshelfClient`
-- [ ] Set Bundle ID: `com.audiobookshelf.native`
+- [ ] Set Product Name: `AudiobookphileClient`
+- [ ] Set Bundle ID: `com.audiobookphile.native`
 - [ ] Set Interface: SwiftUI
 - [ ] Set Language: Swift
 - [ ] Set Min iOS Version: 15.0
 - [ ] Create folder structure:
   ```
-  AudiobookshelfClient/
+  AudiobookphileClient/
   ├── App/
   ├── Features/
   ├── Components/
@@ -77,7 +77,7 @@ This is your master checklist. Follow it step-by-step, and you WILL have a worki
 
 ### Hour 5-8: API Client
 
-- [ ] Create `Services/Networking/AudiobookshelfAPI.swift`
+- [ ] Create `Services/Networking/AudiobookphileAPI.swift`
 - [ ] Implement `connect()` function (login)
 - [ ] Implement `getLibraries()` function
 - [ ] Implement `getLibraryItems()` function
@@ -93,14 +93,14 @@ This is your master checklist. Follow it step-by-step, and you WILL have a worki
 ```swift
 // This should work:
 Task {
-    let user = try await AudiobookshelfAPI.shared.connect(
+    let user = try await AudiobookphileAPI.shared.connect(
         to: "http://your-server.com",
         username: "test",
         password: "test"
     )
     print("Logged in: \(user.username)")
 
-    let libraries = try await AudiobookshelfAPI.shared.getLibraries()
+    let libraries = try await AudiobookphileAPI.shared.getLibraries()
     print("Found \(libraries.count) libraries")
 }
 ```
@@ -111,7 +111,7 @@ Task {
 
 ### Hour 1-2: App Entry Point
 
-- [ ] Create `App/AudiobookshelfApp.swift` (main app)
+- [ ] Create `App/AudiobookphileApp.swift` (main app)
 - [ ] Create `Services/AuthenticationManager.swift`
 - [ ] Implement login/logout logic
 - [ ] Add Keychain storage (UserDefaults for now is OK)
@@ -302,9 +302,9 @@ App is feature-complete and stable:
 
 - [ ] Log in to App Store Connect
 - [ ] Create new app
-- [ ] Set app name: "Audiobookshelf"
+- [ ] Set app name: "Audiobookphile"
 - [ ] Set bundle ID: Matches Xcode
-- [ ] Set SKU: "audiobookshelf-ios-native"
+- [ ] Set SKU: "audiobookphile-ios-native"
 - [ ] Upload app icon (1024x1024)
 - [ ] Set privacy policy URL
 - [ ] Set support URL

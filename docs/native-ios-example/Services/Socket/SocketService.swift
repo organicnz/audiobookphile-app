@@ -1,6 +1,6 @@
 //
 //  SocketService.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  WebSocket service for real-time updates from server
 //
@@ -9,7 +9,7 @@ import Foundation
 import Combine
 import SwiftUI
 
-/// WebSocket service for real-time updates from Audiobookshelf server
+/// WebSocket service for real-time updates from Audiobookphile server
 /// Uses Socket.IO protocol
 @MainActor
 class SocketService: ObservableObject {

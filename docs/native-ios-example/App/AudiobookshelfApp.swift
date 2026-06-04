@@ -1,6 +1,6 @@
 //
-//  AudiobookshelfApp.swift
-//  AudiobookshelfClient
+//  AudiobookphileApp.swift
+//  AudiobookphileClient
 //
 //  Main app entry point
 //
@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct AudiobookshelfApp: App {
+struct AudiobookphileApp: App {
     @StateObject private var appState = AppState()
 
     var body: some Scene {
@@ -43,7 +43,7 @@ class AppState: ObservableObject {
 
         // Try to load saved credentials
         if let credentials = try? KeychainManager.shared.loadCredentials() {
-            AudiobookshelfAPI.shared.configure(
+            AudiobookphileAPI.shared.configure(
                 serverURL: credentials.serverURL,
                 token: credentials.token,
                 refreshToken: credentials.refreshToken
@@ -64,7 +64,7 @@ class AppState: ObservableObject {
         isLoading = true
 
         do {
-            let user = try await AudiobookshelfAPI.shared.login(
+            let user = try await AudiobookphileAPI.shared.login(
                 serverURL: serverURL,
                 username: username,
                 password: password
@@ -87,7 +87,7 @@ class AppState: ObservableObject {
     }
 
     func logout() {
-        AudiobookshelfAPI.shared.logout()
+        AudiobookphileAPI.shared.logout()
         isAuthenticated = false
         currentUser = nil
     }

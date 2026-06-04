@@ -1,6 +1,6 @@
 //
 //  StatusBadge.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  Status badges and indicators with Liquid Glass design
 //

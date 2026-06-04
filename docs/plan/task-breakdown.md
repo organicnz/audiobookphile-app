@@ -1,8 +1,8 @@
-# Native iOS Audiobookshelf App with Liquid Glass Design
+# Native iOS Audiobookphile App with Liquid Glass Design
 
 ## Project Overview
 
-Create a fully native SwiftUI iOS app for Audiobookshelf with Liquid Glass design system, translating the existing Nuxt.js/Capacitor structure.
+Create a fully native SwiftUI iOS app for Audiobookphile with Liquid Glass design system, translating the existing Nuxt.js/Capacitor structure.
 
 ---
 
@@ -42,7 +42,7 @@ Create a fully native SwiftUI iOS app for Audiobookshelf with Liquid Glass desig
 ## Services Layer
 
 - [ ] Create `NetworkService.swift` (API client)
-- [ ] Create `AudiobookshelfService.swift` (API endpoints)
+- [ ] Create `AudiobookphileService.swift` (API endpoints)
 - [ ] Create `AuthenticationService.swift` (login/connection)
 - [ ] Create `AudioPlayerService.swift` (AVFoundation wrapper)
 - [ ] Create `DownloadService.swift` (local storage)

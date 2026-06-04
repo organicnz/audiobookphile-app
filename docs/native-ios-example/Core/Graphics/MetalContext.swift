@@ -1,6 +1,6 @@
 //
 //  MetalContext.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  Metal framework setup for GPU-accelerated rendering
 //

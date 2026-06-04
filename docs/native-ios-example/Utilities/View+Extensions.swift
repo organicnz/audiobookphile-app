@@ -1,6 +1,6 @@
 //
 //  View+Extensions.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  SwiftUI View extensions and modifiers
 //

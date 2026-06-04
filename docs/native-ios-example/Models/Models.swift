@@ -1,8 +1,8 @@
 //
 //  Models.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
-//  Core data models for Audiobookshelf
+//  Core data models for Audiobookphile
 //
 
 import Foundation

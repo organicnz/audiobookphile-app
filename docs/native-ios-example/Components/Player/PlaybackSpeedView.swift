@@ -1,6 +1,6 @@
 //
 //  PlaybackSpeedView.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  Playback speed picker with Liquid Glass design
 //

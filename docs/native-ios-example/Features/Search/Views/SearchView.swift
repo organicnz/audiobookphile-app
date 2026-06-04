@@ -1,6 +1,6 @@
 //
 //  SearchView.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  Search interface with Liquid Glass design
 //

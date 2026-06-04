@@ -435,7 +435,7 @@ REQUIRED: Lock player UI during playback
 | `ColorExtractor.swift`     | 217   | Dynamic color extraction from covers |
 | `NetworkMonitor.swift`     | 194   | WiFi vs Cellular detection           |
 | `SocketService.swift`      | 316   | Real-time WebSocket sync             |
-| `AudiobookshelfAPI.swift`  | 500   | Token refresh + Keychain             |
+| `AudiobookphileAPI.swift`  | 500   | Token refresh + Keychain             |
 | `AudioPlayerService.swift` | 350   | AVFoundation + lock screen           |
 | `DownloadService.swift`    | 280   | Offline downloads                    |
 

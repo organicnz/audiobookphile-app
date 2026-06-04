@@ -1,6 +1,6 @@
 //
 //  LoadingView.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  Loading states with Liquid Glass design
 //

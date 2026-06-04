@@ -1,4 +1,4 @@
-# 📝 Complete API Reference - Audiobookshelf REST API
+# 📝 Complete API Reference - Audiobookphile REST API
 
 ## 🎯 Everything You Need for iOS Integration
 
@@ -107,7 +107,7 @@ Authorization: Bearer {token}
         }
       ],
       "displayOrder": 1,
-      "icon": "audiobookshelf",
+      "icon": "audiobookphile",
       "mediaType": "book",
       "provider": "audible",
       "settings": {
@@ -291,7 +291,7 @@ Content-Type: application/json
 ```json
 {
   "deviceInfo": {
-    "clientName": "AudiobookshelfClient iOS",
+    "clientName": "AudiobookphileClient iOS",
     "deviceId": "device_id_here"
   },
   "forceDirectPlay": false,
@@ -668,8 +668,8 @@ See `SPEED-RUN.md` Day 1 for complete implementation.
 5. ✅ POST /api/session/{id}/sync
 6. ✅ GET /api/items/{id}/cover
 
-**Test Server:** Use your own Audiobookshelf server or demo server
+**Test Server:** Use your own Audiobookphile server or demo server
 
 ---
 
-_Complete API documentation: https://api.audiobookshelf.org/_
+_Complete API documentation: https://api.audiobookphile.org/_

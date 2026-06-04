@@ -1,6 +1,6 @@
 //
 //  ChapterListView.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  Chapter list with Liquid Glass design
 //

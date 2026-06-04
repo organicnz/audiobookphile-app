@@ -1,6 +1,6 @@
 //
 //  NetworkMonitor.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  Monitor network connectivity and metering (WiFi vs Cellular)
 //

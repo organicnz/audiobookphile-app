@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		0C51481251DFB0A6F1C82BB3 /* ColorExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD5F704CBCAA0425007CE36C /* ColorExtractor.swift */; };
 		1087E0EBE253B3F0C5E7137F /* GlassParticles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 987BA3FBD86F3DBCFEF18382 /* GlassParticles.swift */; };
-		1FB0A753EA445748A4078598 /* AudiobookshelfAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE22E0894EBA69CC84978332 /* AudiobookshelfAPI.swift */; };
+		1FB0A753EA445748A4078598 /* AudiobookphileAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE22E0894EBA69CC84978332 /* AudiobookphileAPI.swift */; };
 		208C18AB28E51DD59F86CDC6 /* ParallaxScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC172F9D58E8BF5F16F3B56 /* ParallaxScrollView.swift */; };
 		23621486DD0FCC9A89CBDD93 /* GlassModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5617C39E069AAE1DDABCAA7 /* GlassModifiers.swift */; };
 		288E8395540462D80D620800 /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D6FFE583099F6CC13CF6E45 /* GlassCard.swift */; };
@@ -38,7 +38,7 @@
 		D5A4370F19A9E0520FA95955 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7BA3AA15431835701100EF8 /* SettingsView.swift */; };
 		DFDC0D03A10DA0A6152EA917 /* ConnectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 931A27DBEFD954A70ADD8A82 /* ConnectView.swift */; };
 		E5E5D578EDBF9653B0685A2D /* ProMotionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A978033AFC649090E1E275F7 /* ProMotionManager.swift */; };
-		EDCFF45B16F29CD590CC0B9D /* AudiobookshelfApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F190CBB5B5C24C1CE007C8A8 /* AudiobookshelfApp.swift */; };
+		EDCFF45B16F29CD590CC0B9D /* AudiobookphileApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F190CBB5B5C24C1CE007C8A8 /* AudiobookphileApp.swift */; };
 		FB7767A8E32696C49981383D /* PlaybackSpeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7B0EF3506C6CB4B4696452E /* PlaybackSpeedView.swift */; };
 		FD2DD73612F676369E71D7F5 /* MetalContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFBE80153738193319DA75D8 /* MetalContext.swift */; };
 /* End PBXBuildFile section */
@@ -65,7 +65,7 @@
 		931A27DBEFD954A70ADD8A82 /* ConnectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectView.swift; sourceTree = "<group>"; };
 		987BA3FBD86F3DBCFEF18382 /* GlassParticles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassParticles.swift; sourceTree = "<group>"; };
 		A978033AFC649090E1E275F7 /* ProMotionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProMotionManager.swift; sourceTree = "<group>"; };
-		AE22E0894EBA69CC84978332 /* AudiobookshelfAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudiobookshelfAPI.swift; sourceTree = "<group>"; };
+		AE22E0894EBA69CC84978332 /* AudiobookphileAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudiobookphileAPI.swift; sourceTree = "<group>"; };
 		B69ABFA3E9B566C0D1D87C68 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		BDABBD554CC1CD2AF3D8F0F0 /* BookCoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookCoverView.swift; sourceTree = "<group>"; };
 		C5617C39E069AAE1DDABCAA7 /* GlassModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassModifiers.swift; sourceTree = "<group>"; };
@@ -76,7 +76,7 @@
 		D7BA3AA15431835701100EF8 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		DD5F704CBCAA0425007CE36C /* ColorExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtractor.swift; sourceTree = "<group>"; };
 		E7B0EF3506C6CB4B4696452E /* PlaybackSpeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackSpeedView.swift; sourceTree = "<group>"; };
-		F190CBB5B5C24C1CE007C8A8 /* AudiobookshelfApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudiobookshelfApp.swift; sourceTree = "<group>"; };
+		F190CBB5B5C24C1CE007C8A8 /* AudiobookphileApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudiobookphileApp.swift; sourceTree = "<group>"; };
 		F1DBEAE3E5D24DBA9265CD49 /* View+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extensions.swift"; sourceTree = "<group>"; };
 		FFBE80153738193319DA75D8 /* MetalContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalContext.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -186,7 +186,7 @@
 		3A82C744D4572F35758AE31C /* Networking */ = {
 			isa = PBXGroup;
 			children = (
-				AE22E0894EBA69CC84978332 /* AudiobookshelfAPI.swift */,
+				AE22E0894EBA69CC84978332 /* AudiobookphileAPI.swift */,
 			);
 			path = Networking;
 			sourceTree = "<group>";
@@ -248,7 +248,7 @@
 		66158B35D18DA4C9CFB6F548 /* App */ = {
 			isa = PBXGroup;
 			children = (
-				F190CBB5B5C24C1CE007C8A8 /* AudiobookshelfApp.swift */,
+				F190CBB5B5C24C1CE007C8A8 /* AudiobookphileApp.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -452,8 +452,8 @@
 			files = (
 				3F78BF99BB12A0FE14CA5189 /* AudioPlayerService.swift in Sources */,
 				560C17C75EA6084CF9E75038 /* AudioPlayerView.swift in Sources */,
-				1FB0A753EA445748A4078598 /* AudiobookshelfAPI.swift in Sources */,
-				EDCFF45B16F29CD590CC0B9D /* AudiobookshelfApp.swift in Sources */,
+				1FB0A753EA445748A4078598 /* AudiobookphileAPI.swift in Sources */,
+				EDCFF45B16F29CD590CC0B9D /* AudiobookphileApp.swift in Sources */,
 				9E47AAE8A60E5D87FF48E2FD /* BookCard.swift in Sources */,
 				D56461F3A1E26C203A906327 /* BookCoverView.swift in Sources */,
 				D32FC1E6C88B7B1235FCAC95 /* BookDetailView.swift in Sources */,
@@ -556,7 +556,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.audiobookshelf.NativeIOSExample;
+				PRODUCT_BUNDLE_IDENTIFIER = com.audiobookphile.NativeIOSExample;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -573,7 +573,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.audiobookshelf.NativeIOSExample;
+				PRODUCT_BUNDLE_IDENTIFIER = com.audiobookphile.NativeIOSExample;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

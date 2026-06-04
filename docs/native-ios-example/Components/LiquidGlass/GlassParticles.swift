@@ -1,6 +1,6 @@
 //
 //  GlassParticles.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  GPU-accelerated particle system for ambient glass effects
 //

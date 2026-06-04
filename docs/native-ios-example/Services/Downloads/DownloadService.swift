@@ -1,6 +1,6 @@
 //
 //  DownloadService.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  Download and offline content management
 //
@@ -68,7 +68,7 @@ class DownloadService: ObservableObject {
         }
 
         // Start playback session to get audio URLs
-        let session = try await AudiobookshelfAPI.shared.startPlaybackSession(libraryItemId: book.id)
+        let session = try await AudiobookphileAPI.shared.startPlaybackSession(libraryItemId: book.id)
 
         let audioTracks = session.audioTracks
         guard !audioTracks.isEmpty else {

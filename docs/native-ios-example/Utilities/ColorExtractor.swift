@@ -1,6 +1,6 @@
 //
 //  ColorExtractor.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  Extract dominant color from book cover images
 //  Critical for Liquid Glass dynamic theming

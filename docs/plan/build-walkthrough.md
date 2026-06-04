@@ -1,8 +1,8 @@
-# Native iOS Audiobookshelf App - Build Walkthrough
+# Native iOS Audiobookphile App - Build Walkthrough
 
 ## 🎯 Project Overview
 
-I've successfully created a **bleeding-edge native iOS app** for Audiobookshelf featuring:
+I've successfully created a **bleeding-edge native iOS app** for Audiobookphile featuring:
 
 - ✨ **Heavy Liquid Glass design** throughout
 - ⚡ **Metal GPU acceleration** for effects
@@ -15,7 +15,7 @@ I've successfully created a **bleeding-edge native iOS app** for Audiobookshelf 
 ## 📁 Project Structure
 
 ```
-ios-audiobookshelf-app/
+ios-audiobookphile-app/
 ├── README.md                                    # Comprehensive documentation
 │
 ├── App/                                         # App entry point (TODO)
@@ -61,7 +61,7 @@ ios-audiobookshelf-app/
 
 ### 1. Liquid Glass Design System
 
-#### [GlassCard.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookshelf-app/Components/LiquidGlass/GlassCard.swift)
+#### [GlassCard.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookphile-app/Components/LiquidGlass/GlassCard.swift)
 
 **Reusable glass container** with customizable properties:
 
@@ -91,7 +91,7 @@ GlassCard {
 
 ---
 
-#### [GlassButton.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookshelf-app/Components/LiquidGlass/GlassButton.swift)
+#### [GlassButton.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookphile-app/Components/LiquidGlass/GlassButton.swift)
 
 **Interactive button** with gradient overlay and haptics:
 
@@ -117,7 +117,7 @@ GlassButton(
 
 ---
 
-#### [GlassModifiers.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookshelf-app/Components/LiquidGlass/GlassModifiers.swift)
+#### [GlassModifiers.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookphile-app/Components/LiquidGlass/GlassModifiers.swift)
 
 **Comprehensive glass effects** as SwiftUI modifiers:
 
@@ -142,7 +142,7 @@ myView
 
 ---
 
-#### [GlassParticles.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookshelf-app/Components/LiquidGlass/GlassParticles.swift)
+#### [GlassParticles.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookphile-app/Components/LiquidGlass/GlassParticles.swift)
 
 **GPU-accelerated ambient particles** for backgrounds:
 
@@ -172,7 +172,7 @@ GlassParticlesView(
 
 ### 2. Performance Infrastructure
 
-#### [ProMotionManager.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookshelf-app/Core/Animation/ProMotionManager.swift)
+#### [ProMotionManager.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookphile-app/Core/Animation/ProMotionManager.swift)
 
 **120Hz display management** with adaptive frame rates:
 
@@ -201,7 +201,7 @@ Text("Content")
 
 ---
 
-#### [MetalContext.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookshelf-app/Core/Graphics/MetalContext.swift)
+#### [MetalContext.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookphile-app/Core/Graphics/MetalContext.swift)
 
 **Metal GPU acceleration** foundation:
 
@@ -234,7 +234,7 @@ let commandBuffer = context.makeCommandBuffer()
 
 ### 3. Advanced Effects
 
-#### [ParallaxScrollView.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookshelf-app/Components/Effects/ParallaxScrollView.swift)
+#### [ParallaxScrollView.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookphile-app/Components/Effects/ParallaxScrollView.swift)
 
 **Multi-layer parallax scrolling** with depth:
 
@@ -264,9 +264,9 @@ ParallaxScrollView(
 
 ### 4. Core Data Models
 
-#### [Models.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookshelf-app/Models/Models.swift)
+#### [Models.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookphile-app/Models/Models.swift)
 
-**Comprehensive data models** matching Audiobookshelf API:
+**Comprehensive data models** matching Audiobookphile API:
 
 **Created Models:**
 
@@ -288,13 +288,13 @@ ParallaxScrollView(
 - Conform to `Codable` for JSON parsing
 - Conform to `Identifiable` for SwiftUI lists
 - Include computed properties for convenience
-- Match Audiobookshelf server API structure
+- Match Audiobookphile server API structure
 
 ---
 
 ### 5. Feature Views
 
-#### [AudioPlayerView.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookshelf-app/Features/Player/Views/AudioPlayerView.swift)
+#### [AudioPlayerView.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookphile-app/Features/Player/Views/AudioPlayerView.swift)
 
 **Stunning full-screen audio player** - the showcase piece:
 
@@ -335,7 +335,7 @@ ParallaxScrollView(
 
 ---
 
-#### [BookshelfView.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookshelf-app/Features/Library/Views/BookshelfView.swift)
+#### [BookshelfView.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookphile-app/Features/Library/Views/BookshelfView.swift)
 
 **Main library view** with glass design:
 
@@ -369,7 +369,7 @@ ParallaxScrollView(
 
 ---
 
-#### [BookCard.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookshelf-app/Components/Books/BookCard.swift)
+#### [BookCard.swift](file:///Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookphile-app/Components/Books/BookCard.swift)
 
 **Beautiful book cards** with glass treatment:
 
@@ -550,7 +550,7 @@ Most apps use **simple offsets**. This uses:
 import SwiftUI
 
 @main
-struct AudiobookshelfApp: App {
+struct AudiobookphileApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationView {
@@ -592,7 +592,7 @@ Text("Smooth content")
 
 ### Integration (Phase 2)
 
-- [ ] Audiobookshelf API client
+- [ ] Audiobookphile API client
 - [ ] AVFoundation audio playback
 - [ ] Download service
 - [ ] WebSocket for real-time updates
@@ -653,13 +653,13 @@ This native iOS app is:
 All files are located in:
 
 ```
-/Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookshelf-app/
+/Users/organic/.gemini/antigravity/brain/382abdcc-ffb3-4480-96e1-87960f6c9cd4/ios-audiobookphile-app/
 ```
 
 Documentation copied to:
 
 ```
-/Users/organic/dev/work/audiobookshelf/audiobookshelf-app/docs/plan/
+/Users/organic/dev/work/audiobookphile/audiobookphile-app/docs/plan/
 ```
 
 Ready to integrate into a real Xcode project! 🎯

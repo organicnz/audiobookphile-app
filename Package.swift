@@ -3,18 +3,18 @@
 import PackageDescription
 
 let package = Package(
-    name: "audiobookshelf-app-native",
+    name: "audiobookphile-app-native",
     defaultLocalization: "en",
     platforms: [.iOS(.v17), .macOS(.v14)],
     products: [
-        .library(name: "Audiobookshelf", type: .dynamic, targets: ["Audiobookshelf"]),
+        .library(name: "Audiobookphile", type: .dynamic, targets: ["Audiobookphile"]),
     ],
     dependencies: [
         .package(url: "https://source.skip.tools/skip.git", from: "1.8.14"),
         .package(url: "https://source.skip.tools/skip-fuse-ui.git", from: "1.0.0")
     ],
     targets: [
-        .target(name: "Audiobookshelf", dependencies: [
+        .target(name: "Audiobookphile", dependencies: [
             .product(name: "SkipFuseUI", package: "skip-fuse-ui")
         ], resources: [.process("Resources")]),
     ]

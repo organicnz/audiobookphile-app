@@ -1,6 +1,6 @@
-# Audiobookshelf Documentation
+# Audiobookphile Documentation
 
-Welcome to the Audiobookshelf app documentation! This directory contains all planning, architecture, and development documentation.
+Welcome to the Audiobookphile app documentation! This directory contains all planning, architecture, and development documentation.
 
 ---
 
@@ -32,14 +32,14 @@ Welcome to the Audiobookshelf app documentation! This directory contains all pla
 
 ### Current Hybrid App (Android)
 
-- Repository: `audiobookshelf-app/`
+- Repository: `audiobookphile-app/`
 - Technology: Nuxt.js + Capacitor
 - Distribution: Google Play Store
 - Status: ✅ Active development
 
 ### Planned Native iOS App
 
-- Repository: TBD (`audiobookshelf-ios/` recommended)
+- Repository: TBD (`audiobookphile-ios/` recommended)
 - Technology: Swift + SwiftUI
 - Distribution: Apple App Store
 - Status: 📋 Planning complete, ready for development
@@ -190,16 +190,16 @@ Documentation being prepared. Main focus areas:
 
 ### Documentation
 
-- [Audiobookshelf Server](https://github.com/advplyr/audiobookshelf)
-- [Audiobookshelf API](https://api.audiobookshelf.org/)
+- [Audiobookphile Server](https://github.com/advplyr/audiobookphile)
+- [Audiobookphile API](https://api.audiobookphile.org/)
 - [Swift Documentation](https://swift.org/documentation/)
 - [SwiftUI Tutorials](https://developer.apple.com/tutorials/swiftui)
 
 ### Community
 
 - [Discord](https://discord.gg/pJsjuNCKRq)
-- [GitHub Discussions](https://github.com/advplyr/audiobookshelf/discussions)
-- [Website](https://audiobookshelf.org)
+- [GitHub Discussions](https://github.com/advplyr/audiobookphile/discussions)
+- [Website](https://audiobookphile.org)
 
 ---
 

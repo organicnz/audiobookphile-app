@@ -1,8 +1,8 @@
-# Native iOS Audiobookshelf App - Bleeding-Edge Implementation Plan
+# Native iOS Audiobookphile App - Bleeding-Edge Implementation Plan
 
 ## Overview
 
-Create a **stunning, bleeding-edge** native SwiftUI iOS app for Audiobookshelf featuring:
+Create a **stunning, bleeding-edge** native SwiftUI iOS app for Audiobookphile featuring:
 
 - 🎨 **Heavy Liquid Glass (LG)** design throughout the entire UI
 - ⚡ **GPU-accelerated** rendering using Metal framework
@@ -158,9 +158,9 @@ Animated liquid gradients:
 ## Architecture (Performance-Optimized)
 
 ```
-AudiobookshelfClient/
+AudiobookphileClient/
 ├── App/
-│   ├── AudiobookshelfApp.swift
+│   ├── AudiobookphileApp.swift
 │   └── ContentView.swift
 │
 ├── Features/

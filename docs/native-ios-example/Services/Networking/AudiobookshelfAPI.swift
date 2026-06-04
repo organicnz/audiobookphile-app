@@ -1,6 +1,6 @@
 //
-//  AudiobookshelfAPI.swift
-//  AudiobookshelfClient
+//  AudiobookphileAPI.swift
+//  AudiobookphileClient
 //
 //  Complete API client with token refresh, error handling, and all endpoints
 //
@@ -11,8 +11,8 @@ import Security
 // MARK: - API Client
 
 @MainActor
-class AudiobookshelfAPI: ObservableObject {
-    static let shared = AudiobookshelfAPI()
+class AudiobookphileAPI: ObservableObject {
+    static let shared = AudiobookphileAPI()
 
     @Published var isAuthenticated = false
     @Published var currentUser: User?
@@ -273,7 +273,7 @@ class AudiobookshelfAPI: ObservableObject {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         let deviceInfo: [String: Any] = [
-            "clientName": "AudiobookshelfClient iOS",
+            "clientName": "AudiobookphileClient iOS",
             "deviceId": getDeviceId()
         ]
         let body: [String: Any] = [
@@ -440,7 +440,7 @@ enum APIError: LocalizedError {
 class KeychainManager {
     static let shared = KeychainManager()
 
-    private let serviceName = "com.audiobookshelf.native"
+    private let serviceName = "com.audiobookphile.native"
 
     func saveCredentials(serverURL: String, token: String, refreshToken: String) throws {
         let credentials = [

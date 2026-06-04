@@ -1,6 +1,6 @@
 //
 //  MiniPlayerView.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  Persistent mini player bar with Liquid Glass design
 //
@@ -244,7 +244,7 @@ extension AudioPlayerService {
 
     var currentCoverURL: URL? {
         guard let session = session else { return nil }
-        return AudiobookshelfAPI.shared.getCoverURL(itemId: session.libraryItemId)
+        return AudiobookphileAPI.shared.getCoverURL(itemId: session.libraryItemId)
     }
 
     var progress: Double {

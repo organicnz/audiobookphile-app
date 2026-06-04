@@ -1,6 +1,6 @@
 //
 //  ProMotionManager.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  ProMotion 120Hz display management and optimization
 //

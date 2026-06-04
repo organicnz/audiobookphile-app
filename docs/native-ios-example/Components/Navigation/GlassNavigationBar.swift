@@ -1,6 +1,6 @@
 //
 //  GlassNavigationBar.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  Custom navigation bar with Liquid Glass design
 //

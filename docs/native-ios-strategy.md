@@ -2,7 +2,7 @@
 
 ## 🎯 Overview
 
-This document outlines the strategy for developing a **fully-featured native iOS app** for Audiobookshelf, while maintaining the current Nuxt.js/Capacitor hybrid app for Android distribution.
+This document outlines the strategy for developing a **fully-featured native iOS app** for Audiobookphile, while maintaining the current Nuxt.js/Capacitor hybrid app for Android distribution.
 
 ---
 
@@ -11,7 +11,7 @@ This document outlines the strategy for developing a **fully-featured native iOS
 ### Hybrid App (Nuxt.js + Capacitor)
 
 ```
-audiobookshelf-app/
+audiobookphile-app/
 ├── android/              # Keep for Android
 ├── ios/                  # Currently used (will be replaced)
 ├── pages/                # Vue.js pages
@@ -36,7 +36,7 @@ audiobookshelf-app/
 ┌─────────────────────────────────────────────┐
 │  Android Distribution                       │
 │  ├── Technology: Nuxt.js + Capacitor        │
-│  ├── Repository: audiobookshelf-app/        │
+│  ├── Repository: audiobookphile-app/        │
 │  ├── Distribution: Google Play Store        │
 │  └── Status: Continue current development   │
 └─────────────────────────────────────────────┘
@@ -44,7 +44,7 @@ audiobookshelf-app/
 ┌─────────────────────────────────────────────┐
 │  iOS Distribution                           │
 │  ├── Technology: Native Swift + SwiftUI     │
-│  ├── Repository: audiobookshelf-ios/        │
+│  ├── Repository: audiobookphile-ios/        │
 │  ├── Distribution: App Store                │
 │  └── Status: New development                │
 └─────────────────────────────────────────────┘
@@ -57,15 +57,15 @@ audiobookshelf-app/
 ### Option A: Separate Repository (Recommended)
 
 ```
-/Users/organic/dev/work/audiobookshelf/
-├── audiobookshelf-app/           # Current (Android + Web)
+/Users/organic/dev/work/audiobookphile/
+├── audiobookphile-app/           # Current (Android + Web)
 │   ├── android/
 │   ├── pages/
 │   ├── components/
 │   └── package.json
 │
-└── audiobookshelf-ios/           # New native iOS
-    ├── AudiobookshelfClient.xcodeproj
+└── audiobookphile-ios/           # New native iOS
+    ├── AudiobookphileClient.xcodeproj
     ├── App/
     ├── Features/
     ├── Components/
@@ -85,7 +85,7 @@ audiobookshelf-app/
 ### Option B: Monorepo
 
 ```
-/Users/organic/dev/work/audiobookshelf/audiobookshelf-app/
+/Users/organic/dev/work/audiobookphile/audiobookphile-app/
 ├── android/                      # Android build
 ├── ios-capacitor/               # Rename current ios/
 ├── ios-native/                  # New Swift project
@@ -204,7 +204,7 @@ audiobookshelf-app/
 
 ### Shared with Android
 
-- **API:** Audiobookshelf REST API
+- **API:** Audiobookphile REST API
 - **WebSocket:** Socket.io protocol
 - **Authentication:** Token-based auth
 - **Media:** HLS streaming or direct download
@@ -244,7 +244,7 @@ audiobookshelf-app/
 
 ### Data Migration
 
-- **No data to migrate** - All data lives on Audiobookshelf server
+- **No data to migrate** - All data lives on Audiobookphile server
 - **Login once** - Seamless switch between apps
 - **Progress syncs** - Pick up where you left off
 
@@ -252,15 +252,15 @@ audiobookshelf-app/
 
 **Option 1: Replace Existing App**
 
-- Same bundle ID (`com.audiobookshelf.app`)
+- Same bundle ID (`com.audiobookphile.app`)
 - Update existing App Store listing
 - All users get automatic update
 - ⚠️ Risk: Users may dislike change
 
 **Option 2: New App (Recommended)**
 
-- New bundle ID (`com.audiobookshelf.native`)
-- New App Store listing ("Audiobookshelf Native")
+- New bundle ID (`com.audiobookphile.native`)
+- New App Store listing ("Audiobookphile Native")
 - Users opt-in to switch
 - ✅ Safer: Can keep both during transition
 - ✅ Eventually deprecate old app
@@ -518,11 +518,11 @@ shared/api-tests/
 
 - **Swift Documentation:** https://swift.org/documentation/
 - **SwiftUI Tutorials:** https://developer.apple.com/tutorials/swiftui
-- **Audiobookshelf API:** https://api.audiobookshelf.org/
+- **Audiobookphile API:** https://api.audiobookphile.org/
 
 ### Community
 
-- **Discord:** https://discord.gg/audiobookshelf
+- **Discord:** https://discord.gg/audiobookphile
 - **GitHub Discussions:** Repository discussions
 - **TestFlight Beta:** Email list for testers
 

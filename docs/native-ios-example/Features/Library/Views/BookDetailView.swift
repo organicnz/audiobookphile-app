@@ -1,6 +1,6 @@
 //
 //  BookDetailView.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  Book detail view with Liquid Glass design
 //
@@ -258,7 +258,7 @@ struct BookDetailView: View {
     // MARK: - Helpers
 
     private func getCoverURL() -> URL? {
-        return AudiobookshelfAPI.shared.getCoverURL(itemId: book.id)
+        return AudiobookphileAPI.shared.getCoverURL(itemId: book.id)
     }
 
     private func formatDuration(_ seconds: TimeInterval) -> String {
@@ -273,7 +273,7 @@ struct BookDetailView: View {
     private func startPlayback() {
         Task {
             do {
-                let session = try await AudiobookshelfAPI.shared.startPlaybackSession(libraryItemId: book.id)
+                let session = try await AudiobookphileAPI.shared.startPlaybackSession(libraryItemId: book.id)
                 // Initialize player with session
                 showingPlayer = true
             } catch {

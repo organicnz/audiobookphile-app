@@ -1,6 +1,6 @@
 //
 //  AudioPlayerService.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  AVFoundation audio player with background playback and lock screen controls
 //
@@ -352,7 +352,7 @@ class AudioPlayerService: NSObject, ObservableObject {
         syncStatus = .syncing
 
         do {
-            try await AudiobookshelfAPI.shared.syncProgress(
+            try await AudiobookphileAPI.shared.syncProgress(
                 sessionId: session.id,
                 currentTime: currentTime,
                 duration: duration,
@@ -380,7 +380,7 @@ class AudioPlayerService: NSObject, ObservableObject {
 
         // Close session on server
         do {
-            try await AudiobookshelfAPI.shared.closePlaybackSession(
+            try await AudiobookphileAPI.shared.closePlaybackSession(
                 sessionId: session.id,
                 currentTime: currentTime,
                 duration: duration

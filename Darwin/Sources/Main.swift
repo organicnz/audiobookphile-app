@@ -1,9 +1,9 @@
 import SwiftUI
-import Audiobookshelf
+import Audiobookphile
 
 // Force recompilation of main app bundle to ensure rebuilt SPM views are correctly embedded
-private typealias AppRootView = AudiobookshelfRootView
-private typealias AppDelegate = AudiobookshelfAppDelegate
+private typealias AppRootView = AudiobookphileRootView
+private typealias AppDelegate = AudiobookphileAppDelegate
 
 /// The entry point to the app simply loads the App implementation from SPM module.
 @main struct AppMain: App {

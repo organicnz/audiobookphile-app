@@ -1,6 +1,6 @@
 //
 //  GlassModifiers.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  SwiftUI view modifiers for liquid glass effects
 //

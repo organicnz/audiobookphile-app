@@ -1,6 +1,6 @@
 //
 //  Constants.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  App-wide constants and configuration
 //
@@ -167,7 +167,7 @@ enum SyncStatus: Int {
 
 // MARK: - Error Types
 
-enum AudiobookshelfError: LocalizedError {
+enum AudiobookphileError: LocalizedError {
     case noServerConfigured
     case notAuthenticated
     case networkUnavailable

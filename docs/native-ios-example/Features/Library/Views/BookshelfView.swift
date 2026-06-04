@@ -1,6 +1,6 @@
 //
 //  BookshelfView.swift
-//  AudiobookshelfClient
+//  AudiobookphileClient
 //
 //  Main library view with glass design and parallax
 //  Translates: pages/bookshelf.vue

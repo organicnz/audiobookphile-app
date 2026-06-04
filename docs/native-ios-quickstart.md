@@ -13,7 +13,7 @@ This guide outlines the fastest path from the current planning stage to a produc
 - ✅ macOS with Xcode 15+
 - ✅ Apple Developer Account ($99/year)
 - ✅ iOS device for testing (iPhone 13 Pro+ for ProMotion)
-- ✅ Audiobookshelf server running
+- ✅ Audiobookphile server running
 
 ### Recommended
 
@@ -63,14 +63,14 @@ This guide outlines the fastest path from the current planning stage to a produc
 5. Recent servers list
 ```
 
-**Deliverable:** Can connect to Audiobookshelf server
+**Deliverable:** Can connect to Audiobookphile server
 
 #### Week 3-4: API Client
 
 ```swift
 // Implement:
 1. NetworkService (URLSession wrapper)
-2. AudiobookshelfAPI (all endpoints)
+2. AudiobookphileAPI (all endpoints)
 3. Response models
 4. Error handling
 5. Token refresh logic
@@ -296,9 +296,9 @@ This guide outlines the fastest path from the current planning stage to a produc
 ### Feature-Based Structure
 
 ```
-AudiobookshelfClient/
+AudiobookphileClient/
 ├── App/
-│   └── AudiobookshelfApp.swift
+│   └── AudiobookphileApp.swift
 │
 ├── Features/
 │   ├── Authentication/
@@ -509,7 +509,7 @@ AudioPlaybackUITests.swift
 
 ### Community
 
-- Discord: https://discord.gg/audiobookshelf
+- Discord: https://discord.gg/audiobookphile
 - GitHub: Issues & Discussions
 - Stack Overflow: swiftui, avfoundation tags
 
@@ -523,7 +523,7 @@ AudioPlaybackUITests.swift
 
 ## 🎉 You're Ready!
 
-With this guide and the code examples provided, you have everything needed to build a world-class native iOS app for Audiobookshelf.
+With this guide and the code examples provided, you have everything needed to build a world-class native iOS app for Audiobookphile.
 
 **Next action:** Start Month 1, Week 1, Day 1!
 

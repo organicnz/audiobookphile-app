@@ -1,6 +1,6 @@
-# Native iOS Audiobookshelf App with Liquid Glass Design
+# Native iOS Audiobookphile App with Liquid Glass Design
 
-A **bleeding-edge native iOS app** for Audiobookshelf featuring heavy Liquid Glass (glassmorphism) design, GPU acceleration, and 120Hz ProMotion support.
+A **bleeding-edge native iOS app** for Audiobookphile featuring heavy Liquid Glass (glassmorphism) design, GPU acceleration, and 120Hz ProMotion support.
 
 ---
 
@@ -75,7 +75,7 @@ native-ios-example/                   # 15 Swift files, 4,822 lines
 │
 ├── Services/                         # NEW from deep review!
 │   ├── Networking/
-│   │   └── AudiobookshelfAPI.swift  ✅ (380 lines) - Token refresh!
+│   │   └── AudiobookphileAPI.swift  ✅ (380 lines) - Token refresh!
 │   └── Socket/
 │       └── SocketService.swift      ✅ (290 lines) - Real-time sync!
 │
@@ -245,7 +245,7 @@ Every interaction should feel tactile:
 import SwiftUI
 
 @main
-struct AudiobookshelfApp: App {
+struct AudiobookphileApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -306,7 +306,7 @@ AudioPlayerView(session: session)
 
 ### Phase 2: Integration ✅ (NEW!)
 
-- [x] API client with token refresh (`AudiobookshelfAPI.swift`)
+- [x] API client with token refresh (`AudiobookphileAPI.swift`)
 - [x] Dynamic color extraction (`ColorExtractor.swift`)
 - [x] Network monitoring (`NetworkMonitor.swift`)
 - [x] WebSocket real-time sync (`SocketService.swift`)
@@ -368,7 +368,7 @@ Custom compute shaders for:
 
 ## 🙏 Credits
 
-- **Audiobookshelf** - Original server and web app
+- **Audiobookphile** - Original server and web app
 - **Metal Framework** - GPU acceleration
 - **SwiftUI** - Modern UI framework
 - **AVFoundation** - Audio playback
@@ -377,7 +377,7 @@ Custom compute shaders for:
 
 ## 📄 License
 
-This showcase code is provided as educational material. The Audiobookshelf server has its own license.
+This showcase code is provided as educational material. The Audiobookphile server has its own license.
 
 ---
 
