@@ -38,6 +38,13 @@ public class AppState {
 
         // Try to load saved credentials
         if let credentials = try? KeychainManager.shared.loadCredentials() {
+            // Migration check: If the saved server is not the new Supabase backend, clear it.
+            if !credentials.serverURL.contains("supabase.co") {
+                print("[AppState] Found old non-Supabase server credentials. Migrating/Clearing...")
+                logout()
+                return
+            }
+
             AudiobookshelfAPI.shared.configure(
                 serverURL: credentials.serverURL,
                 token: credentials.token,
