@@ -99,7 +99,7 @@ public struct ConnectView: View {
                 .shadow(color: .appPrimary.opacity(0.3), radius: 20)
 
             // Title
-            Text("Audiobookshelf")
+            Text("Audiobookphile")
                 .font(.system(size: 36, weight: .bold))
                 .foregroundStyle(.white)
 

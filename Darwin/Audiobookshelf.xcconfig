@@ -15,7 +15,7 @@ INFOPLIST_FILE = Info.plist
 GENERATE_INFOPLIST_FILE = YES
 
 // The user-visible name of the app (localizable)
-//INFOPLIST_KEY_CFBundleDisplayName = App Name
+INFOPLIST_KEY_CFBundleDisplayName = Audiobookphile
 //INFOPLIST_KEY_LSApplicationCategoryType = public.app-category.utilities
 
 // iOS-specific Info.plist property keys
