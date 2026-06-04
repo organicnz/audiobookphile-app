@@ -35,7 +35,7 @@ public class AudiobookshelfAPI {
 
     private init() {
         let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 30
+        config.timeoutIntervalForRequest = 10
         config.timeoutIntervalForResource = 300
         self.session = URLSession(configuration: config)
     }

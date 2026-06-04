@@ -230,6 +230,30 @@ public struct BookshelfView: View {
                     Spacer()
                 }
                 .padding()
+            } else if let errorMessage = viewModel.errorMessage {
+                VStack(spacing: 12) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.largeTitle)
+                        .foregroundStyle(.yellow)
+                    Text("Connection Failed")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                    Text(errorMessage)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                    
+                    Button("Log Out") {
+                        AudiobookshelfAPI.shared.logout()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.red)
+                    .padding(.top, 8)
+                }
+                .padding()
+                .frame(maxWidth: .infinity)
+                .glassCard()
+                .padding(.horizontal)
             }
         }
     }
@@ -436,6 +460,7 @@ public class BookshelfViewModel: ObservableObject {
     @Published public var currentLibrary: Library?
     @Published public var selectedBook: Book?
     @Published public var isLoading = false
+    @Published public var errorMessage: String? = nil
     
     public var totalBooks: Int { books.count }
     public var inProgressCount: Int { continueListening.count }
@@ -455,6 +480,7 @@ public class BookshelfViewModel: ObservableObject {
     
     public func loadLibrary() async {
         isLoading = true
+        errorMessage = nil
         
         let service = customService ?? (AppState.shared.isAuthenticated ? LiveLibraryService() : MockLibraryService())
         
@@ -465,6 +491,7 @@ public class BookshelfViewModel: ObservableObject {
             self.continueListening = fetched.filter { $0.userMediaProgress != nil }.prefix(5).map { $0 }
         } catch {
             print("[BookshelfViewModel] Failed to load library items: \(error)")
+            self.errorMessage = error.localizedDescription
         }
         
         isLoading = false
