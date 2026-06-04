@@ -15,6 +15,7 @@ public struct BookDetailView: View {
     @State var isLoading = true
     @State private var playbackError: String? = nil
     @State private var showPlaybackError = false
+    @State private var isStartingPlayback = false
     @State var isDescriptionExpanded = false
     @State var colorLoader = DynamicColorLoader()
     @ObservedObject var downloadService = DownloadService.shared
@@ -216,23 +217,29 @@ public struct BookDetailView: View {
                 playBook(detailed)
             } label: {
                 HStack(spacing: 8) {
-                    Image(systemName: hasProgress(detailed) ? "play.circle.fill" : "play.fill")
-                        .font(.title3)
-                    Text(hasProgress(detailed) ? "Continue (\(detailed.userMediaProgress?.progressPercentage ?? 0)%)" : "Play")
-                        .fontWeight(.bold)
+                    if isStartingPlayback {
+                        ProgressView().tint(.white)
+                        Text("Starting...")
+                            .fontWeight(.bold)
+                    } else {
+                        Image(systemName: hasProgress(detailed) ? "play.circle.fill" : "play.fill")
+                            .font(.title3)
+                        Text(hasProgress(detailed) ? "Continue (\(detailed.userMediaProgress?.progressPercentage ?? 0)%)" : "Play")
+                            .fontWeight(.bold)
+                    }
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .foregroundStyle(detailed.isMissing == true ? .white.opacity(0.5) : .white)
+                .foregroundStyle((detailed.isMissing == true || isStartingPlayback) ? .white.opacity(0.5) : .white)
                 .background(
-                    detailed.isMissing == true ?
+                    (detailed.isMissing == true || isStartingPlayback) ?
                     LinearGradient(colors: [.gray.opacity(0.3), .gray.opacity(0.2)], startPoint: .leading, endPoint: .trailing) :
                     LinearGradient(colors: [.appPrimary, .appSecondary], startPoint: .leading, endPoint: .trailing)
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                .shadow(color: detailed.isMissing == true ? .clear : .appPrimary.opacity(0.3), radius: 10)
+                .shadow(color: (detailed.isMissing == true || isStartingPlayback) ? .clear : .appPrimary.opacity(0.3), radius: 10)
             }
-            .disabled(detailed.isMissing == true)
+            .disabled(detailed.isMissing == true || isStartingPlayback)
             
             // Dynamic Download Button
             if detailed.isMissing == true {
@@ -469,6 +476,8 @@ public struct BookDetailView: View {
     
     private func playBook(_ detailed: Book, seekToTime: TimeInterval? = nil) {
         Task {
+            isStartingPlayback = true
+            defer { isStartingPlayback = false }
             do {
                 let session = try await AudiobookshelfAPI.shared.startPlaybackSession(libraryItemId: detailed.id)
                 
@@ -488,8 +497,6 @@ public struct BookDetailView: View {
                 
             } catch {
                 print("Failed to start playback session: \(error)")
-                playbackError = String(describing: error)
-                showPlaybackError = true
                 playbackError = error.localizedDescription
                 showPlaybackError = true
             }

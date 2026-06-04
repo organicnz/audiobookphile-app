@@ -41,6 +41,18 @@ public class AudioPlayerService {
     private init() {
         #if os(iOS)
         setupAudioSession()
+        
+        NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                self?.syncProgressImmediately()
+            }
+        }
+        
+        NotificationCenter.default.addObserver(forName: UIApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                self?.syncProgressImmediately()
+            }
+        }
         #endif
     }
 

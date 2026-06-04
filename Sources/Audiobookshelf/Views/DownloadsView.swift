@@ -570,14 +570,19 @@ public struct ActiveDownloadRow: View {
 
     public var body: some View {
         HStack(spacing: 12) {
-            // Cover (placeholder for now)
-            RoundedRectangle(cornerRadius: 4)
-                .fill(Color.gray.opacity(0.3))
-                .frame(width: 40, height: 60)
-                .overlay {
-                    Image(systemName: "book.closed")
-                        .foregroundStyle(.white.opacity(0.3))
-                }
+            // Cover
+            CachedAsyncImage(url: AudiobookshelfAPI.shared.getCoverURL(itemId: download.libraryItemId)) { image in
+                image.resizable().aspectRatio(contentMode: .fill)
+            } placeholder: {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.gray.opacity(0.3))
+                    .overlay {
+                        Image(systemName: "book.closed")
+                            .foregroundStyle(.white.opacity(0.3))
+                    }
+            }
+            .frame(width: 40, height: 60)
+            .clipShape(RoundedRectangle(cornerRadius: 4))
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(download.title)
@@ -687,13 +692,18 @@ public struct DownloadedBookRow: View {
     public var body: some View {
         HStack(spacing: 16) {
             // Cover
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color.appPrimary.opacity(0.15))
-                .frame(width: 45, height: 68)
-                .overlay {
-                    Image(systemName: "book.fill")
-                        .foregroundStyle(.white.opacity(0.3))
-                }
+            CachedAsyncImage(url: AudiobookshelfAPI.shared.getCoverURL(itemId: download.libraryItemId)) { image in
+                image.resizable().aspectRatio(contentMode: .fill)
+            } placeholder: {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color.appPrimary.opacity(0.15))
+                    .overlay {
+                        Image(systemName: "book.fill")
+                            .foregroundStyle(.white.opacity(0.3))
+                    }
+            }
+            .frame(width: 45, height: 68)
+            .clipShape(RoundedRectangle(cornerRadius: 6))
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(download.title)

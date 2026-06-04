@@ -20,6 +20,7 @@ public struct MiniPlayerView: View {
     }
 
     public var body: some View {
+        VStack(spacing: 0) {
         HStack {
             CachedAsyncImage(url: coverURL) { image in
                 image
@@ -30,8 +31,8 @@ public struct MiniPlayerView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fill)
             }
-            .frame(width: 48, height: 48)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .frame(width: 44, height: 44)
+            .clipShape(RoundedRectangle(cornerRadius: 6))
 
 
             VStack(alignment: .leading, spacing: 2) {
@@ -59,11 +60,32 @@ public struct MiniPlayerView: View {
             } label: {
                 Image(systemName: "xmark")
                     .foregroundStyle(.white.opacity(0.6))
+                    .padding(8)
             }
         }
-        .padding()
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        
+        // Progress Bar
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                Rectangle()
+                    .fill(Color.white.opacity(0.1))
+                
+                Rectangle()
+                    .fill(Color.appPrimary)
+                    .frame(width: max(0, min(geometry.size.width, geometry.size.width * CGFloat(audioPlayer.duration > 0 ? audioPlayer.currentTime / audioPlayer.duration : 0))))
+            }
+        }
+        .frame(height: 3)
+        }
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 16))
+        .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
         .padding(.horizontal)
         .onTapGesture {
             onTap()
