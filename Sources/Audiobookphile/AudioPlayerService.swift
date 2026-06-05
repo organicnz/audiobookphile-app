@@ -661,8 +661,8 @@ public class AudioPlayerService {
         }
 
         // Relative path to our own server — build full URL with auth token
-        let baseURL = AudiobookphileAPI.shared.baseURL
-        let token = AudiobookphileAPI.shared.accessToken
+        let baseURL = AppState.shared.serverURL
+        let token = AppState.shared.token
 
         let fullPath = baseURL + (trackPath.hasPrefix("/") ? "" : "/") + trackPath
 

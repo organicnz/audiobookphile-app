@@ -22,7 +22,7 @@ public struct RecentServer: Codable, Identifiable {
 }
 
 public struct ConnectView: View {
-    @State var appState = AppState.shared
+    @Environment(AppState.self) private var appState
     @State var viewModel = ConnectViewModel()
     @State var serverURL = "https://iambzzclljayqdxkeepy.supabase.co/functions/v1/api"
     @State var username = ""

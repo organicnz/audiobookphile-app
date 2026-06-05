@@ -10,6 +10,7 @@ import SwiftUI
 public struct BookDetailView: View {
     public let book: Book
     @Environment(\.dismiss) var dismiss
+    @Environment(AppState.self) private var appState
     
     @State var detailedBook: Book?
     @State var isLoading = true
@@ -186,7 +187,7 @@ public struct BookDetailView: View {
     }
     
     private func coverArtSection(_ detailed: Book) -> some View {
-        CachedAsyncImage(url: AudiobookphileAPI.shared.getCoverURL(itemId: detailed.id, width: 600)) { image in
+        CachedAsyncImage(url: appState.getCoverURL(itemId: detailed.id, width: 600)) { image in
             image
                 .resizable()
                 .aspectRatio(contentMode: .fit)
@@ -463,7 +464,7 @@ public struct BookDetailView: View {
         do {
             let detailed = try await AudiobookphileAPI.shared.getLibraryItem(id: book.id)
             self.detailedBook = detailed
-            if let coverUrl = AudiobookphileAPI.shared.getCoverURL(itemId: detailed.id, width: 600) {
+            if let coverUrl = appState.getCoverURL(itemId: detailed.id, width: 600) {
                 await colorLoader.loadColor(from: coverUrl)
             }
         } catch {

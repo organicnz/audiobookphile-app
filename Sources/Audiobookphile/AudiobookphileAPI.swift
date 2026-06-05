@@ -17,9 +17,7 @@ import Observation
 
 // MARK: - API Client
 
-@Observable
-@MainActor
-public class AudiobookphileAPI {
+public actor AudiobookphileAPI {
     public static let shared = AudiobookphileAPI()
 
     public var isAuthenticated = false
@@ -108,13 +106,15 @@ public class AudiobookphileAPI {
         return loginResponse.user
     }
 
-    /// Logout and clear credentials
     public func logout() {
         accessToken = ""
         refreshToken = ""
         currentUser = nil
         isAuthenticated = false
-        AppState.shared.isAuthenticated = false
+
+        Task { @MainActor in
+            AppState.shared.isAuthenticated = false
+        }
 
         try? KeychainManager.shared.clearCredentials()
     }
@@ -168,20 +168,18 @@ public class AudiobookphileAPI {
             }
             let refreshResponse = try decoder.decode(LoginResponse.self, from: data)
 
-            await MainActor.run {
-                self.accessToken = refreshResponse.user.token
-                if let newRefreshToken = refreshResponse.user.refreshToken {
-                    self.refreshToken = newRefreshToken
-                }
-
-                // Update Keychain/Secure preferences
-                try? KeychainManager.shared.saveCredentials(
-                    serverURL: self.baseURL,
-                    token: self.accessToken,
-                    refreshToken: self.refreshToken
-                )
-                print("[API] Token refreshed successfully")
+            self.accessToken = refreshResponse.user.token
+            if let newRefreshToken = refreshResponse.user.refreshToken {
+                self.refreshToken = newRefreshToken
             }
+
+            // Update Keychain/Secure preferences
+            try? KeychainManager.shared.saveCredentials(
+                serverURL: self.baseURL,
+                token: self.accessToken,
+                refreshToken: self.refreshToken
+            )
+            print("[API] Token refreshed successfully")
         }
         
         refreshTask = task

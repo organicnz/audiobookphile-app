@@ -8,7 +8,7 @@
 import SwiftUI
 
 public struct ContentView: View {
-    @State var appState = AppState.shared
+    @Environment(AppState.self) private var appState
 
     public init() {}
 
@@ -29,9 +29,15 @@ public struct ContentView: View {
 }
 
 public struct MainTabView: View {
-    @State var appState = AppState.shared
-    @State var audioPlayer = AudioPlayerService.shared
-    @State var playerCoordinator = PlayerCoordinator.shared
+    @Environment(AppState.self) private var appState
+    @Environment(AudioPlayerService.self) private var audioPlayer
+    @Environment(PlayerCoordinator.self) private var playerCoordinator
+    
+    // Value-based navigation paths for deep linking
+    @State private var libraryPath = NavigationPath()
+    @State private var searchPath = NavigationPath()
+    @State private var downloadsPath = NavigationPath()
+    @State private var settingsPath = NavigationPath()
     
     public init() {}
 
@@ -40,7 +46,7 @@ public struct MainTabView: View {
         return ZStack(alignment: .bottom) {
             TabView(selection: $bindableAppState.selectedTab) {
                 // Library Tab
-                NavigationStack {
+                NavigationStack(path: $libraryPath) {
                     BookshelfView()
                         #if os(iOS) || SKIP
                         .toolbarBackground(.hidden, for: .navigationBar)
@@ -53,7 +59,7 @@ public struct MainTabView: View {
                 .tag(0)
 
                 // Search Tab
-                NavigationStack {
+                NavigationStack(path: $searchPath) {
                     SearchView()
                         #if os(iOS) || SKIP
                         .toolbarBackground(.hidden, for: .navigationBar)
@@ -66,7 +72,7 @@ public struct MainTabView: View {
                 .tag(1)
 
                 // Downloads Tab
-                NavigationStack {
+                NavigationStack(path: $downloadsPath) {
                     DownloadsView()
                         #if os(iOS) || SKIP
                         .toolbarBackground(.hidden, for: .navigationBar)
@@ -79,7 +85,7 @@ public struct MainTabView: View {
                 .tag(2)
 
                 // Settings Tab
-                NavigationStack {
+                NavigationStack(path: $settingsPath) {
                     SettingsView()
                         #if os(iOS) || SKIP
                         .toolbarBackground(.hidden, for: .navigationBar)

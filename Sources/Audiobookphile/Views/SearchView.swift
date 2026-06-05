@@ -13,6 +13,7 @@ import FoundationNetworking
 #endif
 
 public struct SearchView: View {
+    @Environment(AppState.self) private var appState
     @State var query = ""
     @State var results: [Book] = []
     @State var isSearching = false
@@ -210,7 +211,7 @@ public struct SearchView: View {
             await MainActor.run { isSearching = true }
 
             do {
-                let libraryId = AppState.shared.currentLibraryId ?? ""
+                let libraryId = await MainActor.run { appState.currentLibraryId ?? "" }
                 let response = try await AudiobookphileAPI.shared.searchLibrary(libraryId: libraryId, query: text)
                 
                 await MainActor.run {

@@ -6,7 +6,6 @@ import Observation
 @Observable
 @MainActor
 public class AudioPlayerViewModel {
-    public var hasBookmarks = false
     public var useTotalTrack = true
 
     public var jumpForwardTime: Int {
@@ -29,9 +28,7 @@ public class AudioPlayerViewModel {
     }
     public var chapters: [Chapter] { session.chapters }
 
-    public var coverURL: URL? {
-        AudiobookphileAPI.shared.getCoverURL(itemId: session.libraryItemId)
-    }
+
 
     public var isPlaying: Bool {
         AudioPlayerService.shared.isPlaying

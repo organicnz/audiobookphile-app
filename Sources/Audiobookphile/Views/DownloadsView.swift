@@ -228,8 +228,8 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
         }
         
         let trackPath = paths[activeTrackIndex]
-        let baseURL = AudiobookphileAPI.shared.baseURL
-        let token = AudiobookphileAPI.shared.accessToken
+        let baseURL = AppState.shared.serverURL
+        let token = AppState.shared.token
         
         let fullPath: String
         if trackPath.hasPrefix("http") {
@@ -571,7 +571,7 @@ public struct ActiveDownloadRow: View {
     public var body: some View {
         HStack(spacing: 12) {
             // Cover
-            CachedAsyncImage(url: AudiobookphileAPI.shared.getCoverURL(itemId: download.libraryItemId)) { image in
+            CachedAsyncImage(url: AppState.shared.getCoverURL(itemId: download.libraryItemId)) { image in
                 image.resizable().aspectRatio(contentMode: .fill)
             } placeholder: {
                 RoundedRectangle(cornerRadius: 4)
@@ -692,7 +692,7 @@ public struct DownloadedBookRow: View {
     public var body: some View {
         HStack(spacing: 16) {
             // Cover
-            CachedAsyncImage(url: AudiobookphileAPI.shared.getCoverURL(itemId: download.libraryItemId)) { image in
+            CachedAsyncImage(url: AppState.shared.getCoverURL(itemId: download.libraryItemId)) { image in
                 image.resizable().aspectRatio(contentMode: .fill)
             } placeholder: {
                 RoundedRectangle(cornerRadius: 6)

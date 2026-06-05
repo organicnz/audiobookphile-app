@@ -307,7 +307,7 @@ public class SettingsViewModel {
 
     public init() {
         loadSettings()
-        currentUser = AudiobookphileAPI.shared.currentUser
+        currentUser = AppState.shared.currentUser
     }
 
     public func loadSettings() {
@@ -411,7 +411,7 @@ public class SettingsViewModel {
     }
 
     public func logout() {
-        AudiobookphileAPI.shared.logout()
+        AppState.shared.logout()
     }
 }
 

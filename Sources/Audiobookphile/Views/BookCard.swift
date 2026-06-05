@@ -10,7 +10,8 @@ import SwiftUI
 
 /// Book card for library grid display
 public struct BookCard: View {
-    public let book: Book
+    @Environment(AppState.self) private var appState
+    let book: Book
     public var aspectRatio: CGFloat = 1.0
     public let onTap: () -> Void
     
@@ -154,7 +155,7 @@ public struct BookCard: View {
         if let path = book.coverPath, path.hasPrefix("http") {
             return URL(string: path)
         }
-        return AudiobookphileAPI.shared.getCoverURL(itemId: book.id)
+        return appState.getCoverURL(itemId: book.id)
     }
     
     private var isDownloaded: Bool {
@@ -176,7 +177,8 @@ public struct ScaleButtonStyle: ButtonStyle {
 // MARK: - Glass Book Card Variant
 
 public struct GlassBookCard: View {
-    public let book: Book
+    @Environment(AppState.self) private var appState
+    let book: Book
     public let onTap: () -> Void
     
     public init(book: Book, onTap: @escaping () -> Void) {
@@ -245,6 +247,6 @@ public struct GlassBookCard: View {
         if let path = book.coverPath, path.hasPrefix("http") {
             return URL(string: path)
         }
-        return AudiobookphileAPI.shared.getCoverURL(itemId: book.id)
+        return appState.getCoverURL(itemId: book.id)
     }
 }

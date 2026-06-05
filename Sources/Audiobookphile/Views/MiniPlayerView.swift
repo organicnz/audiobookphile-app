@@ -16,7 +16,7 @@ public struct MiniPlayerView: View {
 
     private var coverURL: URL? {
         guard let itemId = audioPlayer.session?.libraryItemId else { return nil }
-        return AudiobookphileAPI.shared.getCoverURL(itemId: itemId)
+        return AppState.shared.getCoverURL(itemId: itemId)
     }
 
     public var body: some View {

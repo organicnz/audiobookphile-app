@@ -24,6 +24,9 @@ public class AppState {
     // Real API loaded libraries
     public var libraries: [Library] = []
     public var currentLibraryId: String?
+    
+    public var serverURL: String = ""
+    public var token: String = ""
 
     public var currentLibrary: Library? {
         libraries.first { $0.id == currentLibraryId } ?? libraries.first
@@ -46,7 +49,11 @@ public class AppState {
                 return
             }
 
-            AudiobookphileAPI.shared.configure(
+            self.serverURL = credentials.serverURL
+            self.token = credentials.token
+            
+            Task {
+                await AudiobookphileAPI.shared.configure(
                 serverURL: credentials.serverURL,
                 token: credentials.token,
                 refreshToken: credentials.refreshToken
@@ -106,6 +113,9 @@ public class AppState {
                 password: password
             )
 
+            self.serverURL = serverURL
+            self.token = user.token
+
             currentUser = user
             isAuthenticated = true
 
@@ -127,12 +137,29 @@ public class AppState {
     }
 
     public func logout() {
-        AudiobookphileAPI.shared.logout()
+        Task {
+            await AudiobookphileAPI.shared.logout()
+        }
         SocketService.shared.disconnect()
         isAuthenticated = false
         currentUser = nil
         libraries = []
         currentLibraryId = nil
+        serverURL = ""
+        token = ""
+    }
+    
+    public func getCoverURL(itemId: String, width: Int = 400) -> URL? {
+        guard !serverURL.isEmpty, !token.isEmpty else { return nil }
+        guard var components = URLComponents(string: "\(serverURL)/api/items/\(itemId)/cover") else {
+            return nil
+        }
+        components.queryItems = [
+            URLQueryItem(name: "width", value: "\(width)"),
+            URLQueryItem(name: "format", value: "jpeg"),
+            URLQueryItem(name: "token", value: token)
+        ]
+        return components.url
     }
 }
 

@@ -12,6 +12,7 @@ import Observation
 public struct AudioPlayerView: View {
     @State var viewModel: AudioPlayerViewModel
     @ObservedObject var proMotion = ProMotionManager.shared
+    @Environment(AppState.self) private var appState
     @Environment(\.dismiss) var dismiss
 
     @State var showChapters = false
@@ -27,6 +28,10 @@ public struct AudioPlayerView: View {
 
     private var coverIsLight: Bool {
         colorLoader.textColor == .black
+    }
+
+    private var coverURL: URL? {
+        appState.getCoverURL(itemId: viewModel.session.libraryItemId)
     }
 
     public init(session: PlaybackSession) {
@@ -67,7 +72,7 @@ public struct AudioPlayerView: View {
             )
         }
         .task {
-            if let url = viewModel.coverURL {
+            if let url = coverURL {
                 await colorLoader.loadColor(from: url)
             }
         }
@@ -174,7 +179,7 @@ public struct AudioPlayerView: View {
     private var coverArtSection: some View {
         GeometryReader { geometry in
             Group {
-                if let url = viewModel.coverURL {
+                if let url = coverURL {
                     CachedAsyncImage(url: url) { image in
                         image
                             .resizable()

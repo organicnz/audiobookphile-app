@@ -12,7 +12,7 @@ import SwiftUI
 public struct BookshelfView: View {
     @StateObject var viewModel = BookshelfViewModel()
     @StateObject var proMotion = ProMotionManager.shared
-    @State var appState = AppState.shared
+    @Environment(AppState.self) private var appState
     @State var showSearch = false
     @State var searchText = ""
     @State var scrollOffset: CGFloat = 0
@@ -43,7 +43,7 @@ public struct BookshelfView: View {
             }
             #if os(iOS) || SKIP
             .refreshable {
-                await viewModel.refresh()
+                await viewModel.refresh(libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated)
             }
             #endif
             
@@ -63,17 +63,17 @@ public struct BookshelfView: View {
             toolbarContent
         }
         .task {
-            await viewModel.loadLibrary()
+            await viewModel.loadLibrary(libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated)
         }
-        .onChange(of: appState.currentLibraryId) { _, _ in
+        .onChange(of: appState.currentLibraryId) { _, newId in
             Task {
-                await viewModel.loadLibrary()
+                await viewModel.loadLibrary(libraryId: newId, isAuthenticated: appState.isAuthenticated)
             }
         }
-        .onChange(of: appState.isAuthenticated) { _, _ in
-            if appState.isAuthenticated {
+        .onChange(of: appState.isAuthenticated) { _, isAuth in
+            if isAuth {
                 Task {
-                    await viewModel.loadLibrary()
+                    await viewModel.loadLibrary(libraryId: appState.currentLibraryId, isAuthenticated: isAuth)
                 }
             }
         }
@@ -244,7 +244,7 @@ public struct BookshelfView: View {
                         .multilineTextAlignment(.center)
                     
                     Button("Log Out") {
-                        AudiobookphileAPI.shared.logout()
+                        AppState.shared.logout()
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(.red)
@@ -446,7 +446,7 @@ public struct ContinueListeningCard: View {
         if let path = book.coverPath, path.hasPrefix("http") {
             return URL(string: path)
         }
-        return AudiobookphileAPI.shared.getCoverURL(itemId: book.id)
+        return AppState.shared.getCoverURL(itemId: book.id)
     }
 }
 
@@ -478,14 +478,14 @@ public class BookshelfViewModel: ObservableObject {
         self.customService = service
     }
     
-    public func loadLibrary() async {
+    public func loadLibrary(libraryId: String?, isAuthenticated: Bool) async {
         isLoading = true
         errorMessage = nil
         
-        let service = customService ?? (AppState.shared.isAuthenticated ? LiveLibraryService() : MockLibraryService())
+        let service = customService ?? (isAuthenticated ? LiveLibraryService() : MockLibraryService())
         
         do {
-            let fetched = try await service.fetchLibraryItems(libraryId: AppState.shared.currentLibraryId)
+            let fetched = try await service.fetchLibraryItems(libraryId: libraryId)
             self.books = fetched
             self.filteredBooks = fetched
             self.continueListening = fetched.filter { $0.userMediaProgress != nil }.prefix(5).map { $0 }
@@ -497,8 +497,8 @@ public class BookshelfViewModel: ObservableObject {
         isLoading = false
     }
     
-    public func refresh() async {
-        await loadLibrary()
+    public func refresh(libraryId: String?, isAuthenticated: Bool) async {
+        await loadLibrary(libraryId: libraryId, isAuthenticated: isAuthenticated)
     }
     
     public func selectBook(_ book: Book) {

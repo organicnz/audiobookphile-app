@@ -9,11 +9,18 @@ let logger: Logger = Logger(subsystem: "club.foodshare.audiobookphile", category
 ///
 /// The default implementation merely loads the `ContentView` for the app and logs a message.
 /* SKIP @bridge */public struct AudiobookphileRootView : View {
+    @State private var appState = AppState.shared
+    @State private var audioPlayer = AudioPlayerService.shared
+    @State private var playerCoordinator = PlayerCoordinator.shared
+
     /* SKIP @bridge */public init() {
     }
 
     public var body: some View {
         ContentView()
+            .environment(appState)
+            .environment(audioPlayer)
+            .environment(playerCoordinator)
             .task {
                 logger.info("Skip app logs are viewable in the Xcode console for iOS; Android logs can be viewed in Studio or using adb logcat")
             }
