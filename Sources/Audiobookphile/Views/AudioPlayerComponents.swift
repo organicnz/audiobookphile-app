@@ -137,3 +137,49 @@ public struct ChapterListView: View {
         return String(format: "%d:%02d", minutes, seconds)
     }
 }
+
+public struct BookmarksListView: View {
+    @ObservedObject var viewModel: AudioPlayerViewModel
+    @Environment(\.dismiss) var dismiss
+    
+    public var body: some View {
+        NavigationStack {
+            List {
+                if viewModel.bookmarks.isEmpty {
+                    Text("No bookmarks yet.")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(viewModel.bookmarks) { bookmark in
+                        Button {
+                            viewModel.seek(to: bookmark.time)
+                            dismiss()
+                        } label: {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(bookmark.title)
+                                    .font(.headline)
+                                    .foregroundStyle(.primary)
+                                Text(viewModel.formatTime(bookmark.time))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    .onDelete { indexSet in
+                        for index in indexSet {
+                            viewModel.deleteBookmark(viewModel.bookmarks[index])
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Bookmarks")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}

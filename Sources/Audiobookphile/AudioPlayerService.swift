@@ -230,6 +230,60 @@ public class AudioPlayerService {
         seek(to: currentTime - interval)
     }
 
+    public func jumpChapterStart() {
+        guard let session = session, !session.chapters.isEmpty else {
+            seek(to: 0)
+            return
+        }
+        
+        let current = currentTime
+        // Find current chapter
+        var currentChapterIdx = 0
+        for (i, chapter) in session.chapters.enumerated() {
+            if current >= chapter.start && current < chapter.end {
+                currentChapterIdx = i
+                break
+            }
+        }
+        
+        // If we are past the last chapter, pretend we are in the last chapter
+        if current >= session.chapters.last!.end {
+            currentChapterIdx = session.chapters.count - 1
+        }
+        
+        let chapter = session.chapters[currentChapterIdx]
+        
+        // If we are less than 4 seconds into the chapter, go to previous chapter
+        if current - chapter.start <= 4.0 {
+            if currentChapterIdx > 0 {
+                seek(to: session.chapters[currentChapterIdx - 1].start)
+            } else {
+                seek(to: 0)
+            }
+        } else {
+            // Otherwise restart current chapter
+            seek(to: chapter.start)
+        }
+    }
+
+    public func jumpNextChapter() {
+        guard let session = session, !session.chapters.isEmpty else { return }
+        let current = currentTime
+        
+        for chapter in session.chapters {
+            if chapter.start > current + 0.1 { // adding a small delta to avoid rounding issues
+                seek(to: chapter.start)
+                return
+            }
+        }
+        // If no next chapter found, go to the end
+        seek(to: duration)
+    }
+
+    public func selectChapter(_ chapter: Chapter) {
+        seek(to: chapter.start)
+    }
+
     public func setPlaybackRate(_ rate: Float) {
         self.playbackRate = rate
         #if !SKIP && !os(Android)
@@ -622,6 +676,55 @@ public class AudioPlayerService {
         }
         components.queryItems = queryItems
         return components.url
+    }
+
+    
+    // MARK: - Bookmarks
+    
+    private let bookmarksKeyPrefix = "abs_bookmarks_"
+    
+    public func getBookmarks(for libraryItemId: String) -> [Bookmark] {
+        guard let data = UserDefaults.standard.data(forKey: bookmarksKeyPrefix + libraryItemId),
+              let bookmarks = try? JSONDecoder().decode([Bookmark].self, from: data) else {
+            return []
+        }
+        return bookmarks.sorted(by: { $0.time < $1.time })
+    }
+    
+    public func addBookmark(title: String) {
+        guard let session = session else { return }
+        let newBookmark = Bookmark(
+            libraryItemId: session.libraryItemId,
+            title: title.isEmpty ? "Bookmark at \(formatTime(currentTime))" : title,
+            time: currentTime
+        )
+        
+        var currentBookmarks = getBookmarks(for: session.libraryItemId)
+        currentBookmarks.append(newBookmark)
+        
+        if let data = try? JSONEncoder().encode(currentBookmarks) {
+            UserDefaults.standard.set(data, forKey: bookmarksKeyPrefix + session.libraryItemId)
+        }
+    }
+    
+    public func deleteBookmark(_ bookmark: Bookmark) {
+        var currentBookmarks = getBookmarks(for: bookmark.libraryItemId)
+        currentBookmarks.removeAll { $0.id == bookmark.id }
+        
+        if let data = try? JSONEncoder().encode(currentBookmarks) {
+            UserDefaults.standard.set(data, forKey: bookmarksKeyPrefix + bookmark.libraryItemId)
+        }
+    }
+    
+    private func formatTime(_ time: TimeInterval) -> String {
+        let hours = Int(time) / 3600
+        let minutes = Int(time) / 60 % 60
+        let seconds = Int(time) % 60
+        if hours > 0 {
+            return String(format: "%i:%02i:%02i", hours, minutes, seconds)
+        } else {
+            return String(format: "%02i:%02i", minutes, seconds)
+        }
     }
 
     // MARK: - Sleep Timer

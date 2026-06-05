@@ -18,6 +18,10 @@ public struct AudioPlayerView: View {
     @State var showMoreMenu = false
     @State var isDraggingSeeker = false
     @State var draggedTime: TimeInterval = 0
+    @State var isUiLocked = false
+    @State var showBookmarksList = false
+    @State var showAddBookmark = false
+    @State var newBookmarkTitle = ""
 
     @State var colorLoader = DynamicColorLoader()
 
@@ -39,6 +43,19 @@ public struct AudioPlayerView: View {
         }
         .ignoresSafeArea()
         .optimizedForProMotion()
+        .alert("Add Bookmark", isPresented: $showAddBookmark) {
+            TextField("Bookmark Title (Optional)", text: $newBookmarkTitle)
+            Button("Cancel", role: .cancel) {
+                newBookmarkTitle = ""
+            }
+            Button("Save") {
+                viewModel.addBookmark(title: newBookmarkTitle)
+                newBookmarkTitle = ""
+            }
+        }
+        .sheet(isPresented: $showBookmarksList) {
+            BookmarksListView(viewModel: viewModel)
+        }
         .sheet(isPresented: $showChapters) {
             ChapterListView(
                 chapters: viewModel.chapters,
@@ -131,6 +148,17 @@ public struct AudioPlayerView: View {
             }
 
             Spacer()
+            
+            Button {
+                withAnimation {
+                    isUiLocked.toggle()
+                }
+            } label: {
+                Image(systemName: isUiLocked ? "lock.fill" : "lock.open")
+                    .font(.title2)
+                    .foregroundStyle(isUiLocked ? Color.appPrimary : (coverIsLight ? .black : .white))
+            }
+            .padding(.trailing, 16)
 
             Button {
                 showMoreMenu = true
@@ -229,12 +257,25 @@ public struct AudioPlayerView: View {
 
     private var quickActionsBar: some View {
         HStack(spacing: 0) {
-            GlassIconButton(
-                icon: "bookmark",
-                fill: viewModel.hasBookmarks,
-                color: coverIsLight ? .black : .white,
-                action: viewModel.showBookmarks
-            )
+            Menu {
+                Button {
+                    showAddBookmark = true
+                } label: {
+                    Label("Add Bookmark", systemImage: "plus")
+                }
+                Button {
+                    showBookmarksList = true
+                } label: {
+                    Label("View Bookmarks", systemImage: "list.bullet")
+                }
+            } label: {
+                Image(systemName: viewModel.hasBookmarks ? "bookmark.fill" : "bookmark")
+                    .font(.title2)
+                    .foregroundStyle(coverIsLight ? .black : .white)
+                    .frame(width: 44, height: 44)
+                    .background(Color.white.opacity(0.1))
+                    .clipShape(Circle())
+            }
 
             Spacer()
 
@@ -336,7 +377,7 @@ public struct AudioPlayerView: View {
                 }
                 .frame(height: 6)
                 .gesture(
-                    DragGesture(minimumDistance: 0)
+                    isUiLocked ? nil : DragGesture(minimumDistance: 0)
                         .onChanged { value in
                             isDraggingSeeker = true
                             let progress = min(max(0, value.location.x / geometry.size.width), 1)
@@ -370,6 +411,8 @@ public struct AudioPlayerView: View {
                 color: coverIsLight ? .black : .white,
                 action: viewModel.jumpBackward
             )
+            .disabled(isUiLocked)
+            .opacity(isUiLocked ? 0.3 : 1.0)
 
             Spacer()
 
@@ -383,6 +426,8 @@ public struct AudioPlayerView: View {
                 color: coverIsLight ? .black : .white,
                 action: viewModel.jumpForward
             )
+            .disabled(isUiLocked)
+            .opacity(isUiLocked ? 0.3 : 1.0)
 
             Spacer()
 

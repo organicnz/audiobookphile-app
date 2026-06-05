@@ -135,6 +135,23 @@ public class AudioPlayerViewModel {
         }
     }
 
+    
+    public var bookmarks: [Bookmark] {
+        AudioPlayerService.shared.getBookmarks(for: session.libraryItemId)
+    }
+    
+    public var hasBookmarks: Bool {
+        !bookmarks.isEmpty
+    }
+    
+    public func addBookmark(title: String) {
+        AudioPlayerService.shared.addBookmark(title: title)
+    }
+    
+    public func deleteBookmark(_ bookmark: Bookmark) {
+        AudioPlayerService.shared.deleteBookmark(bookmark)
+    }
+
     public func setPlaybackRate(_ rate: Float) {
         AudioPlayerService.shared.setPlaybackRate(rate)
     }
