@@ -128,64 +128,65 @@ public actor AudiobookphileAPI {
             return try await existingTask.value
         }
 
-        let task = Task<Void, Error> { [weak self] in
-            guard let self = self else { throw APIError.invalidResponse }
-            
-            guard !self.refreshToken.isEmpty else {
-                throw APIError.noRefreshToken
-            }
-
-            print("[API] Refreshing access token...")
-
-            guard let url = URL(string: "\(self.baseURL)/auth/refresh") else {
-                throw APIError.invalidResponse
-            }
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.setValue(self.refreshToken, forHTTPHeaderField: "x-refresh-token")
-            request.httpBody = "{}".data(using: .utf8)
-
-            let (data, response) = try await self.session.data(for: request)
-
-            guard let httpResponse = response as? HTTPURLResponse else {
-                throw APIError.invalidResponse
-            }
-
-            if (400...403).contains(httpResponse.statusCode) {
-                throw APIError.authenticationFailed
-            }
-
-            guard (200...299).contains(httpResponse.statusCode) else {
-                throw APIError.tokenRefreshFailed
-            }
-
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .custom { decoder in
-                let container = try decoder.singleValueContainer()
-                let timestamp = try container.decode(Double.self)
-                return Date(timeIntervalSince1970: timestamp / 1000.0)
-            }
-            let refreshResponse = try decoder.decode(LoginResponse.self, from: data)
-
-            self.accessToken = refreshResponse.user.token
-            if let newRefreshToken = refreshResponse.user.refreshToken {
-                self.refreshToken = newRefreshToken
-            }
-
-            // Update Keychain/Secure preferences
-            try? KeychainManager.shared.saveCredentials(
-                serverURL: self.baseURL,
-                token: self.accessToken,
-                refreshToken: self.refreshToken
-            )
-            print("[API] Token refreshed successfully")
+        let task = Task<Void, Error> {
+            try await self.performRefreshToken()
         }
         
         refreshTask = task
         defer { refreshTask = nil }
-        
         return try await task.value
+    }
+    
+    private func performRefreshToken() async throws {
+        guard !self.refreshToken.isEmpty else {
+            throw APIError.noRefreshToken
+        }
+
+        print("[API] Refreshing access token...")
+
+        guard let url = URL(string: "\(self.baseURL)/auth/refresh") else {
+            throw APIError.invalidResponse
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(self.refreshToken, forHTTPHeaderField: "x-refresh-token")
+        request.httpBody = "{}".data(using: .utf8)
+
+        let (data, response) = try await self.session.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+
+        if (400...403).contains(httpResponse.statusCode) {
+            throw APIError.authenticationFailed
+        }
+
+        guard (200...299).contains(httpResponse.statusCode) else {
+            throw APIError.serverError(statusCode: httpResponse.statusCode, message: "Token refresh failed", code: nil)
+        }
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let timestamp = try container.decode(Double.self)
+            return Date(timeIntervalSince1970: timestamp / 1000.0)
+        }
+        let refreshResponse = try decoder.decode(LoginResponse.self, from: data)
+
+        self.accessToken = refreshResponse.user.token
+        if let newRefreshToken = refreshResponse.user.refreshToken {
+            self.refreshToken = newRefreshToken
+        }
+
+        // Update Keychain/Secure preferences
+        try? KeychainManager.shared.saveCredentials(
+            serverURL: self.baseURL,
+            token: self.accessToken,
+            refreshToken: self.refreshToken
+        )
+        print("[API] Token refreshed successfully")
     }
 
     // MARK: - Request Execution
@@ -452,7 +453,7 @@ public actor AudiobookphileAPI {
 
     // MARK: - Preferences
     
-    public struct PreferencesResponse: Codable {
+    public struct PreferencesResponse: Codable, Sendable {
         public let preferences: AppSettings?
     }
     
@@ -486,23 +487,23 @@ public actor AudiobookphileAPI {
 
 // MARK: - Response Models
 
-public struct LoginResponse: Codable {
+public struct LoginResponse: Codable, Sendable {
     public let user: User
 }
 
-public struct LibrariesResponse: Codable {
+public struct LibrariesResponse: Codable, Sendable {
     public let libraries: [Library]
 }
 
-public struct LibraryItemsResponse: Codable {
+public struct LibraryItemsResponse: Codable, Sendable {
     public let results: [Book]
     public let total: Int
     public let limit: Int
     public let page: Int
 }
 
-public struct SearchResponse: Codable {
-    public struct SearchResult: Codable {
+public struct SearchResponse: Codable, Sendable {
+    public struct SearchResult: Codable, Sendable {
         public let libraryItem: Book
         public let matchKey: String?
         public let matchText: String?

@@ -3,13 +3,13 @@ set -e
 
 PROJECT_DIR="/Users/organic/dev/work/audiobookshelf/audiobookphile-app"
 SIMULATOR_ID="CC7BF58A-218E-4EC6-A084-F673841B51E3"
-APP_BUNDLE_ID="nz.organic.audiobookphile"
+APP_BUNDLE_ID="club.foodshare.audiobookphile"
 WORKSPACE="$PROJECT_DIR/Project.xcworkspace"
 SCHEME="Audiobookphile App"
 DERIVED_DATA="$PROJECT_DIR/DerivedData"
 
 echo "=== Step 1: Clean DerivedData ==="
-rm -rf "$DERIVED_DATA"
+# rm -rf "$DERIVED_DATA" # Commented out because offline environments need the SPM cache!
 
 echo "=== Step 2: Build Audiobookphile App (using generic simulator destination to bypass hang) ==="
 # We use "generic/platform=iOS Simulator" to prevent xcodebuild from querying the live simulator daemon

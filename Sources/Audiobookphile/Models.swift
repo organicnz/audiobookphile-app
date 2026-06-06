@@ -14,13 +14,13 @@ import Foundation
 #endif
 
 // MARK: - Media Type
-public enum MediaType: String, Codable {
+public enum MediaType: String, Codable, Sendable {
     case book = "book"
     case podcast = "podcast"
 }
 
 // MARK: - Book
-public struct Book: Identifiable, Codable, Hashable {
+public struct Book: Identifiable, Codable, Hashable, Sendable {
     public let id: String
     public let libraryId: String?
     public let folderId: String?
@@ -72,7 +72,7 @@ public struct Book: Identifiable, Codable, Hashable {
 }
 
 // MARK: - Book Media
-public struct BookMedia: Codable, Hashable {
+public struct BookMedia: Codable, Hashable, Sendable {
     public let libraryFiles: [LibraryFile]?
     public let chapters: [Chapter]?
     public let duration: TimeInterval?
@@ -90,7 +90,7 @@ public struct BookMedia: Codable, Hashable {
 }
 
 // MARK: - Book Metadata
-public struct BookMetadata: Codable, Hashable {
+public struct BookMetadata: Codable, Hashable, Sendable {
     public let title: String
     public let subtitle: String?
     public let authorName: String?
@@ -127,7 +127,7 @@ public struct Chapter: Identifiable, Codable, Hashable, Sendable {
 }
 
 // MARK: - Audio File
-public struct AudioFile: Identifiable, Codable, Hashable {
+public struct AudioFile: Identifiable, Codable, Hashable, Sendable {
     public var id: String {
         ino
     }
@@ -141,7 +141,7 @@ public struct AudioFile: Identifiable, Codable, Hashable {
     public let mimeType: String
 }
 
-public struct AudioMetadata: Codable, Hashable {
+public struct AudioMetadata: Codable, Hashable, Sendable {
     public let filename: String?
     public let ext: String?
     public let path: String?
@@ -153,7 +153,7 @@ public struct AudioMetadata: Codable, Hashable {
 }
 
 // MARK: - Library File
-public struct LibraryFile: Identifiable, Codable, Hashable {
+public struct LibraryFile: Identifiable, Codable, Hashable, Sendable {
     public var id: String {
         ino
     }
@@ -163,7 +163,7 @@ public struct LibraryFile: Identifiable, Codable, Hashable {
     public let fileType: String?
 }
 
-public struct FileMetadata: Codable, Hashable {
+public struct FileMetadata: Codable, Hashable, Sendable {
     public let filename: String?
     public let ext: String?
     public let path: String?
@@ -175,14 +175,14 @@ public struct FileMetadata: Codable, Hashable {
 }
 
 // MARK: - Ebook File
-public struct EbookFile: Codable, Hashable {
+public struct EbookFile: Codable, Hashable, Sendable {
     public let ino: String
     public let metadata: FileMetadata
     public let ebookFormat: String
 }
 
 // MARK: - Media Progress
-public struct MediaProgress: Codable, Hashable {
+public struct MediaProgress: Codable, Hashable, Sendable {
     public let id: String
     public let libraryItemId: String
     public let episodeId: String?
@@ -205,7 +205,7 @@ public struct MediaProgress: Codable, Hashable {
 }
 
 // MARK: - Playback Session
-public struct PlaybackSession: Codable {
+public struct PlaybackSession: Codable, Sendable {
     public let id: String
     public let userId: String
     public let libraryId: String
@@ -250,7 +250,7 @@ public struct AudioTrack: Identifiable, Codable, Sendable {
 }
 
 // MARK: - Library
-public struct Library: Identifiable, Codable {
+public struct Library: Identifiable, Codable, Sendable {
     public let id: String
     public let name: String
     public let folders: [LibraryFolder]?
@@ -268,14 +268,14 @@ public struct Library: Identifiable, Codable {
     }
 }
 
-public struct LibraryFolder: Identifiable, Codable {
+public struct LibraryFolder: Identifiable, Codable, Sendable {
     public let id: String
     public let fullPath: String?
     public let libraryId: String?
     public let addedAt: Date?
 }
 
-public struct LibrarySettings: Codable {
+public struct LibrarySettings: Codable, Sendable {
     public let coverAspectRatio: Int?
     public let disableWatcher: Bool?
     public let skipMatchingMediaWithAsin: Bool?
@@ -284,7 +284,7 @@ public struct LibrarySettings: Codable {
 }
 
 // MARK: - User
-public struct User: Identifiable, Codable {
+public struct User: Identifiable, Codable, Sendable {
     public let id: String
     public let username: String
     public let email: String?
@@ -303,7 +303,7 @@ public struct User: Identifiable, Codable {
     public let itemTagsAccessible: [String]
 }
 
-public struct Bookmark: Identifiable, Codable {
+public struct Bookmark: Identifiable, Codable, Sendable {
     public let libraryItemId: String
     public let title: String
     public let time: TimeInterval
@@ -314,7 +314,7 @@ public struct Bookmark: Identifiable, Codable {
     }
 }
 
-public struct UserPermissions: Codable {
+public struct UserPermissions: Codable, Sendable {
     public let download: Bool
     public let update: Bool
     public let delete: Bool
@@ -325,7 +325,7 @@ public struct UserPermissions: Codable {
 }
 
 // MARK: - Podcast (for future support)
-public struct Podcast: Identifiable, Codable {
+public struct Podcast: Identifiable, Codable, Sendable {
     public let id: String
     public let libraryId: String
     public let media: PodcastMedia
@@ -333,7 +333,7 @@ public struct Podcast: Identifiable, Codable {
     public let updatedAt: Date
 }
 
-public struct PodcastMedia: Codable {
+public struct PodcastMedia: Codable, Sendable {
     public let metadata: PodcastMetadata
     public let coverPath: String?
     public let tags: [String]
@@ -342,7 +342,7 @@ public struct PodcastMedia: Codable {
     public let autoDownloadSchedule: String?
 }
 
-public struct PodcastMetadata: Codable {
+public struct PodcastMetadata: Codable, Sendable {
     public let title: String
     public let author: String?
     public let description: String?
@@ -357,7 +357,7 @@ public struct PodcastMetadata: Codable {
     public let language: String?
 }
 
-public struct PodcastEpisode: Identifiable, Codable {
+public struct PodcastEpisode: Identifiable, Codable, Sendable {
     public let id: String
     public let index: Int
     public let title: String
@@ -371,7 +371,7 @@ public struct PodcastEpisode: Identifiable, Codable {
 }
 
 // MARK: - Server Connection
-public struct ServerConnection: Codable {
+public struct ServerConnection: Codable, Sendable {
     public let url: String
     public let name: String?
     public let lastConnected: Date
@@ -382,7 +382,7 @@ public struct ServerConnection: Codable {
 }
 
 // MARK: - App Settings
-public struct AppSettings: Codable {
+public struct AppSettings: Codable, Sendable {
     public var jumpForwardTime: Int = 30
     public var jumpBackwardsTime: Int = 10
     public var lockScreenControls: Bool = true
@@ -400,13 +400,13 @@ public struct AppSettings: Codable {
     public init() {}
 }
 
-public enum AppTheme: String, Codable {
+public enum AppTheme: String, Codable, Sendable {
     case light
     case dark
     case system
 }
 
-public enum BookCoverAspectRatio: Int, Codable {
+public enum BookCoverAspectRatio: Int, Codable, Sendable {
     case square = 1
     case standard = 16 // 1.6:1
     
@@ -422,8 +422,8 @@ public enum BookCoverAspectRatio: Int, Codable {
 }
 
 // MARK: - API Error
-public struct APIErrorResponse: Codable {
-    public struct ErrorDetail: Codable {
+public struct APIErrorResponse: Codable, Sendable {
+    public struct ErrorDetail: Codable, Sendable {
         public let message: String
         public let code: String?
     }
@@ -431,7 +431,7 @@ public struct APIErrorResponse: Codable {
     public let success: Bool
 }
 
-public struct ProgressSyncQueueItem: Codable {
+public struct ProgressSyncQueueItem: Codable, Sendable {
     public let sessionId: String
     public let currentTime: TimeInterval
     public let duration: TimeInterval

@@ -58,6 +58,7 @@ public class AppState {
                 token: credentials.token,
                 refreshToken: credentials.refreshToken
             )
+            }
             isAuthenticated = true
 
             // Connect socket (no-op)

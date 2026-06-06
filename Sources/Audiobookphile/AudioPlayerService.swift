@@ -696,7 +696,8 @@ public class AudioPlayerService {
         let newBookmark = Bookmark(
             libraryItemId: session.libraryItemId,
             title: title.isEmpty ? "Bookmark at \(formatTime(currentTime))" : title,
-            time: currentTime
+            time: currentTime,
+            createdAt: Date()
         )
         
         var currentBookmarks = getBookmarks(for: session.libraryItemId)
