@@ -52,13 +52,6 @@ public class AppState {
             self.serverURL = credentials.serverURL
             self.token = credentials.token
             
-            Task {
-                await AudiobookphileAPI.shared.configure(
-                serverURL: credentials.serverURL,
-                token: credentials.token,
-                refreshToken: credentials.refreshToken
-            )
-            }
             isAuthenticated = true
 
             // Connect socket (no-op)
@@ -67,8 +60,14 @@ public class AppState {
                 token: credentials.token
             )
             
-            // Asynchronously validate token by fetching libraries
             Task {
+                await AudiobookphileAPI.shared.configure(
+                    serverURL: credentials.serverURL,
+                    token: credentials.token,
+                    refreshToken: credentials.refreshToken
+                )
+                
+                // Asynchronously validate token by fetching libraries after configuring
                 await fetchLibraries()
             }
         } else {

@@ -192,7 +192,7 @@ public actor AudiobookphileAPI {
     // MARK: - Request Execution
 
     /// Execute an authenticated request with automatic token refresh
-    private func executeRequest<T: Decodable>(_ request: URLRequest, responseType: T.Type) async throws -> T {
+    private func executeRequest<T: Decodable>(_ request: URLRequest, responseType: T.Type, isRetry: Bool = false) async throws -> T {
         var authRequest = request
         authRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
 
@@ -205,6 +205,10 @@ public actor AudiobookphileAPI {
 
             // Handle 401 - try token refresh
             if httpResponse.statusCode == 401 {
+                if isRetry {
+                    logout()
+                    throw APIError.sessionExpired
+                }
                 return try await handleUnauthorized(originalRequest: request, responseType: responseType)
             }
 
@@ -255,7 +259,7 @@ public actor AudiobookphileAPI {
         do {
             try await refreshAccessToken()
             // Retry original request with new token
-            return try await executeRequest(originalRequest, responseType: responseType)
+            return try await executeRequest(originalRequest, responseType: responseType, isRetry: true)
         } catch APIError.authenticationFailed, APIError.invalidResponse {
             // Refresh explicitly rejected - logout
             logout()
@@ -568,15 +572,16 @@ public final class KeychainManager: Sendable {
         ]
         let data = try JSONEncoder().encode(credentials)
 
-        let query: [String: Any] = [
+        let deleteQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: "com.audiobookphile.native",
-            kSecAttrAccount as String: "credentials",
-            kSecValueData as String: data
+            kSecAttrAccount as String: "credentials"
         ]
+        SecItemDelete(deleteQuery as CFDictionary)
 
-        SecItemDelete(query as CFDictionary)
-        let status = SecItemAdd(query as CFDictionary, nil)
+        var addQuery = deleteQuery
+        addQuery[kSecValueData as String] = data
+        let status = SecItemAdd(addQuery as CFDictionary, nil)
         guard status == errSecSuccess else {
             throw KeychainError.saveFailed
         }
