@@ -4,5 +4,9 @@
 <dict>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
+    <key>CFBundleName</key>
+    <string>Audiobookphile</string>
+    <key>CFBundleDisplayName</key>
+    <string>Audiobookphile</string>
 </dict>
 </plist>
