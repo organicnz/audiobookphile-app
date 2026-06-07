@@ -205,7 +205,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 496EB72F2A6AE4DE00C1253B /* Audiobookphile.xcconfig */;
 			buildSettings = {
-				DEVELOPMENT_TEAM = DCKVD6LKYV;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.books";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
@@ -220,7 +219,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 496EB72F2A6AE4DE00C1253B /* Audiobookphile.xcconfig */;
 			buildSettings = {
-				DEVELOPMENT_TEAM = DCKVD6LKYV;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.books";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
