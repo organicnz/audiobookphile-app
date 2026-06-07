@@ -7,7 +7,7 @@ let package = Package(
     defaultLocalization: "en",
     platforms: [.iOS(.v17), .macOS(.v14)],
     products: [
-        .library(name: "Audiobookphile", type: .dynamic, targets: ["Audiobookphile"]),
+        .library(name: "Audiobookphile", targets: ["Audiobookphile"]),
     ],
     dependencies: [
         .package(url: "https://source.skip.tools/skip.git", from: "1.8.14"),
