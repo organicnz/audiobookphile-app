@@ -18,7 +18,7 @@
                BlueprintIdentifier = "499CD4382AC5B799001AE8D8"
                BuildableName = "Audiobookphile.app"
                BlueprintName = "Audiobookphile App"
-               ReferencedContainer = "container:Audiobookphile.xcodeproj">
+               ReferencedContainer = "container:Darwin/Audiobookphile.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -47,7 +47,7 @@
             BlueprintIdentifier = "499CD4382AC5B799001AE8D8"
             BuildableName = "Audiobookphile.app"
             BlueprintName = "Audiobookphile App"
-            ReferencedContainer = "container:Audiobookphile.xcodeproj">
+            ReferencedContainer = "container:Darwin/Audiobookphile.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -64,7 +64,7 @@
             BlueprintIdentifier = "499CD4382AC5B799001AE8D8"
             BuildableName = "Audiobookphile.app"
             BlueprintName = "Audiobookphile App"
-            ReferencedContainer = "container:Audiobookphile.xcodeproj">
+            ReferencedContainer = "container:Darwin/Audiobookphile.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
