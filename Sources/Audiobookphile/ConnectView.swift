@@ -24,7 +24,7 @@ public struct RecentServer: Codable, Identifiable {
 public struct ConnectView: View {
     @Environment(AppState.self) private var appState
     @State var viewModel = ConnectViewModel()
-    @State var serverURL = "https://iambzzclljayqdxkeepy.supabase.co/functions/v1/api"
+    @State var serverURL = Bundle.main.object(forInfoDictionaryKey: "SupabaseURL") as? String ?? ""
     @State var username = ""
     @State var password = ""
     @State var showPassword = false
