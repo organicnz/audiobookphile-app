@@ -24,7 +24,7 @@ public struct RecentServer: Codable, Identifiable {
 public struct ConnectView: View {
     @Environment(AppState.self) private var appState
     @State var viewModel = ConnectViewModel()
-    @State var serverURL = EnvironmentConfig.supabaseURL
+    @State var serverURL = EnvironmentConfig.serverURL
     @State var username = ""
     @State var password = ""
     @State var showPassword = false

@@ -10,6 +10,10 @@ import SwiftUI
 
 // MARK: - Environment Configuration
 public enum EnvironmentConfig {
+    public static var serverURL: String {
+        Bundle.main.object(forInfoDictionaryKey: "ServerURL") as? String ?? ""
+    }
+
     public static var supabaseURL: String {
         Bundle.main.object(forInfoDictionaryKey: "SupabaseURL") as? String ?? ""
     }
