@@ -48,9 +48,6 @@ SDKROOT = auto
 SWIFT_VERSION = 6
 
 // Development team ID for on-device testing
-CODE_SIGNING_REQUIRED[sdk=iphoneos*] = YES
-CODE_SIGNING_REQUIRED[sdk=iphonesimulator*] = NO
-CODE_SIGNING_REQUIRED[sdk=macosx*] = NO
 CODE_SIGN_STYLE = Automatic
 CODE_SIGN_ENTITLEMENTS = Entitlements.plist
 //CODE_SIGNING_IDENTITY = -
