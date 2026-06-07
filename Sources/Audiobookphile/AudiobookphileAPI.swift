@@ -60,6 +60,11 @@ public actor AudiobookphileAPI {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let anonKey = EnvironmentConfig.supabaseAnonKey
+        if !anonKey.isEmpty {
+            request.setValue(anonKey, forHTTPHeaderField: "apikey")
+        }
 
         let body = ["username": username, "password": password]
         request.httpBody = try JSONEncoder().encode(body)
@@ -151,6 +156,11 @@ public actor AudiobookphileAPI {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(self.refreshToken, forHTTPHeaderField: "x-refresh-token")
+        
+        let anonKey = EnvironmentConfig.supabaseAnonKey
+        if !anonKey.isEmpty {
+            request.setValue(anonKey, forHTTPHeaderField: "apikey")
+        }
         request.httpBody = "{}".data(using: .utf8)
 
         let (data, response) = try await self.session.data(for: request)
@@ -195,6 +205,11 @@ public actor AudiobookphileAPI {
     private func executeRequest<T: Decodable>(_ request: URLRequest, responseType: T.Type, isRetry: Bool = false) async throws -> T {
         var authRequest = request
         authRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        
+        let anonKey = EnvironmentConfig.supabaseAnonKey
+        if !anonKey.isEmpty {
+            authRequest.setValue(anonKey, forHTTPHeaderField: "apikey")
+        }
 
         do {
             let (data, response) = try await session.data(for: authRequest)
@@ -371,6 +386,11 @@ public actor AudiobookphileAPI {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        
+        let anonKey = EnvironmentConfig.supabaseAnonKey
+        if !anonKey.isEmpty {
+            request.setValue(anonKey, forHTTPHeaderField: "apikey")
+        }
 
         let progress = duration > 0 ? currentTime / duration : 0
         let body: [String: Any] = [
@@ -398,6 +418,11 @@ public actor AudiobookphileAPI {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        
+        let anonKey = EnvironmentConfig.supabaseAnonKey
+        if !anonKey.isEmpty {
+            request.setValue(anonKey, forHTTPHeaderField: "apikey")
+        }
 
         let body: [String: Any] = [
             "currentTime": currentTime,
@@ -436,11 +461,18 @@ public actor AudiobookphileAPI {
         guard var components = URLComponents(string: "\(baseURL)/api/items/\(itemId)/cover") else {
             return nil
         }
-        components.queryItems = [
+        var queryItems = [
             URLQueryItem(name: "width", value: "\(width)"),
             URLQueryItem(name: "format", value: "jpeg"),
             URLQueryItem(name: "token", value: accessToken)
         ]
+        
+        let anonKey = EnvironmentConfig.supabaseAnonKey
+        if !anonKey.isEmpty {
+            queryItems.append(URLQueryItem(name: "apikey", value: anonKey))
+        }
+        
+        components.queryItems = queryItems
         return components.url
     }
 
