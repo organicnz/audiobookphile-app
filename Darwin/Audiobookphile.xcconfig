@@ -55,8 +55,11 @@ CODE_SIGN_ENTITLEMENTS = Entitlements.plist
 CODE_SIGNING_REQUIRED[sdk=macosx*] = NO
 CODE_SIGNING_ALLOWED[sdk=macosx*] = NO
 
-//CODE_SIGNING_IDENTITY = -
-DEVELOPMENT_TEAM = $(TEAM_ID)
+// Hardcoding the Team ID and Bundle ID to help Xcode Cloud's export step
+// bypass any variable resolution bugs during code signing provisioning.
+DEVELOPMENT_TEAM = DCKVD6LKYV
+PRODUCT_BUNDLE_IDENTIFIER = club.foodshare.audiobookphile
+
 INFOPLIST_KEY_ServerURL = $(API_SERVER_URL)
 INFOPLIST_KEY_SupabaseURL = $(NEXT_PUBLIC_SUPABASE_URL)
 INFOPLIST_KEY_SupabaseAnonKey = $(NEXT_PUBLIC_SUPABASE_ANON_KEY)
