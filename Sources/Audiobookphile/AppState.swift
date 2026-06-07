@@ -42,7 +42,7 @@ public class AppState {
         // Try to load saved credentials
         if let credentials = try? KeychainManager.shared.loadCredentials() {
             // Migration check: If the saved server is not the new Supabase backend, clear it.
-            if !credentials.serverURL.contains("supabase.co") {
+            if !credentials.serverURL.contains("supabase.co") && !credentials.serverURL.contains("vercel.app") {
                 print("[AppState] Found old non-Supabase server credentials. Migrating/Clearing...")
                 logout()
                 isLoading = false
@@ -154,11 +154,18 @@ public class AppState {
         guard var components = URLComponents(string: "\(serverURL)/api/items/\(itemId)/cover") else {
             return nil
         }
-        components.queryItems = [
+        var queryItems = [
             URLQueryItem(name: "width", value: "\(width)"),
             URLQueryItem(name: "format", value: "jpeg"),
             URLQueryItem(name: "token", value: token)
         ]
+        
+        let anonKey = EnvironmentConfig.supabaseAnonKey
+        if !anonKey.isEmpty {
+            queryItems.append(URLQueryItem(name: "apikey", value: anonKey))
+        }
+        
+        components.queryItems = queryItems
         return components.url
     }
 }
