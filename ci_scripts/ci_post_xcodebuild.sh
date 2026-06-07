@@ -1,22 +1,35 @@
 #!/bin/sh
 set -e
 
-echo "=== Running ci_post_xcodebuild.sh ==="
+echo "=== ci_post_xcodebuild.sh ==="
+echo "CI_ARCHIVE_PATH: ${CI_ARCHIVE_PATH}"
+echo "CI_PRODUCT: ${CI_PRODUCT}"
+echo "CI_XCODEBUILD_ACTION: ${CI_XCODEBUILD_ACTION}"
+echo "CI_XCODEBUILD_EXIT_CODE: ${CI_XCODEBUILD_EXIT_CODE}"
 
-# Check if the Xcode Cloud archive path exists
-if [ -z "$CI_ARCHIVE_PATH" ] || [ ! -d "$CI_ARCHIVE_PATH" ]; then
-    echo "No archive found. Exiting."
-    exit 0
+# Dump the archive structure so we can see what's inside
+if [ -n "$CI_ARCHIVE_PATH" ] && [ -d "$CI_ARCHIVE_PATH" ]; then
+    echo "=== Archive Products Directory ==="
+    find "$CI_ARCHIVE_PATH/Products" -type f 2>/dev/null || echo "(no Products dir)"
+    echo "=== Archive Info.plist ==="
+    cat "$CI_ARCHIVE_PATH/Info.plist" 2>/dev/null || echo "(no Info.plist)"
+    echo "=== Frameworks inside .app ==="
+    find "$CI_ARCHIVE_PATH" -name "*.framework" -o -name "*.dylib" 2>/dev/null || echo "(none)"
 fi
 
-echo "Cleaning up dynamic libraries from archive products to prevent export error 70..."
+# Dump export logs if they exist
+echo "=== Checking for export logs ==="
+for logdir in /Volumes/workspace/tmp/*-export-archive-logs; do
+    if [ -d "$logdir" ]; then
+        echo "=== Export logs in $logdir ==="
+        find "$logdir" -name "*.log" -exec sh -c 'echo "--- {} ---"; cat "{}"' \;
+    fi
+done
 
-# Remove 'usr' directory which often contains the .dylib (e.g., usr/local/lib)
-if [ -d "$CI_ARCHIVE_PATH/Products/usr" ]; then
-    echo "Found usr in archive Products. Deleting..."
-    rm -rf "$CI_ARCHIVE_PATH/Products/usr"
-fi
+# Also check for IDEDistribution logs
+find /Volumes/workspace/tmp -name "IDEDistribution*" -type f 2>/dev/null | while read f; do
+    echo "=== $f ==="
+    cat "$f"
+done
 
-# Remove any top-level dylibs in the Products directory
-find "$CI_ARCHIVE_PATH/Products" -maxdepth 1 -name "*.dylib" -type f -exec rm -f {} +
-echo "Archive cleanup complete. The Export phase should now succeed."
+echo "=== ci_post_xcodebuild.sh complete ==="
