@@ -8,6 +8,17 @@
 
 import SwiftUI
 
+// MARK: - Environment Configuration
+public enum EnvironmentConfig {
+    public static var supabaseURL: String {
+        Bundle.main.object(forInfoDictionaryKey: "SupabaseURL") as? String ?? ""
+    }
+    
+    public static var supabaseAnonKey: String {
+        Bundle.main.object(forInfoDictionaryKey: "SupabaseAnonKey") as? String ?? ""
+    }
+}
+
 // MARK: - API Constants
 
 public enum APIConstants {
