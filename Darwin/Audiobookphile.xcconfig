@@ -50,5 +50,10 @@ SWIFT_VERSION = 6
 // Development team ID for on-device testing
 CODE_SIGN_STYLE = Automatic
 CODE_SIGN_ENTITLEMENTS = Entitlements.plist
+
+// Disable code signing for macOS targets (e.g. Swift Macros) to prevent Xcode Cloud from crashing
+CODE_SIGNING_REQUIRED[sdk=macosx*] = NO
+CODE_SIGNING_ALLOWED[sdk=macosx*] = NO
+
 //CODE_SIGNING_IDENTITY = -
 DEVELOPMENT_TEAM = $(TEAM_ID)
