@@ -145,10 +145,40 @@ find ~/Library/MobileDevice/Provisioning\ Profiles -name "*.mobileprovision" 2>/
     security cms -D -i "$p" 2>/dev/null | grep -A2 "Name\|TeamIdentifier\|application-identifier\|Entitlements" | head -20
 done
 
-# ─── 5. Available signing identities ───
 echo ""
 echo "=== SIGNING IDENTITIES ==="
 security find-identity -v -p codesigning 2>/dev/null | head -20 || echo "(none found)"
+
+# ─── 6. Remediation advice on export failure ───
+EXPORT_FAILED=false
+for logdir in /Volumes/workspace/tmp/*-export-archive-logs; do
+    [ -d "$logdir" ] && EXPORT_FAILED=true
+done
+
+if [ "$EXPORT_FAILED" = "true" ]; then
+    echo ""
+    echo "========================================"
+    echo "⚠️  EXPORT FAILED — NEXT STEPS"
+    echo "========================================"
+    echo ""
+    echo "1. Review the export logs above for the specific error."
+    echo ""
+    echo "2. If the archive is a 'Generic Archive' (Products/ contains"
+    echo "   usr/local/ instead of Applications/), ensure SKIP_INSTALL"
+    echo "   is YES for all framework targets and NO for the app target."
+    echo ""
+    echo "3. If signing artifacts are stale or corrupted, DELETE XCODE"
+    echo "   CLOUD DATA to force regeneration of certificates/profiles:"
+    echo ""
+    echo "   App Store Connect → Audiobookphile → Xcode Cloud"
+    echo "   → Settings → 'Delete Xcode Cloud Data'"
+    echo ""
+    echo "   This clears cached signing artifacts and often resolves"
+    echo "   persistent exit code 70 failures."
+    echo ""
+    echo "4. After deleting, trigger a new build from Xcode Cloud."
+    echo "========================================"
+fi
 
 echo ""
 echo "========================================"
