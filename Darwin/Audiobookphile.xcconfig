@@ -63,4 +63,6 @@ PRODUCT_BUNDLE_IDENTIFIER = club.foodshare.audiobookphile
 INFOPLIST_KEY_ServerURL = $(API_SERVER_URL)
 INFOPLIST_KEY_SupabaseURL = $(NEXT_PUBLIC_SUPABASE_URL)
 INFOPLIST_KEY_SupabaseAnonKey = $(NEXT_PUBLIC_SUPABASE_ANON_KEY)
-SKIP_INSTALL = YES
+// SKIP_INSTALL is set to NO in the pbxproj target-level build settings.
+// Do NOT set SKIP_INSTALL = YES here — it propagates to SPM framework
+// targets and prevents them from being archived, causing export failures.
