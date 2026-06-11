@@ -54,15 +54,16 @@ CODE_SIGN_ENTITLEMENTS = Entitlements.plist
 // Disable code signing for macOS targets (e.g. Swift Macros) to prevent Xcode Cloud from crashing
 CODE_SIGNING_REQUIRED[sdk=macosx*] = NO
 CODE_SIGNING_ALLOWED[sdk=macosx*] = NO
-
-// Hardcoding the Team ID and Bundle ID to help Xcode Cloud's export step
-// bypass any variable resolution bugs during code signing provisioning.
-DEVELOPMENT_TEAM = DCKVD6LKYV
-PRODUCT_BUNDLE_IDENTIFIER = club.foodshare.audiobookphile
+// Development team — uses TEAM_ID from Skip.env (also set as Xcode Cloud shared env var)
+DEVELOPMENT_TEAM = $(TEAM_ID)
 
 INFOPLIST_KEY_ServerURL = $(API_SERVER_URL)
 INFOPLIST_KEY_SupabaseURL = $(NEXT_PUBLIC_SUPABASE_URL)
 INFOPLIST_KEY_SupabaseAnonKey = $(NEXT_PUBLIC_SUPABASE_ANON_KEY)
-// SKIP_INSTALL is set to NO in the pbxproj target-level build settings.
-// Do NOT set SKIP_INSTALL = YES here — it propagates to SPM framework
-// targets and prevents them from being archived, causing export failures.
+
+// SKIP_INSTALL = YES is the correct default for the xcconfig base.
+// The app target overrides this to NO at the pbxproj target level (both Debug and Release).
+// SPM dynamic framework targets (e.g. Audiobookphile.framework) inherit YES from here,
+// which prevents them from being installed as top-level archive products.
+// Without this, Xcode creates a "Generic Archive" that cannot be exported (exit code 70).
+SKIP_INSTALL = YES
