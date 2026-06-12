@@ -359,6 +359,10 @@ public struct AudioPlayerView: View {
 
             Spacer()
 
+            AirPlayButton(color: coverIsLight ? .black : .white)
+
+            Spacer()
+
             GlassIconButton(
                 icon: "list.bullet",
                 fill: false,
