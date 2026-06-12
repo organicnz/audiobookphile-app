@@ -113,6 +113,14 @@ public struct ConnectView: View {
 
     private var formSection: some View {
         VStack(spacing: 16) {
+            // Server URL
+            GlassTextField(
+                text: $serverURL,
+                placeholder: "Server URL",
+                icon: "server.rack",
+                autocapitalize: false
+            )
+
             // Username / Email
             GlassTextField(
                 text: $username,
