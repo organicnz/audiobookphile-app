@@ -4,8 +4,8 @@ import AppIntents
 
 @available(iOS 16.0, *)
 public struct PlayAudiobookIntent: AppIntent, AudioPlaybackIntent {
-    public static var title: LocalizedStringResource = "Play Audiobook"
-    public static var description = IntentDescription("Resumes playback of your current audiobook in Audiobookphile.")
+    public static var title: LocalizedStringResource { "Play Audiobook" }
+    public static var description: IntentDescription { IntentDescription("Resumes playback of your current audiobook in Audiobookphile.") }
 
     public init() {}
 
@@ -21,8 +21,8 @@ public struct PlayAudiobookIntent: AppIntent, AudioPlaybackIntent {
 
 @available(iOS 16.0, *)
 public struct PauseAudiobookIntent: AppIntent, AudioPlaybackIntent {
-    public static var title: LocalizedStringResource = "Pause Audiobook"
-    public static var description = IntentDescription("Pauses playback of your current audiobook in Audiobookphile.")
+    public static var title: LocalizedStringResource { "Pause Audiobook" }
+    public static var description: IntentDescription { IntentDescription("Pauses playback of your current audiobook in Audiobookphile.") }
 
     public init() {}
 
