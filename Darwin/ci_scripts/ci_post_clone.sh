@@ -1,0 +1,126 @@
+#!/bin/sh
+defaults write com.apple.dt.Xcode IDESkipPackagePluginFingerprintValidation -bool YES
+defaults write com.apple.dt.Xcode IDESkipPackagePluginFingerprintValidatation -bool YES
+defaults write com.apple.dt.Xcode IDESkipMacroFingerprintValidation -bool YES
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Pin Xcode Cloud workflows to a stable Xcode version via App Store Connect API
+#
+# Set these as Xcode Cloud environment variables (mark ASC_KEY_CONTENT as secret):
+#   ASC_KEY_ID        — App Store Connect API Key ID
+#   ASC_ISSUER_ID     — App Store Connect Issuer ID
+#   ASC_KEY_CONTENT   — Base64-encoded .p8 private key content
+#                       (generate with: base64 -i AuthKey_XXXXX.p8 | tr -d '\n')
+#   XCODE_PIN_VERSION — Target version name to match (default: "16.4")
+# ─────────────────────────────────────────────────────────────────────────────
+if [ -n "$ASC_KEY_ID" ] && [ -n "$ASC_ISSUER_ID" ] && [ -n "$ASC_KEY_CONTENT" ]; then
+  echo "=== Xcode Version Pinning ==="
+  XCODE_PIN_VERSION="${XCODE_PIN_VERSION:-16.4}"
+  echo "Target version: $XCODE_PIN_VERSION"
+
+  # Decode .p8 key to temp file
+  ASC_KEY_FILE=$(mktemp /tmp/asc_key.XXXXXX)
+  echo "$ASC_KEY_CONTENT" | base64 --decode > "$ASC_KEY_FILE"
+  trap 'rm -f "$ASC_KEY_FILE"' EXIT
+
+  API_BASE="https://api.appstoreconnect.apple.com/v1"
+
+  # Generate JWT for App Store Connect API
+  generate_jwt() {
+    local now exp header payload signature
+    now=$(date +%s)
+    exp=$((now + 1200))
+    header=$(printf '{"alg":"ES256","kid":"%s","typ":"JWT"}' "$ASC_KEY_ID" | openssl base64 -e -A | tr '+/' '-_' | tr -d '=')
+    payload=$(printf '{"iss":"%s","iat":%d,"exp":%d,"aud":"appstoreconnect-v1"}' "$ASC_ISSUER_ID" "$now" "$exp" | openssl base64 -e -A | tr '+/' '-_' | tr -d '=')
+    signature=$(printf '%s.%s' "$header" "$payload" | openssl dgst -sha256 -sign "$ASC_KEY_FILE" -binary | openssl base64 -e -A | tr '+/' '-_' | tr -d '=')
+    printf '%s.%s.%s' "$header" "$payload" "$signature"
+  }
+
+  TOKEN=$(generate_jwt)
+
+  # Find the target Xcode version ID
+  VERSIONS_JSON=$(curl -sf -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" "${API_BASE}/ciXcodeVersions?limit=20")
+  TARGET_ID=$(echo "$VERSIONS_JSON" | python3 -c "
+import json, sys
+target = sys.argv[1]
+data = json.load(sys.stdin)
+for v in data.get('data', []):
+    name = v.get('attributes', {}).get('name', '')
+    if target.lower() in name.lower():
+        print(v['id'])
+        break
+" "$XCODE_PIN_VERSION" 2>/dev/null)
+
+  if [ -z "$TARGET_ID" ]; then
+    echo "⚠️  No Xcode version matching '$XCODE_PIN_VERSION' found. Skipping pin."
+    echo "Available versions:"
+    echo "$VERSIONS_JSON" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+for v in data.get('data', []):
+    print(f'  - {v[\"attributes\"].get(\"name\", \"?\")}')
+" 2>/dev/null
+  else
+    echo "✅ Found Xcode version id=$TARGET_ID"
+
+    # Get all workflows across all products
+    PRODUCTS_JSON=$(curl -sf -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" "${API_BASE}/ciProducts?limit=10")
+    PRODUCT_IDS=$(echo "$PRODUCTS_JSON" | python3 -c "
+import json, sys
+for p in json.load(sys.stdin).get('data', []):
+    print(p['id'])
+" 2>/dev/null)
+
+    UPDATED=0
+    for PID in $PRODUCT_IDS; do
+      WORKFLOWS_JSON=$(curl -sf -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" "${API_BASE}/ciProducts/$PID/workflows?limit=20")
+
+      echo "$WORKFLOWS_JSON" | python3 -c "
+import json, sys
+for w in json.load(sys.stdin).get('data', []):
+    print(w['id'] + ' ' + w.get('attributes', {}).get('name', '?'))
+" 2>/dev/null | while read -r WID WNAME; do
+        PATCH_BODY=$(python3 -c "
+import json
+print(json.dumps({
+    'data': {
+        'type': 'ciWorkflows',
+        'id': '$WID',
+        'relationships': {
+            'xcodeVersion': {
+                'data': {
+                    'type': 'ciXcodeVersions',
+                    'id': '$TARGET_ID'
+                }
+            }
+        }
+    }
+}))
+")
+        if curl -sf -X PATCH \
+          -H "Authorization: Bearer $TOKEN" \
+          -H "Content-Type: application/json" \
+          -d "$PATCH_BODY" \
+          "${API_BASE}/ciWorkflows/$WID" > /dev/null 2>&1; then
+          echo "  📌 Pinned '$WNAME' → Xcode $XCODE_PIN_VERSION"
+        else
+          echo "  ⚠️  Failed to pin '$WNAME'"
+        fi
+      done
+    done
+    echo "=== Xcode Version Pinning Complete ==="
+  fi
+else
+  echo "=== Xcode version pinning skipped (ASC_KEY_ID/ASC_ISSUER_ID/ASC_KEY_CONTENT not set) ==="
+fi
+
+# Force defaults on xcodebuild and global domains just in case
+defaults write com.apple.dt.xcodebuild IDESkipPackagePluginFingerprintValidatation -bool YES
+defaults write com.apple.dt.xcodebuild IDESkipPackagePluginFingerprintValidation -bool YES
+defaults write -g IDESkipPackagePluginFingerprintValidatation -bool YES
+defaults write -g IDESkipPackagePluginFingerprintValidation -bool YES
+defaults write com.apple.dt.xcodebuild IDESkipMacroFingerprintValidation -bool YES
+defaults write -g IDESkipMacroFingerprintValidation -bool YES
+
+echo "Defaults applied:"
+defaults read com.apple.dt.Xcode | grep IDESkip
