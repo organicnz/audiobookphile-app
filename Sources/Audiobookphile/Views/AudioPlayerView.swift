@@ -427,7 +427,7 @@ public struct AudioPlayerView: View {
                 size: .medium,
                 color: coverIsLight ? .black : .white,
                 action: {
-                    triggerHaptic(.light)
+                    triggerHaptic(isLight: true)
                     viewModel.jumpToChapterStart()
                 }
             )
@@ -439,7 +439,7 @@ public struct AudioPlayerView: View {
                 size: .medium,
                 color: coverIsLight ? .black : .white,
                 action: {
-                    triggerHaptic(.light)
+                    triggerHaptic(isLight: true)
                     viewModel.jumpBackward()
                 }
             )
@@ -457,7 +457,7 @@ public struct AudioPlayerView: View {
                 size: .medium,
                 color: coverIsLight ? .black : .white,
                 action: {
-                    triggerHaptic(.light)
+                    triggerHaptic(isLight: true)
                     viewModel.jumpForward()
                 }
             )
@@ -471,7 +471,7 @@ public struct AudioPlayerView: View {
                 size: .medium,
                 color: coverIsLight ? .black : .white,
                 action: {
-                    triggerHaptic(.light)
+                    triggerHaptic(isLight: true)
                     viewModel.jumpToNextChapter()
                 }
             )
@@ -480,17 +480,16 @@ public struct AudioPlayerView: View {
         }
     }
 
-    private func triggerHaptic(_ style: Any) {
+    private func triggerHaptic(isLight: Bool = false) {
         #if os(iOS) && !SKIP
-        if let feedbackStyle = style as? UIImpactFeedbackGenerator.FeedbackStyle {
-            UIImpactFeedbackGenerator(style: feedbackStyle).impactOccurred()
-        }
+        let feedbackStyle: UIImpactFeedbackGenerator.FeedbackStyle = isLight ? .light : .medium
+        UIImpactFeedbackGenerator(style: feedbackStyle).impactOccurred()
         #endif
     }
 
     private var playPauseButton: some View {
         Button {
-            triggerHaptic(.medium)
+            triggerHaptic()
             viewModel.togglePlayPause()
         } label: {
             Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")

@@ -461,7 +461,7 @@ public struct LoadingView: View {
 
     public var body: some View {
         ZStack {
-            AnimatedGradientBackground()
+            FluidAuraBackground()
             VStack(spacing: 20) {
                 ProgressView()
                     .tint(.appPrimary)

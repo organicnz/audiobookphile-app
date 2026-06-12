@@ -75,31 +75,35 @@ public extension View {
 }
 
 public struct SmartAsyncImage<Content: View, Placeholder: View>: View {
-    let url: URL
+    let url: URL?
     let content: (Image) -> Content
     let placeholder: () -> Placeholder
 
-    public init(url: URL, @ViewBuilder content: @escaping (Image) -> Content, @ViewBuilder placeholder: @escaping () -> Placeholder) {
+    public init(url: URL?, @ViewBuilder content: @escaping (Image) -> Content, @ViewBuilder placeholder: @escaping () -> Placeholder) {
         self.url = url
         self.content = content
         self.placeholder = placeholder
     }
 
     public var body: some View {
-        #if os(iOS) && !SKIP
-        if #available(iOS 27.0, *) {
-            AsyncImage(urlRequest: URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad)) { phase in
-                if let image = phase.image {
-                    content(image)
-                } else {
-                    placeholder()
+        if let url = url {
+            #if os(iOS) && !SKIP
+            if #available(iOS 27.0, *) {
+                AsyncImage(request: URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad)) { phase in
+                    if let image = phase.image {
+                        content(image)
+                    } else {
+                        placeholder()
+                    }
                 }
+            } else {
+                CachedAsyncImage(url: url, content: content, placeholder: placeholder)
             }
-        } else {
+            #else
             CachedAsyncImage(url: url, content: content, placeholder: placeholder)
+            #endif
+        } else {
+            placeholder()
         }
-        #else
-        CachedAsyncImage(url: url, content: content, placeholder: placeholder)
-        #endif
     }
 }

@@ -52,8 +52,10 @@ public struct MiniPlayerView: View {
                 Image(systemName: audioPlayer.isPlaying ? "pause.fill" : "play.fill")
                     .font(.title2)
                     .foregroundStyle(.white)
+                    .applyPlayPauseSymbolEffect(isPlaying: audioPlayer.isPlaying)
             }
-            .padding(.horizontal)
+            .applySensoryFeedback(trigger: audioPlayer.isPlaying)
+            .padding(.trailing, 8)
 
             Button {
                 onClose()
