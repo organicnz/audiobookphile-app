@@ -48,6 +48,11 @@ public struct ConnectView: View {
                     // Connection form
                     formSection
 
+                    // Recent Servers
+                    if !viewModel.recentServers.isEmpty {
+                        recentServersSection
+                    }
+
                     Spacer(minLength: 100)
                 }
                 .padding(.horizontal, 24)
@@ -96,16 +101,24 @@ public struct ConnectView: View {
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 120, height: 120)
                 .scaleEffect(isAnimating ? 1.05 : 1.0)
-                .shadow(color: .appPrimary.opacity(0.3), radius: 20)
+                .shadow(color: .appPrimary.opacity(0.5), radius: 25, x: 0, y: 10)
 
             // Title
             Text("Audiobookphile")
-                .font(.system(size: 36, weight: .bold))
-                .foregroundStyle(.white)
+                .font(.system(size: 38, weight: .black, design: .rounded))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [.white, .white.opacity(0.8)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 5)
 
             Text("Sign in to your account")
-                .font(.subheadline)
+                .font(.headline.weight(.medium))
                 .foregroundStyle(.white.opacity(0.7))
+                .padding(.top, -4)
         }
     }
 
@@ -194,6 +207,34 @@ public struct ConnectView: View {
 
     private var isFormValid: Bool {
         !serverURL.isEmpty && !username.isEmpty && !password.isEmpty
+    }
+
+    // MARK: - Recent Servers Section
+
+    private var recentServersSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Recent Connections")
+                .font(.headline)
+                .foregroundStyle(.white.opacity(0.8))
+                .padding(.horizontal, 4)
+
+            VStack(spacing: 8) {
+                ForEach(viewModel.recentServers) { server in
+                    RecentServerRow(server: server) {
+                        // Action on tap: pre-fill form
+                        withAnimation {
+                            serverURL = server.address
+                            if let user = server.username {
+                                username = user
+                            }
+                            // Clear password when selecting a new server
+                            password = ""
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.top, 16)
     }
 }
 
