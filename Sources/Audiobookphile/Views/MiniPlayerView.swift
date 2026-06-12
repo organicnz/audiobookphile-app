@@ -22,7 +22,7 @@ public struct MiniPlayerView: View {
     public var body: some View {
         VStack(spacing: 0) {
         HStack {
-            CachedAsyncImage(url: coverURL) { image in
+            SmartAsyncImage(url: coverURL) { image in
                 image
                     .resizable()
                     .aspectRatio(contentMode: .fill)

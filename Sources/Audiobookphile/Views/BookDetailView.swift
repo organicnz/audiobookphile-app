@@ -187,7 +187,7 @@ public struct BookDetailView: View {
     }
     
     private func coverArtSection(_ detailed: Book) -> some View {
-        CachedAsyncImage(url: appState.getCoverURL(itemId: detailed.id, width: 600)) { image in
+        SmartAsyncImage(url: appState.getCoverURL(itemId: detailed.id, width: 600)) { image in
             image
                 .resizable()
                 .aspectRatio(contentMode: .fit)
