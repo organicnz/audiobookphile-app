@@ -495,6 +495,7 @@ public struct AudioPlayerView: View {
             Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
                 .font(.system(size: 32))
                 .foregroundStyle(coverIsLight ? .black : .white)
+                .applyPlayPauseSymbolEffect(isPlaying: viewModel.isPlaying)
                 .frame(width: 80, height: 80)
                 .background {
                     Circle()

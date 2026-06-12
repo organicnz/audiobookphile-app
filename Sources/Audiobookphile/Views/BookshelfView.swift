@@ -226,6 +226,7 @@ public struct BookshelfView: View {
                     .onTapGesture {
                         selectedBookForDetails = book
                     }
+                    .applyBookshelfScrollTransition()
                 }
             }
             .padding(.horizontal)
