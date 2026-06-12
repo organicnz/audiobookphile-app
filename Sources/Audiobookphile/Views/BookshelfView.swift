@@ -30,7 +30,9 @@ public struct BookshelfView: View {
                 VStack(spacing: 24) {
                     // Header section with parallax
                     headerSection
-                        .offset(y: scrollOffset * 0.3)
+                        .offset(y: scrollOffset > 0 ? 0 : scrollOffset * 0.4)
+                        .blur(radius: max(0, -scrollOffset / 15))
+                        .opacity(1.0 - max(0, -scrollOffset / 250))
                     
                     // Continue listening section
                     if !viewModel.continueListening.isEmpty {
@@ -40,6 +42,13 @@ public struct BookshelfView: View {
                     // Main library grid
                     libraryGridSection
                 }
+                .background(GeometryReader { proxy in
+                    Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: proxy.frame(in: .named("scroll")).minY)
+                })
+            }
+            .coordinateSpace(name: "scroll")
+            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+                scrollOffset = value
             }
             #if os(iOS) || SKIP
             .refreshable {
@@ -521,4 +530,11 @@ public class BookshelfViewModel: ObservableObject {
     public func showSettings() {}
     public func showDownloads() {}
     public func showStats() {}
+}
+
+public struct ScrollOffsetPreferenceKey: PreferenceKey {
+    public static var defaultValue: CGFloat = 0
+    public static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
 }

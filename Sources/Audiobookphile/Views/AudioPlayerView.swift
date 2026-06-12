@@ -8,6 +8,9 @@
 
 import SwiftUI
 import Observation
+#if os(iOS) && !SKIP
+import UIKit
+#endif
 
 public struct AudioPlayerView: View {
     @State var viewModel: AudioPlayerViewModel
@@ -23,6 +26,7 @@ public struct AudioPlayerView: View {
     @State var showBookmarksList = false
     @State var showAddBookmark = false
     @State var newBookmarkTitle = ""
+    @State var isAnimatingBackground = false
 
     @State var colorLoader = DynamicColorLoader()
 
@@ -80,27 +84,43 @@ public struct AudioPlayerView: View {
 
     private var backgroundLayer: some View {
         ZStack {
-            if colorLoader.isLoaded {
-                colorLoader.backgroundColor
-                    .ignoresSafeArea()
-
-                LinearGradient(
-                    colors: [
-                        colorLoader.backgroundColor.opacity(0.6),
-                        colorLoader.backgroundColor.opacity(0.2),
-                        Color.appBackground
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+            // Apple Music-style dynamic cover art background
+            if let url = coverURL {
+                GeometryReader { proxy in
+                    CachedAsyncImage(url: url) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: proxy.size.width * 1.5, height: proxy.size.height * 1.5)
+                            .blur(radius: 100, opaque: true)
+                            .scaleEffect(isAnimatingBackground ? 1.1 : 1.0)
+                            .rotationEffect(.degrees(isAnimatingBackground ? 10 : -10))
+                            .offset(x: isAnimatingBackground ? -20 : 20, y: isAnimatingBackground ? -20 : 20)
+                    } placeholder: {
+                        colorLoader.backgroundColor
+                    }
+                    .frame(width: proxy.size.width, height: proxy.size.height)
+                    .clipped()
+                }
             } else {
                 Color.appBackground
-                    .ignoresSafeArea()
             }
 
-            Color.appBackground.opacity(0.75)
-                .ignoresSafeArea()
+            // Darken/Blend overlay to ensure text is readable
+            LinearGradient(
+                colors: [
+                    Color.black.opacity(0.3),
+                    Color.black.opacity(0.6)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        }
+        .ignoresSafeArea()
+        .onAppear {
+            withAnimation(.easeInOut(duration: 15).repeatForever(autoreverses: true)) {
+                isAnimatingBackground = true
+            }
         }
     }
 
@@ -405,7 +425,10 @@ public struct AudioPlayerView: View {
                 icon: "backward.end.fill",
                 size: .medium,
                 color: coverIsLight ? .black : .white,
-                action: viewModel.jumpToChapterStart
+                action: {
+                    triggerHaptic(.light)
+                    viewModel.jumpToChapterStart()
+                }
             )
 
             Spacer()
@@ -414,7 +437,10 @@ public struct AudioPlayerView: View {
                 icon: "gobackward.\(viewModel.jumpBackwardTime)",
                 size: .medium,
                 color: coverIsLight ? .black : .white,
-                action: viewModel.jumpBackward
+                action: {
+                    triggerHaptic(.light)
+                    viewModel.jumpBackward()
+                }
             )
             .disabled(isUiLocked)
             .opacity(isUiLocked ? 0.3 : 1.0)
@@ -429,7 +455,10 @@ public struct AudioPlayerView: View {
                 icon: "goforward.\(viewModel.jumpForwardTime)",
                 size: .medium,
                 color: coverIsLight ? .black : .white,
-                action: viewModel.jumpForward
+                action: {
+                    triggerHaptic(.light)
+                    viewModel.jumpForward()
+                }
             )
             .disabled(isUiLocked)
             .opacity(isUiLocked ? 0.3 : 1.0)
@@ -440,15 +469,27 @@ public struct AudioPlayerView: View {
                 icon: "forward.end.fill",
                 size: .medium,
                 color: coverIsLight ? .black : .white,
-                action: viewModel.jumpToNextChapter
+                action: {
+                    triggerHaptic(.light)
+                    viewModel.jumpToNextChapter()
+                }
             )
             .opacity(viewModel.hasNextChapter ? 1.0 : 0.3)
             .disabled(!viewModel.hasNextChapter)
         }
     }
 
+    private func triggerHaptic(_ style: Any) {
+        #if os(iOS) && !SKIP
+        if let feedbackStyle = style as? UIImpactFeedbackGenerator.FeedbackStyle {
+            UIImpactFeedbackGenerator(style: feedbackStyle).impactOccurred()
+        }
+        #endif
+    }
+
     private var playPauseButton: some View {
         Button {
+            triggerHaptic(.medium)
             viewModel.togglePlayPause()
         } label: {
             Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
