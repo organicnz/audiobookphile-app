@@ -57,4 +57,49 @@ public extension View {
         self
         #endif
     }
+    
+    @ViewBuilder
+    func applyToolbarAdapters(isLight: Bool, isHidden: Bool) -> some View {
+        #if os(iOS) && !SKIP
+        if #available(iOS 27.0, *) {
+            self
+                .toolbarColorScheme(isLight ? .light : .dark, for: .statusBar)
+                .toolbarVisibility(isHidden ? .hidden : .automatic, for: .statusBar)
+        } else {
+            self
+        }
+        #else
+        self
+        #endif
+    }
+}
+
+public struct SmartAsyncImage<Content: View, Placeholder: View>: View {
+    let url: URL
+    let content: (Image) -> Content
+    let placeholder: () -> Placeholder
+
+    public init(url: URL, @ViewBuilder content: @escaping (Image) -> Content, @ViewBuilder placeholder: @escaping () -> Placeholder) {
+        self.url = url
+        self.content = content
+        self.placeholder = placeholder
+    }
+
+    public var body: some View {
+        #if os(iOS) && !SKIP
+        if #available(iOS 27.0, *) {
+            AsyncImage(urlRequest: URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad)) { phase in
+                if let image = phase.image {
+                    content(image)
+                } else {
+                    placeholder()
+                }
+            }
+        } else {
+            CachedAsyncImage(url: url, content: content, placeholder: placeholder)
+        }
+        #else
+        CachedAsyncImage(url: url, content: content, placeholder: placeholder)
+        #endif
+    }
 }

@@ -50,6 +50,7 @@ public struct AudioPlayerView: View {
             // Full-screen player
             fullscreenPlayer
         }
+        .applyToolbarAdapters(isLight: colorLoader.isLight, isHidden: isUiLocked)
         .ignoresSafeArea()
         .optimizedForProMotion()
         .alert("Add Bookmark", isPresented: $showAddBookmark) {
@@ -87,7 +88,7 @@ public struct AudioPlayerView: View {
             // Apple Music-style dynamic cover art background
             if let url = coverURL {
                 GeometryReader { proxy in
-                    CachedAsyncImage(url: url) { image in
+                    SmartAsyncImage(url: url) { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
@@ -200,7 +201,7 @@ public struct AudioPlayerView: View {
         GeometryReader { geometry in
             Group {
                 if let url = coverURL {
-                    CachedAsyncImage(url: url) { image in
+                    SmartAsyncImage(url: url) { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fit)

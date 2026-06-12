@@ -382,7 +382,7 @@ public struct ContinueListeningCard: View {
             // Cover image
             Group {
                 if let url = coverURL {
-                    CachedAsyncImage(url: url) { image in
+                    SmartAsyncImage(url: url) { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)

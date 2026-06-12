@@ -146,6 +146,7 @@ public class DynamicColorLoader {
     public var textColor: Color = .white
     public var gradientColors: [Color] = [.black, .black]
     public var isLoaded = false
+    public var isLight = false
 
     private let extractor = ColorExtractor.shared
 
@@ -159,6 +160,7 @@ public class DynamicColorLoader {
         backgroundColor = Color(uiColor)
         textColor = extractor.contrastingTextColor(for: uiColor)
         gradientColors = extractor.generateGradient(from: uiColor)
+        isLight = extractor.isLight(uiColor)
         isLoaded = true
     }
 
@@ -169,6 +171,7 @@ public class DynamicColorLoader {
             backgroundColor = Color(uiColor)
             textColor = extractor.contrastingTextColor(for: uiColor)
             gradientColors = extractor.generateGradient(from: uiColor)
+            isLight = extractor.isLight(uiColor)
             isLoaded = true
         }
     }
@@ -192,6 +195,7 @@ public class DynamicColorLoader {
     public var textColor: Color = .white
     public var gradientColors: [Color] = [.black, .black]
     public var isLoaded = false
+    public var isLight = false
 
     public init() {}
 

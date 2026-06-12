@@ -59,7 +59,7 @@ public struct BookCard: View {
     private var coverImage: some View {
         ZStack(alignment: .topTrailing) {
             // Cover
-            CachedAsyncImage(url: coverURL) { image in
+            SmartAsyncImage(url: coverURL) { image in
                 image
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -189,7 +189,7 @@ public struct GlassBookCard: View {
     public var body: some View {
         HStack(spacing: 16) {
             // Small cover
-            CachedAsyncImage(url: coverURL) { image in
+            SmartAsyncImage(url: coverURL) { image in
                 image
                     .resizable()
                     .aspectRatio(contentMode: .fill)
