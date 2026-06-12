@@ -141,12 +141,15 @@ public struct ConnectView: View {
             Button {
                 Task {
                     do {
+                        let trimmedURL = serverURL.trimmingCharacters(in: .whitespacesAndNewlines)
+                        let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
+                        
                         try await appState.login(
-                            serverURL: serverURL,
-                            username: username,
+                            serverURL: trimmedURL,
+                            username: trimmedUsername,
                             password: password
                         )
-                        viewModel.saveRecentServer(address: serverURL, username: username)
+                        viewModel.saveRecentServer(address: trimmedURL, username: trimmedUsername)
                     } catch {
                         viewModel.errorMessage = error.localizedDescription
                         viewModel.showError = true
