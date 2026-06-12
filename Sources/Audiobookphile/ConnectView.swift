@@ -8,6 +8,9 @@
 
 import SwiftUI
 import Observation
+#if os(iOS) && !SKIP
+import UIKit
+#endif
 
 public struct RecentServer: Codable, Identifiable {
     public let id: String
@@ -29,13 +32,14 @@ public struct ConnectView: View {
     @State var password = ""
     @State var showPassword = false
     @State var isAnimating = false
+    @State var appearPhase = 0
 
     public init() {}
 
     public var body: some View {
         ZStack {
-            // Animated gradient background
-            AnimatedGradientBackground()
+            // Fluid Aura background
+            FluidAuraBackground()
 
             // Particle effects
             GlassParticlesView(particleCount: 20, colors: [.white.opacity(0.15), .appPrimary.opacity(0.1)])
@@ -44,13 +48,19 @@ public struct ConnectView: View {
                 VStack(spacing: 32) {
                     // Logo and title
                     headerSection
+                        .opacity(appearPhase > 0 ? 1 : 0)
+                        .offset(y: appearPhase > 0 ? 0 : 30)
 
                     // Connection form
                     formSection
+                        .opacity(appearPhase > 1 ? 1 : 0)
+                        .offset(y: appearPhase > 1 ? 0 : 30)
 
                     // Recent Servers
                     if !viewModel.recentServers.isEmpty {
                         recentServersSection
+                            .opacity(appearPhase > 2 ? 1 : 0)
+                            .offset(y: appearPhase > 2 ? 0 : 30)
                     }
 
                     Spacer(minLength: 100)
@@ -68,6 +78,15 @@ public struct ConnectView: View {
         .onAppear {
             withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
                 isAnimating = true
+            }
+            withAnimation(.spring(response: 0.8, dampingFraction: 0.7)) {
+                appearPhase = 1
+            }
+            withAnimation(.spring(response: 0.8, dampingFraction: 0.7).delay(0.2)) {
+                appearPhase = 2
+            }
+            withAnimation(.spring(response: 0.8, dampingFraction: 0.7).delay(0.4)) {
+                appearPhase = 3
             }
             // Auto login in simulator/debug for rapid testing
             #if targetEnvironment(simulator) || DEBUG
@@ -152,6 +171,11 @@ public struct ConnectView: View {
 
             // Connect button
             Button {
+                #if os(iOS) && !SKIP
+                let generator = UIImpactFeedbackGenerator(style: .medium)
+                generator.impactOccurred()
+                #endif
+                
                 Task {
                     do {
                         let trimmedURL = serverURL.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -191,12 +215,17 @@ public struct ConnectView: View {
         }
         .padding(24)
         .background(.ultraThinMaterial)
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(Color.appPrimary.opacity(0.05))
+                .shadow(color: .black.opacity(0.2), radius: 30, x: 0, y: 15)
+        )
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .overlay {
             RoundedRectangle(cornerRadius: 24)
                 .strokeBorder(
                     LinearGradient(
-                        colors: [.white.opacity(0.3), .white.opacity(0.1)],
+                        colors: [.white.opacity(0.4), .white.opacity(0.05)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
@@ -380,25 +409,44 @@ struct RecentServerRow: View {
     }
 }
 
-public struct AnimatedGradientBackground: View {
-    @State var animateGradient = false
+public struct FluidAuraBackground: View {
+    @State private var phase = 0.0
 
     public init() {}
 
     public var body: some View {
-        LinearGradient(
-            colors: [
-                Color(red: 0.07, green: 0.07, blue: 0.07),
-                Color(red: 0.12, green: 0.12, blue: 0.12),
-                Color(red: 0.09, green: 0.09, blue: 0.09)
-            ],
-            startPoint: animateGradient ? .topLeading : .bottomLeading,
-            endPoint: animateGradient ? .bottomTrailing : .topTrailing
-        )
-        .ignoresSafeArea()
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            // Background base
+            Color(red: 0.05, green: 0.05, blue: 0.08).ignoresSafeArea()
+            
+            GeometryReader { proxy in
+                let w = proxy.size.width
+                let h = proxy.size.height
+                
+                Circle()
+                    .fill(Color.appPrimary.opacity(0.5))
+                    .frame(width: w * 0.9)
+                    .offset(x: sin(phase) * w * 0.25, y: cos(phase) * h * 0.2)
+                    .blur(radius: 90)
+                
+                Circle()
+                    .fill(Color.appSecondary.opacity(0.4))
+                    .frame(width: w * 0.8)
+                    .offset(x: cos(phase + .pi/2) * w * 0.2, y: sin(phase + .pi/2) * h * 0.25)
+                    .blur(radius: 90)
+                
+                Circle()
+                    .fill(Color.purple.opacity(0.3))
+                    .frame(width: w)
+                    .offset(x: sin(phase + .pi) * w * 0.15, y: cos(phase + .pi/4) * h * 0.2)
+                    .blur(radius: 100)
+            }
+        }
         .onAppear {
-            withAnimation(.easeInOut(duration: 5).repeatForever(autoreverses: true)) {
-                animateGradient.toggle()
+            withAnimation(.linear(duration: 20).repeatForever(autoreverses: true)) {
+                phase = .pi * 2
             }
         }
     }
