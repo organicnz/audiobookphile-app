@@ -4,7 +4,7 @@
     {
       "identity" : "skip",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/skiptools/skip.git",
+      "location" : "https://source.skip.tools/skip.git",
       "state" : {
         "revision" : "6473282ffc51104c729571454def8eb9a2d6b373",
         "version" : "1.8.14"
@@ -13,7 +13,7 @@
     {
       "identity" : "skip-android-bridge",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/skiptools/skip-android-bridge.git",
+      "location" : "https://source.skip.tools/skip-android-bridge.git",
       "state" : {
         "revision" : "f1f761fa208296b7fa56ee29e725529cc55735ac",
         "version" : "0.6.1"
@@ -22,7 +22,7 @@
     {
       "identity" : "skip-bridge",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/skiptools/skip-bridge.git",
+      "location" : "https://source.skip.tools/skip-bridge.git",
       "state" : {
         "revision" : "a474776dd286e7194c0736b2c172e92e50460521",
         "version" : "0.17.0"
@@ -31,7 +31,7 @@
     {
       "identity" : "skip-foundation",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/skiptools/skip-foundation.git",
+      "location" : "https://source.skip.tools/skip-foundation.git",
       "state" : {
         "revision" : "bca98267dd2555469c486d9b1772b652b7a708e2",
         "version" : "1.4.0"
@@ -40,7 +40,7 @@
     {
       "identity" : "skip-fuse",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/skiptools/skip-fuse.git",
+      "location" : "https://source.skip.tools/skip-fuse.git",
       "state" : {
         "revision" : "8f3295094ad29075730284c5197c7f1d94c0f2d9",
         "version" : "1.0.2"
@@ -49,7 +49,7 @@
     {
       "identity" : "skip-fuse-ui",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/skiptools/skip-fuse-ui.git",
+      "location" : "https://source.skip.tools/skip-fuse-ui.git",
       "state" : {
         "revision" : "fe72e878d7538ed135e356353c57b5288249854a",
         "version" : "1.15.1"
@@ -58,7 +58,7 @@
     {
       "identity" : "skip-lib",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/skiptools/skip-lib.git",
+      "location" : "https://source.skip.tools/skip-lib.git",
       "state" : {
         "revision" : "76e7da8a870b5b66ea0c3264f648b58b73bcdc0d",
         "version" : "1.4.0"
@@ -67,7 +67,7 @@
     {
       "identity" : "skip-model",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/skiptools/skip-model.git",
+      "location" : "https://source.skip.tools/skip-model.git",
       "state" : {
         "revision" : "1f6ae8b6c9ce37a31c83444314ea527399e8636a",
         "version" : "1.7.3"
@@ -76,7 +76,7 @@
     {
       "identity" : "skip-ui",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/skiptools/skip-ui.git",
+      "location" : "https://source.skip.tools/skip-ui.git",
       "state" : {
         "revision" : "7b2b4c3602879803334c5c6d2fb8a42002909f82",
         "version" : "1.54.0"
@@ -85,7 +85,7 @@
     {
       "identity" : "skip-unit",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/skiptools/skip-unit.git",
+      "location" : "https://source.skip.tools/skip-unit.git",
       "state" : {
         "revision" : "920adff2065224ad592745a4cc028e9c2df137d4",
         "version" : "1.6.1"
@@ -94,7 +94,7 @@
     {
       "identity" : "swift-android-native",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/skiptools/swift-android-native.git",
+      "location" : "https://source.skip.tools/swift-android-native.git",
       "state" : {
         "revision" : "7e6e833e6f163a2b75340f75c70b1d96ea6b8135",
         "version" : "1.5.1"
@@ -103,7 +103,7 @@
     {
       "identity" : "swift-jni",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/skiptools/swift-jni.git",
+      "location" : "https://source.skip.tools/swift-jni.git",
       "state" : {
         "revision" : "fe76ac21aca639976833b5ea3e875dc072519ac4",
         "version" : "0.5.0"
