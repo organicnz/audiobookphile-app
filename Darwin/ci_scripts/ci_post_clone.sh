@@ -124,3 +124,7 @@ defaults write -g IDESkipMacroFingerprintValidation -bool YES
 
 echo "Defaults applied:"
 defaults read com.apple.dt.Xcode | grep IDESkip
+
+# Fix Xcode Cloud timeout issues with source.skip.tools by routing all requests to GitHub
+echo "Configuring git to use github.com/skiptools instead of source.skip.tools..."
+git config --global url."https://github.com/skiptools/".insteadOf "https://source.skip.tools/"
