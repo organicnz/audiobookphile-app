@@ -157,6 +157,8 @@ public class AudioPlayerService {
         #if !SKIP && !os(Android)
         updateNowPlaying(rate: playbackRate)
         #endif
+        
+        syncWidgetState()
     }
 
     public func pause() {
@@ -172,6 +174,7 @@ public class AudioPlayerService {
         
         // Sync progress immediately on pause
         syncProgressImmediately()
+        syncWidgetState()
     }
 
     public func togglePlayPause() {
@@ -635,10 +638,12 @@ public class AudioPlayerService {
                     timeListened: timeListenedToSync
                 )
                 print("[Player] Synced progress to server: \(currentTime)s / \(duration)s")
+                self.syncWidgetState()
             } catch {
                 print("[Player] Progress sync failed: \(error). Queueing for later.")
                 let item = ProgressSyncQueueItem(sessionId: session.id, currentTime: currentTime, duration: duration, timeListened: timeListenedToSync)
                 queueOfflineProgress(item: item)
+                self.syncWidgetState()
             }
         }
     }
@@ -740,6 +745,33 @@ public class AudioPlayerService {
         sleepTimer?.invalidate()
         sleepTimer = nil
         sleepTimerRemaining = nil
+    }
+
+    // MARK: - Widget State Sync
+    
+    private func syncWidgetState() {
+        guard let session = session, let defaults = UserDefaults(suiteName: EnvironmentConfig.appGroupIdentifier) else { return }
+        
+        // Find current chapter
+        var currentChapterName = "Reading"
+        for chapter in session.chapters {
+            if currentTime >= chapter.start && currentTime < chapter.end {
+                currentChapterName = chapter.title
+                break
+            }
+        }
+        
+        let stateDict: [String: Any] = [
+            "bookTitle": session.displayTitle,
+            "author": session.displayAuthor,
+            "chapterName": currentChapterName,
+            "progress": currentTime,
+            "duration": duration,
+            "isPlaying": isPlaying,
+            "updatedAt": Date().timeIntervalSince1970
+        ]
+        
+        defaults.set(stateDict, forKey: "audiobookWidgetState")
     }
 }
 

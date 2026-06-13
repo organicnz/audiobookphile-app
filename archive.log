@@ -1,0 +1,11 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild archive -workspace Project.xcworkspace -scheme App -destination generic/platform=iOS -archivePath build.xcarchive CODE_SIGN_IDENTITY=- AD_HOC_CODE_SIGNING_ALLOWED=YES CODE_SIGN_STYLE=Automatic DEVELOPMENT_TEAM=DCKVD6LKYV COMPILER_INDEX_STORE_ENABLE=NO
+
+Build settings from command line:
+    AD_HOC_CODE_SIGNING_ALLOWED = YES
+    CODE_SIGN_IDENTITY = -
+    CODE_SIGN_STYLE = Automatic
+    COMPILER_INDEX_STORE_ENABLE = NO
+    DEVELOPMENT_TEAM = DCKVD6LKYV
+
+Resolve Package Graph

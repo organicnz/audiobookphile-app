@@ -65,41 +65,70 @@ struct AudiobookWidgetLiveActivity: Widget {
 // MARK: - Home Screen Widget
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), title: "Sample Book")
+        SimpleEntry(date: Date(), title: "Sample Book", author: "Author", progress: 0)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> Void) {
-        let entry = SimpleEntry(date: Date(), title: "Sample Book")
-        completion(entry)
+        completion(getEntry())
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> Void) {
         var entries: [SimpleEntry] = []
-        let entry = SimpleEntry(date: Date(), title: "Sample Book")
-        entries.append(entry)
-        let timeline = Timeline(entries: entries, policy: .atEnd)
+        entries.append(getEntry())
+        let timeline = Timeline(entries: entries, policy: .never)
         completion(timeline)
+    }
+    
+    private func getEntry() -> SimpleEntry {
+        guard let defaults = UserDefaults(suiteName: "group.organicnz.audiobookphile"),
+              let stateDict = defaults.dictionary(forKey: "audiobookWidgetState") else {
+            return SimpleEntry(date: Date(), title: "No Book Playing", author: "", progress: 0)
+        }
+        
+        let title = stateDict["bookTitle"] as? String ?? "Unknown Title"
+        let author = stateDict["author"] as? String ?? ""
+        let progress = stateDict["progress"] as? Double ?? 0
+        let duration = stateDict["duration"] as? Double ?? 1
+        
+        return SimpleEntry(date: Date(), title: title, author: author, progress: progress / max(duration, 1.0))
     }
 }
 
 struct SimpleEntry: TimelineEntry {
     let date: Date
     let title: String
+    let author: String
+    let progress: Double
 }
 
 struct AudiobookWidgetEntryView : View {
     var entry: Provider.Entry
 
     var body: some View {
-        VStack {
+        VStack(alignment: .leading, spacing: 4) {
             Text(entry.title)
                 .font(.headline)
-            Text("Currently Reading")
-                .font(.caption)
+                .lineLimit(2)
+            if !entry.author.isEmpty {
+                Text(entry.author)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.white.opacity(0.3))
+                        .frame(height: 6)
+                    Capsule().fill(Color.orange)
+                        .frame(width: geo.size.width * CGFloat(entry.progress), height: 6)
+                }
+            }.frame(height: 6)
         }
+        .padding()
         .containerBackground(for: .widget) {
-            Color.blue.gradient
+            Color.black
         }
+        .environment(\.colorScheme, .dark)
     }
 }
 

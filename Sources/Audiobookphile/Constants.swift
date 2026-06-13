@@ -10,6 +10,8 @@ import SwiftUI
 
 // MARK: - Environment Configuration
 public enum EnvironmentConfig {
+    public static let appGroupIdentifier = "group.organicnz.audiobookphile"
+
     public static var serverURL: String {
         Bundle.main.object(forInfoDictionaryKey: "ServerURL") as? String ?? ""
     }
