@@ -139,7 +139,7 @@ public struct ChapterListView: View {
 }
 
 public struct BookmarksListView: View {
-    @ObservedObject var viewModel: AudioPlayerViewModel
+    var viewModel: AudioPlayerViewModel
     @Environment(\.dismiss) var dismiss
     
     public var body: some View {

@@ -33,10 +33,12 @@ public class AppState {
     }
 
     public init() {
-        checkAuthentication()
+        Task {
+            await checkAuthentication()
+        }
     }
 
-    public func checkAuthentication() {
+    public func checkAuthentication() async {
         isLoading = true
 
         // Try to load saved credentials
@@ -60,16 +62,16 @@ public class AppState {
                 token: credentials.token
             )
             
-            Task {
-                await AudiobookphileAPI.shared.configure(
-                    serverURL: credentials.serverURL,
-                    token: credentials.token,
-                    refreshToken: credentials.refreshToken
-                )
-                
-                // Asynchronously validate token by fetching libraries after configuring
-                await fetchLibraries()
-            }
+            await AudiobookphileAPI.shared.configure(
+                serverURL: credentials.serverURL,
+                token: credentials.token,
+                refreshToken: credentials.refreshToken
+            )
+            
+            // Await library fetch so currentLibraryId is set before
+            // isLoading is cleared — otherwise BookshelfView renders
+            // with a nil libraryId and shows no books.
+            await fetchLibraries()
         } else {
             isAuthenticated = false
         }

@@ -60,9 +60,34 @@ public class AudioPlayerService {
 
     public func startPlayback(session: PlaybackSession) {
         // Close existing session first
-        if self.session != nil {
+        if let activeSession = self.session {
+            let syncId = activeSession.id
+            let syncTime = self.currentTime
+            let syncDuration = self.duration
+            
+            pause()
+            stopSyncTimer()
+            stopSleepTimer()
+
+            #if !SKIP && !os(Android)
+            if let token = timeObserverToken {
+                player?.removeTimeObserver(token)
+                timeObserverToken = nil
+            }
+            if let token = playerItemObserverToken {
+                NotificationCenter.default.removeObserver(token)
+                playerItemObserverToken = nil
+            }
+            player = nil
+            #endif
+            self.session = nil
+            
             Task {
-                await closeSession()
+                try? await AudiobookphileAPI.shared.closePlaybackSession(
+                    sessionId: syncId,
+                    currentTime: syncTime,
+                    duration: syncDuration
+                )
             }
         }
 
@@ -297,6 +322,10 @@ public class AudioPlayerService {
     public func closeSession() async {
         guard let activeSession = session else { return }
 
+        let syncId = activeSession.id
+        let syncTime = currentTime
+        let syncDuration = duration
+
         pause()
         stopSyncTimer()
         stopSleepTimer()
@@ -312,20 +341,19 @@ public class AudioPlayerService {
         }
         player = nil
         #endif
+        self.session = nil
 
         // Sync final progress
         do {
             try await AudiobookphileAPI.shared.closePlaybackSession(
-                sessionId: activeSession.id,
-                currentTime: currentTime,
-                duration: duration
+                sessionId: syncId,
+                currentTime: syncTime,
+                duration: syncDuration
             )
             print("[Player] Playback session closed successfully on server.")
         } catch {
             print("[Player] Failed to close session on server: \(error)")
         }
-
-        self.session = nil
     }
 
     // MARK: - iOS Specific Player Setup
@@ -375,23 +403,6 @@ public class AudioPlayerService {
             player?.replaceCurrentItem(with: playerItem)
         }
 
-        // Diagnostic task to check AVPlayerItem status
-        Task {
-            var statusLog = "Checking AVPlayerItem status for \(url.absoluteString)...\n"
-            for i in 0..<10 {
-                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
-                let status = playerItem.status
-                let err = playerItem.error
-                let logLine = "[\(i*500)ms] Status: \(status.rawValue), Error: \(String(describing: err))\n"
-                statusLog += logLine
-                print(logLine)
-                if status == .failed || status == .readyToPlay {
-                    break
-                }
-            }
-            try? statusLog.write(toFile: NSTemporaryDirectory() + "audiobookphile_avplayer_load_error.txt", atomically: true, encoding: .utf8)
-        }
-
         playerItemObserverToken = NotificationCenter.default.addObserver(
             forName: .AVPlayerItemDidPlayToEndTime,
             object: playerItem,
@@ -422,19 +433,6 @@ public class AudioPlayerService {
                 self.updateNowPlaying(elapsedTime: absoluteTime)
 
                 var trackDuration = track.duration
-                // Fallback to AVPlayerItem duration if API didn't provide one
-                if let item = self.player?.currentItem {
-                    // Log status to a temp file
-                    let statusStr: String
-                    switch item.status {
-                    case .unknown: statusStr = "unknown"
-                    case .readyToPlay: statusStr = "readyToPlay"
-                    case .failed: statusStr = "failed (error: \(String(describing: item.error)))"
-                    @unknown default: statusStr = "default"
-                    }
-                    let logMsg = "Player status: \(statusStr), duration: \(item.duration.seconds), isPlaying: \(self.player?.timeControlStatus == .playing)\n"
-                    try? logMsg.write(toFile: NSTemporaryDirectory() + "audiobookphile_avplayer_status.txt", atomically: true, encoding: .utf8)
-                }
 
                 self.lastSyncedTime = self.currentTime
 
@@ -504,7 +502,12 @@ public class AudioPlayerService {
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
     }
 
+    private var remoteCommandTargetsSetup = false
+
     private func setupRemoteCommandCenter() {
+        if remoteCommandTargetsSetup { return }
+        remoteCommandTargetsSetup = true
+
         let commandCenter = MPRemoteCommandCenter.shared()
 
         commandCenter.playCommand.isEnabled = true
@@ -654,28 +657,13 @@ public class AudioPlayerService {
             return localURL
         }
 
-        // External pre-signed URLs (e.g. S3) — use as-is, do NOT append token
-        // Adding query params to a pre-signed URL invalidates its signature
+        // Track URLs are pre-signed HTTP/HTTPS urls from the backend
         if trackPath.hasPrefix("http") {
             return URL(string: trackPath)
         }
-
-        // Relative path to our own server — build full URL with auth token
-        let baseURL = AppState.shared.serverURL
-        let token = AppState.shared.token
-
-        let fullPath = baseURL + (trackPath.hasPrefix("/") ? "" : "/") + trackPath
-
-        guard var components = URLComponents(string: fullPath) else {
-            return URL(string: fullPath)
-        }
-
-        var queryItems = components.queryItems ?? []
-        if !queryItems.contains(where: { $0.name == "token" }) {
-            queryItems.append(URLQueryItem(name: "token", value: token))
-        }
-        components.queryItems = queryItems
-        return components.url
+        
+        print("[Player] Error: trackPath is not a valid HTTP URL or local path: \\(trackPath)")
+        return nil
     }
 
     

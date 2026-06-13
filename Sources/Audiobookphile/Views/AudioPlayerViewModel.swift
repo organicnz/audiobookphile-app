@@ -5,7 +5,7 @@ import Observation
 
 @Observable
 @MainActor
-public class AudioPlayerViewModel: ObservableObject {
+public class AudioPlayerViewModel {
     public var useTotalTrack = true
 
     public var jumpForwardTime: Int {

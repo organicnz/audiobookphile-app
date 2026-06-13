@@ -14,9 +14,9 @@ public struct BookCard: View {
     let book: Book
     public var aspectRatio: CGFloat = 1.0
     public let onTap: () -> Void
-    
     @State var coverColor: Color = .gray
     @StateObject var proMotion = ProMotionManager.shared
+    @ObservedObject var downloadService = DownloadService.shared
     
     public init(book: Book, aspectRatio: CGFloat = 1.0, onTap: @escaping () -> Void) {
         self.book = book
@@ -152,14 +152,15 @@ public struct BookCard: View {
     // MARK: - Helpers
     
     private var coverURL: URL? {
-        if let path = book.coverPath, path.hasPrefix("http") {
-            return URL(string: path)
+        if let path = book.coverPath {
+            if path == "missing" { return nil }
+            if path.hasPrefix("http") { return URL(string: path) }
         }
         return appState.getCoverURL(itemId: book.id)
     }
     
     private var isDownloaded: Bool {
-        false
+        downloadService.downloads.contains { $0.libraryItemId == book.id && $0.status == .completed }
     }
 }
 

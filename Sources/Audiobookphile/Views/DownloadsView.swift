@@ -29,8 +29,9 @@ public struct Download: Identifiable, Codable {
     public var totalSize: Int64
     public var status: DownloadStatus
     public var audioTracks: [String]
+    public var duration: Double?
 
-    public init(libraryItemId: String, title: String, author: String, progress: Double, totalSize: Int64, status: DownloadStatus, audioTracks: [String] = []) {
+    public init(libraryItemId: String, title: String, author: String, progress: Double, totalSize: Int64, status: DownloadStatus, audioTracks: [String] = [], duration: Double? = nil) {
         self.libraryItemId = libraryItemId
         self.title = title
         self.author = author
@@ -38,6 +39,7 @@ public struct Download: Identifiable, Codable {
         self.totalSize = totalSize
         self.status = status
         self.audioTracks = audioTracks
+        self.duration = duration
     }
 }
 
@@ -57,6 +59,9 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
     private var trackSizes: [String: [Int64]] = [:]
     
     private let fm = FileManager.default
+    private lazy var urlSession: URLSession = {
+        return URLSession(configuration: .default, delegate: self, delegateQueue: nil)
+    }()
     
     private var downloadsDirectory: URL {
         let paths = fm.urls(for: .documentDirectory, in: .userDomainMask)
@@ -109,7 +114,8 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
                 progress: 0.0,
                 totalSize: totalSize,
                 status: .pending,
-                audioTracks: trackPaths
+                audioTracks: trackPaths,
+                duration: session.duration
             )
             
             if let index = downloads.firstIndex(where: { $0.libraryItemId == book.id }) {
@@ -172,6 +178,8 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
     }
 
     public func resumeDownload(bookId: String) {
+        if activeBookId == bookId { return }
+
         if let index = downloads.firstIndex(where: { $0.libraryItemId == bookId }) {
             downloads[index].status = .pending
         }
@@ -249,15 +257,13 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
         var request = URLRequest(url: url)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         
-        let session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
-        
         let fileURL = downloadsDirectory.appendingPathComponent("\(bookId)_resume.dat")
         if let resumeData = try? Data(contentsOf: fileURL) {
             try? fm.removeItem(at: fileURL)
-            let task = session.downloadTask(withResumeData: resumeData)
+            let task = urlSession.downloadTask(withResumeData: resumeData)
             self.activeDownloadTask = task
         } else {
-            let task = session.downloadTask(with: request)
+            let task = urlSession.downloadTask(with: request)
             self.activeDownloadTask = task
         }
         
@@ -562,8 +568,6 @@ public struct DownloadsView: View {
 public struct ActiveDownloadRow: View {
     public let download: Download
 
-    @State var progress = 0.45
-
     public init(download: Download) {
         self.download = download
     }
@@ -715,12 +719,16 @@ public struct DownloadedBookRow: View {
                     .foregroundStyle(.white.opacity(0.7))
 
                 HStack(spacing: 6) {
-                    Image(systemName: "clock")
-                        .font(.caption2)
-                    Text("14h 32m")
-                        .font(.caption)
+                    if let duration = download.duration {
+                        Image(systemName: "clock")
+                            .font(.caption2)
+                        let hours = Int(duration) / 3600
+                        let minutes = (Int(duration) % 3600) / 60
+                        Text("\(hours)h \(minutes)m")
+                            .font(.caption)
 
-                    Text("•")
+                        Text("•")
+                    }
 
                     Text(ByteCountFormatter.string(fromByteCount: download.totalSize, countStyle: .file))
                         .font(.caption)

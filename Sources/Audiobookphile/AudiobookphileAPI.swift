@@ -31,6 +31,16 @@ public actor AudiobookphileAPI {
     private let session: URLSession
     private var refreshTask: Task<Void, Error>?
 
+    private var defaultDecoder: JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let timestamp = try container.decode(Double.self)
+            return Date(timeIntervalSince1970: timestamp / 1000.0)
+        }
+        return decoder
+    }
+
     private init() {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 10
@@ -88,12 +98,7 @@ public actor AudiobookphileAPI {
             throw APIError.serverError(statusCode: httpResponse.statusCode, message: "Unknown server error", code: nil)
         }
 
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .custom { decoder in
-            let container = try decoder.singleValueContainer()
-            let timestamp = try container.decode(Double.self)
-            return Date(timeIntervalSince1970: timestamp / 1000.0)
-        }
+        let decoder = defaultDecoder
         let loginResponse = try decoder.decode(LoginResponse.self, from: data)
 
         self.accessToken = loginResponse.user.token
@@ -177,12 +182,7 @@ public actor AudiobookphileAPI {
             throw APIError.serverError(statusCode: httpResponse.statusCode, message: "Token refresh failed", code: nil)
         }
 
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .custom { decoder in
-            let container = try decoder.singleValueContainer()
-            let timestamp = try container.decode(Double.self)
-            return Date(timeIntervalSince1970: timestamp / 1000.0)
-        }
+        let decoder = defaultDecoder
         let refreshResponse = try decoder.decode(LoginResponse.self, from: data)
 
         self.accessToken = refreshResponse.user.token
@@ -234,12 +234,7 @@ public actor AudiobookphileAPI {
                 throw APIError.serverError(statusCode: httpResponse.statusCode, message: "Unknown server error", code: nil)
             }
 
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .custom { decoder in
-                let container = try decoder.singleValueContainer()
-                let timestamp = try container.decode(Double.self)
-                return Date(timeIntervalSince1970: timestamp / 1000.0)
-            }
+            let decoder = defaultDecoder
 
             do {
                 // Dump raw JSON for PlaybackSession debugging
@@ -256,7 +251,7 @@ public actor AudiobookphileAPI {
                     let errorPath = NSTemporaryDirectory() + "playback_session_decode_error.txt"
                     try? errorDetails.write(toFile: errorPath, atomically: true, encoding: .utf8)
                 }
-                try? errorDetails.write(toFile: "/Users/organic/dev/work/audiobookphile/audiobookphile-app/decoding_error.txt", atomically: true, encoding: .utf8)
+                try? errorDetails.write(toFile: NSTemporaryDirectory() + "audiobookphile_decoding_error.txt", atomically: true, encoding: .utf8)
                 throw decodingError
             } catch {
                 throw error
