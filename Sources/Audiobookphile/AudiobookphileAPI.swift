@@ -232,11 +232,16 @@ public actor AudiobookphileAPI {
                 throw APIError.invalidResponse
             }
 
-            // Handle 401 - try token refresh
-            if httpResponse.statusCode == 401 {
+            // Handle 401 or 403 (Supabase Edge Functions return 403 for expired JWTs) - try token refresh
+            if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
                 if isRetry {
-                    logout()
-                    throw APIError.sessionExpired
+                    if httpResponse.statusCode == 401 {
+                        logout()
+                        throw APIError.sessionExpired
+                    } else {
+                        // If it's still 403 after a refresh, it's a genuine permission error, not an expired token.
+                        throw APIError.serverError(statusCode: 403, message: "Forbidden", code: nil)
+                    }
                 }
                 return try await handleUnauthorized(originalRequest: request, responseType: responseType)
             }
