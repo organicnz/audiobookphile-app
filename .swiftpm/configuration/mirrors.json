@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "mirrors": {
+    "https://source.skip.tools/skip.git": {
+      "mirror": "https://github.com/skiptools/skip.git"
+    },
+    "https://source.skip.tools/skip-fuse-ui.git": {
+      "mirror": "https://github.com/skiptools/skip-fuse-ui.git"
+    },
+    "https://source.skip.tools/skip-foundation.git": {
+      "mirror": "https://github.com/skiptools/skip-foundation.git"
+    },
+    "https://source.skip.tools/swift-jni.git": {
+      "mirror": "https://github.com/skiptools/swift-jni.git"
+    },
+    "https://source.skip.tools/skip-unit.git": {
+      "mirror": "https://github.com/skiptools/skip-unit.git"
+    },
+    "https://source.skip.tools/skip-android-bridge.git": {
+      "mirror": "https://github.com/skiptools/skip-android-bridge.git"
+    },
+    "https://source.skip.tools/skip-bridge.git": {
+      "mirror": "https://github.com/skiptools/skip-bridge.git"
+    },
+    "https://source.skip.tools/skip-ui.git": {
+      "mirror": "https://github.com/skiptools/skip-ui.git"
+    },
+    "https://source.skip.tools/skip-lib.git": {
+      "mirror": "https://github.com/skiptools/skip-lib.git"
+    },
+    "https://source.skip.tools/skip-fuse.git": {
+      "mirror": "https://github.com/skiptools/skip-fuse.git"
+    },
+    "https://source.skip.tools/skip-model.git": {
+      "mirror": "https://github.com/skiptools/skip-model.git"
+    },
+    "https://source.skip.tools/swift-android-native.git": {
+      "mirror": "https://github.com/skiptools/swift-android-native.git"
+    }
+  }
+}
