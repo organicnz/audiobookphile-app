@@ -28,6 +28,20 @@ public actor AudiobookphileAPI {
     public var refreshToken: String = ""
     public var serverConnectionId: String = ""
 
+    private func endpointUrlString(for path: String) -> String {
+        let isSupabase = baseURL.contains(".supabase.co") || baseURL.contains("vercel.app")
+        let base = (isSupabase && !baseURL.contains("/functions/v1")) ? "\(baseURL)/functions/v1" : baseURL
+        
+        var adjustedPath = path
+        if isSupabase && path.starts(with: "/login") {
+            adjustedPath = "/api\(path)"
+        } else if isSupabase && path.starts(with: "/auth/refresh") {
+            adjustedPath = "/api\(path)"
+        }
+        
+        return "\(base)\(adjustedPath)"
+    }
+
     private let session: URLSession
     private var refreshTask: Task<Void, Error>?
 
@@ -64,7 +78,7 @@ public actor AudiobookphileAPI {
     public func login(serverURL: String, username: String, password: String) async throws -> User {
         self.baseURL = serverURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
 
-        guard let url = URL(string: "\(baseURL)/login") else {
+        guard let url = URL(string: endpointUrlString(for: "/login")) else {
             throw APIError.invalidResponse
         }
         var request = URLRequest(url: url)
@@ -154,7 +168,7 @@ public actor AudiobookphileAPI {
 
         print("[API] Refreshing access token...")
 
-        guard let url = URL(string: "\(self.baseURL)/auth/refresh") else {
+        guard let url = URL(string: endpointUrlString(for: "/auth/refresh")) else {
             throw APIError.invalidResponse
         }
         var request = URLRequest(url: url)
@@ -284,7 +298,7 @@ public actor AudiobookphileAPI {
 
     /// Get all libraries
     public func getLibraries() async throws -> [Library] {
-        guard let url = URL(string: "\(baseURL)/api/libraries") else {
+        guard let url = URL(string: endpointUrlString(for: "/api/libraries")) else {
             throw APIError.invalidResponse
         }
         let request = URLRequest(url: url)
@@ -295,7 +309,7 @@ public actor AudiobookphileAPI {
 
     /// Get library items (books)
     public func getLibraryItems(libraryId: String, limit: Int = 50, page: Int = 0, sort: String = "addedAt", desc: Bool = true) async throws -> LibraryItemsResponse {
-        guard var components = URLComponents(string: "\(baseURL)/api/libraries/\(libraryId)/items") else {
+        guard var components = URLComponents(string: endpointUrlString(for: "/api/libraries/\(libraryId)/items")) else {
             throw APIError.invalidResponse
         }
         components.queryItems = [
@@ -315,7 +329,7 @@ public actor AudiobookphileAPI {
 
     /// Search library
     public func searchLibrary(libraryId: String, query: String, limit: Int = 12) async throws -> SearchResponse {
-        guard var components = URLComponents(string: "\(baseURL)/api/libraries/\(libraryId)/search") else {
+        guard var components = URLComponents(string: endpointUrlString(for: "/api/libraries/\(libraryId)/search")) else {
             throw APIError.invalidResponse
         }
         components.queryItems = [
@@ -334,7 +348,7 @@ public actor AudiobookphileAPI {
 
     /// Get single library item
     public func getLibraryItem(id: String) async throws -> Book {
-        guard let url = URL(string: "\(baseURL)/api/items/\(id)?expanded=1&include=progress") else {
+        guard let url = URL(string: endpointUrlString(for: "/api/items/\(id)?expanded=1&include=progress")) else {
             throw APIError.invalidResponse
         }
         let request = URLRequest(url: url)
@@ -345,12 +359,12 @@ public actor AudiobookphileAPI {
 
     /// Start a playback session
     public func startPlaybackSession(libraryItemId: String, episodeId: String? = nil) async throws -> PlaybackSession {
-        var urlString = "\(baseURL)/api/items/\(libraryItemId)/play"
+        var path = "/api/items/\(libraryItemId)/play"
         if let episodeId = episodeId {
-            urlString = "\(baseURL)/api/items/\(libraryItemId)/play/\(episodeId)"
+            path = "/api/items/\(libraryItemId)/play/\(episodeId)"
         }
 
-        guard let url = URL(string: urlString) else {
+        guard let url = URL(string: endpointUrlString(for: path)) else {
             throw APIError.invalidResponse
         }
 
@@ -374,7 +388,7 @@ public actor AudiobookphileAPI {
 
     /// Sync playback progress
     public func syncProgress(sessionId: String, currentTime: TimeInterval, duration: TimeInterval, timeListened: TimeInterval = 0) async throws {
-        guard let url = URL(string: "\(baseURL)/api/session/\(sessionId)/sync") else {
+        guard let url = URL(string: endpointUrlString(for: "/api/session/\(sessionId)/sync")) else {
             throw APIError.invalidResponse
         }
         var request = URLRequest(url: url)
@@ -406,7 +420,7 @@ public actor AudiobookphileAPI {
 
     /// Close playback session
     public func closePlaybackSession(sessionId: String, currentTime: TimeInterval, duration: TimeInterval) async throws {
-        guard let url = URL(string: "\(baseURL)/api/session/\(sessionId)/close") else {
+        guard let url = URL(string: endpointUrlString(for: "/api/session/\(sessionId)/close")) else {
             throw APIError.invalidResponse
         }
         var request = URLRequest(url: url)
@@ -432,12 +446,12 @@ public actor AudiobookphileAPI {
 
     /// Get user media progress
     public func getUserProgress(libraryItemId: String, episodeId: String? = nil) async throws -> MediaProgress? {
-        var urlString = "\(baseURL)/api/me/progress/\(libraryItemId)"
+        var path = "/api/me/progress/\(libraryItemId)"
         if let episodeId = episodeId {
-            urlString += "/\(episodeId)"
+            path += "/\(episodeId)"
         }
 
-        guard let url = URL(string: urlString) else {
+        guard let url = URL(string: endpointUrlString(for: path)) else {
             throw APIError.invalidResponse
         }
         let request = URLRequest(url: url)
@@ -453,7 +467,7 @@ public actor AudiobookphileAPI {
 
     /// Get cover image URL
     public func getCoverURL(itemId: String, width: Int = 400) -> URL? {
-        guard var components = URLComponents(string: "\(baseURL)/api/items/\(itemId)/cover") else {
+        guard var components = URLComponents(string: endpointUrlString(for: "/api/items/\(itemId)/cover")) else {
             return nil
         }
         var queryItems = [
@@ -489,7 +503,7 @@ public actor AudiobookphileAPI {
     }
     
     public func getPreferences() async throws -> AppSettings {
-        guard let url = URL(string: "\(baseURL)/api/users/me/preferences") else {
+        guard let url = URL(string: endpointUrlString(for: "/api/users/me/preferences")) else {
             throw APIError.invalidResponse
         }
         
@@ -500,7 +514,7 @@ public actor AudiobookphileAPI {
     }
     
     public func updatePreferences(_ settings: AppSettings) async throws -> AppSettings {
-        guard let url = URL(string: "\(baseURL)/api/users/me/preferences") else {
+        guard let url = URL(string: endpointUrlString(for: "/api/users/me/preferences")) else {
             throw APIError.invalidResponse
         }
         
