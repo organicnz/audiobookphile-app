@@ -29,14 +29,22 @@ public actor AudiobookphileAPI {
     public var serverConnectionId: String = ""
 
     private func endpointUrlString(for path: String) -> String {
-        let isSupabase = baseURL.contains(".supabase.co") || baseURL.contains("vercel.app")
-        let base = (isSupabase && !baseURL.contains("/functions/v1")) ? "\(baseURL)/functions/v1" : baseURL
+        let isDirectSupabase = baseURL.contains(".supabase.co") || baseURL.contains("54321")
+        let isVercelProxy = baseURL.contains("vercel.app") || baseURL.hasSuffix("/api")
+        let isSupabaseBackend = isDirectSupabase || isVercelProxy
+        
+        var base = baseURL
+        if isDirectSupabase && !baseURL.contains("/functions/v1") {
+            base = "\(baseURL)/functions/v1"
+        }
         
         var adjustedPath = path
-        if isSupabase && path.starts(with: "/login") {
+        if isSupabaseBackend && (path.starts(with: "/login") || path.starts(with: "/auth/refresh")) {
             adjustedPath = "/api\(path)"
-        } else if isSupabase && path.starts(with: "/auth/refresh") {
-            adjustedPath = "/api\(path)"
+        }
+        
+        if base.hasSuffix("/api") && adjustedPath.starts(with: "/api") {
+            adjustedPath = String(adjustedPath.dropFirst(4))
         }
         
         return "\(base)\(adjustedPath)"
