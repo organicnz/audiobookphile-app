@@ -74,3 +74,9 @@ Carthage/Build/
 **/fastlane/README.md
 **/fastlane/Preview.html
 **/fastlane/test_output
+
+# Environment Variables
+.env
+.env.*
+!.env.example
+
