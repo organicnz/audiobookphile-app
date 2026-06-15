@@ -44,14 +44,31 @@ class CachedImageLoader: ObservableObject {
         
         isLoading = true
         
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            if let uiImage = UIImage(data: data) {
-                ImageMemoryCache.shared.set(image: uiImage, for: url)
-                self.image = Image(uiImage: uiImage)
+        let maxRetries = 3
+        var currentAttempt = 0
+        var success = false
+        
+        while currentAttempt <= maxRetries && !success && !Task.isCancelled {
+            do {
+                let (data, response) = try await URLSession.shared.data(from: url)
+                
+                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200, let uiImage = UIImage(data: data) {
+                    ImageMemoryCache.shared.set(image: uiImage, for: url)
+                    self.image = Image(uiImage: uiImage)
+                    success = true
+                } else {
+                    // Not a 200 or not an image. We should retry to allow backend scraping to finish.
+                    throw URLError(.badServerResponse)
+                }
+            } catch {
+                currentAttempt += 1
+                if currentAttempt <= maxRetries {
+                    let backoff = pow(2.0, Double(currentAttempt)) * 0.5 // 1s, 2s, 4s
+                    try? await Task.sleep(nanoseconds: UInt64(backoff * 1_000_000_000))
+                } else {
+                    print("Failed to load image after \(maxRetries) retries: \(error)")
+                }
             }
-        } catch {
-            print("Failed to load image: \(error)")
         }
         
         isLoading = false
