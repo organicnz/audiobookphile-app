@@ -19,6 +19,7 @@ public struct SearchView: View {
     @State var isSearching = false
     @State var searchTask: Task<Void, Never>? = nil
     @State var selectedBook: Book? = nil
+    @State var useSemanticSearch = false
 
     // Recent searches (mock for now, would use UserDefaults)
     @State var recentSearches = ["Project Hail Mary", "Sandman", "Dune"]
@@ -34,6 +35,24 @@ public struct SearchView: View {
                 // Content
                 ScrollView {
                     VStack(spacing: 24) {
+                        // Smart AI Search Toggle
+                        Toggle(isOn: $useSemanticSearch) {
+                            HStack {
+                                Image(systemName: "sparkles")
+                                    .foregroundStyle(Color.appPrimary)
+                                Text("Smart AI Search")
+                                    .font(.subheadline.weight(.medium))
+                            }
+                        }
+                        .toggleStyle(SwitchToggleStyle(tint: .appPrimary))
+                        .padding(.horizontal, 16)
+                        .padding(.top, 8)
+                        .onChange(of: useSemanticSearch) { _, _ in
+                            if !query.isEmpty {
+                                performSearch(query)
+                            }
+                        }
+
                         // Search results
                         if !query.isEmpty {
                             if isSearching {
@@ -212,7 +231,11 @@ public struct SearchView: View {
 
             do {
                 let libraryId = await MainActor.run { appState.currentLibraryId ?? "" }
-                let response = try await AudiobookphileAPI.shared.searchLibrary(libraryId: libraryId, query: text)
+                let isSemantic = await MainActor.run { useSemanticSearch }
+                
+                let response = try await isSemantic 
+                    ? AudiobookphileAPI.shared.searchSemantic(query: text) 
+                    : AudiobookphileAPI.shared.searchLibrary(libraryId: libraryId, query: text)
                 
                 await MainActor.run {
                     self.results = response.results.map { $0.libraryItem }

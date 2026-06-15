@@ -357,6 +357,38 @@ public actor AudiobookphileAPI {
         return try await executeRequest(request, responseType: SearchResponse.self)
     }
 
+    private struct SemanticEdgeResponse: Codable, Sendable {
+        let results: [Book]?
+        let error: String?
+    }
+
+    /// Semantic search using Edge Function
+    public func searchSemantic(query: String) async throws -> SearchResponse {
+        guard let url = URL(string: endpointUrlString(for: "/search-semantic")) else {
+            throw APIError.invalidResponse
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body: [String: Any] = ["query": query]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let response = try await executeRequest(request, responseType: SemanticEdgeResponse.self)
+        
+        if let error = response.error {
+            throw APIError.serverError(statusCode: 500, message: error, code: nil)
+        }
+
+        let items = response.results ?? []
+        let searchResults = items.map { book in
+            SearchResponse.SearchResult(libraryItem: book, matchKey: "title", matchText: book.media?.metadata.title)
+        }
+        
+        return SearchResponse(results: searchResults)
+    }
+
     // MARK: - Library Items
 
     /// Get single library item
