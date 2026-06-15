@@ -19,6 +19,7 @@ public struct AudioPlayerView: View {
     @Environment(\.dismiss) var dismiss
 
     @State var showChapters = false
+    @State var showSleepTimer = false
     @State var showMoreMenu = false
     @State var isDraggingSeeker = false
     @State var draggedTime: TimeInterval = 0
@@ -67,12 +68,31 @@ public struct AudioPlayerView: View {
             BookmarksListView(viewModel: viewModel)
         }
         .sheet(isPresented: $showChapters) {
-            ChapterListView(
+            ChapterSelectionView(
                 chapters: viewModel.chapters,
                 currentChapter: viewModel.currentChapter,
                 onSelect: { chapter in
                     viewModel.seek(to: chapter.start)
                     showChapters = false
+                }
+            )
+        }
+        .sheet(isPresented: $showSleepTimer) {
+            SleepTimerView(
+                onSetTimer: { duration in
+                    if let duration = duration {
+                        AudioPlayerService.shared.startSleepTimer(duration: duration)
+                    } else {
+                        AudioPlayerService.shared.stopSleepTimer()
+                    }
+                },
+                onSetEndOfChapter: {
+                    if let chapter = viewModel.currentChapter {
+                        let remaining = chapter.end - viewModel.currentTime
+                        if remaining > 0 {
+                            AudioPlayerService.shared.startSleepTimer(duration: remaining)
+                        }
+                    }
                 }
             )
         }
@@ -327,24 +347,8 @@ public struct AudioPlayerView: View {
 
             Spacer()
 
-            Menu {
-                if viewModel.sleepTimerActive {
-                    Button(role: .destructive) {
-                        AudioPlayerService.shared.stopSleepTimer()
-                    } label: {
-                        Label("Turn Off Timer", systemImage: "timer.circle.fill")
-                    }
-                    
-                    Divider()
-                }
-                
-                ForEach([5, 15, 30, 45, 60], id: \.self) { mins in
-                    Button {
-                        AudioPlayerService.shared.startSleepTimer(duration: TimeInterval(mins * 60))
-                    } label: {
-                        Text("\(mins) Minutes")
-                    }
-                }
+            Button {
+                showSleepTimer = true
             } label: {
                 HStack(spacing: 4) {
                     Image(systemName: "moon")

@@ -11,11 +11,13 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://source.skip.tools/skip.git", from: "1.8.14"),
-        .package(url: "https://source.skip.tools/skip-fuse-ui.git", from: "1.0.0")
+        .package(url: "https://source.skip.tools/skip-fuse-ui.git", from: "1.0.0"),
+        .package(url: "https://github.com/Flight-School/AnyCodable", from: "0.6.7")
     ],
     targets: [
         .target(name: "Audiobookphile", dependencies: [
-            .product(name: "SkipFuseUI", package: "skip-fuse-ui")
+            .product(name: "SkipFuseUI", package: "skip-fuse-ui"),
+            "AnyCodable"
         ], resources: [.process("Resources")]),
     ]
 )

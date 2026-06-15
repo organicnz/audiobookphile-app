@@ -65,7 +65,9 @@ public struct StatsView: View {
             }
         }
         .navigationTitle("Stats")
+        #if os(iOS) || SKIP
         .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
     
     private func statCard(title: String, value: String, icon: String, color: Color) -> some View {

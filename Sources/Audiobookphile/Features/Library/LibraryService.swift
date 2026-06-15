@@ -56,16 +56,16 @@ public class MockLibraryService: LibraryServiceProtocol {
         // Simulate network delay
         try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
         
-        return (0..<20).map { index in
-            let titleIndex = index % bookTitles.count
+        return (0..<20).map { (idx: Int) -> Book in
+            let titleIndex = idx % bookTitles.count
             let coverURL = mockCovers[titleIndex]
             
             return Book(
-                id: "book-\(index)",
+                id: "book-\(idx)",
                 libraryId: libraryId ?? "lib1",
                 folderId: nil,
-                path: "/books/book\(index)",
-                relPath: "book\(index)",
+                path: "/books/book\(idx)",
+                relPath: "book\(idx)",
                 isMissing: nil,
                 libraryFiles: nil,
                 media: BookMedia(
@@ -77,13 +77,13 @@ public class MockLibraryService: LibraryServiceProtocol {
                         title: bookTitles[titleIndex],
                         subtitle: nil,
                         authorName: authors[titleIndex],
-                        narratorName: "Narrator \(index)",
+                        narratorName: "Narrator \(idx)",
                         seriesName: nil,
                         genres: ["Fiction", "Audiobookphile Mock"],
                         publishedYear: "2024",
                         publishedDate: nil,
                         publisher: nil,
-                        description: "This is a beautiful mock book description for \(bookTitles[titleIndex]) by \(authors[titleIndex]). Audiobookphile app brings your personal audiobooks to life.",
+                        description: "This is a mock description for \(bookTitles[titleIndex]). It provides a sample of what the actual audiobook description would look like in the app.",
                         isbn: nil,
                         asin: nil,
                         language: "en",
@@ -94,9 +94,9 @@ public class MockLibraryService: LibraryServiceProtocol {
                     audioFiles: [],
                     ebookFile: nil
                 ),
-                userMediaProgress: index % 3 == 0 ? MediaProgress(
-                    id: "progress-\(index)",
-                    libraryItemId: "book-\(index)",
+                userMediaProgress: idx % 3 == 0 ? MediaProgress(
+                    id: "progress-\(idx)",
+                    libraryItemId: "book-\(idx)",
                     episodeId: nil,
                     duration: 28800,
                     progress: Double.random(in: 0.1...0.9),

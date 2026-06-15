@@ -17,6 +17,7 @@ public struct BookshelfView: View {
     @State var searchText = ""
     @State var scrollOffset: CGFloat = 0
     @State var selectedBookForDetails: Book?
+    @State var showStatsSheet = false
     
     public init() {}
     
@@ -85,6 +86,9 @@ public struct BookshelfView: View {
                     await viewModel.loadLibrary(libraryId: appState.currentLibraryId, isAuthenticated: isAuth)
                 }
             }
+        }
+        .sheet(isPresented: $showStatsSheet) {
+            StatsDashboardView()
         }
     }
     
@@ -340,6 +344,20 @@ public struct BookshelfView: View {
         
         ToolbarItem(placement: trailingPlacement) {
             Menu {
+                Menu("Sort & Filter") {
+                    Button(action: { /* sort by title */ }) {
+                        Label("By Title", systemImage: "textformat.abc")
+                    }
+                    Button(action: { /* sort by recent */ }) {
+                        Label("By Recent", systemImage: "clock")
+                    }
+                    Button(action: { /* sort by author */ }) {
+                        Label("By Author", systemImage: "person.fill")
+                    }
+                }
+                
+                Divider()
+                
                 Button(action: viewModel.showSettings) {
                     Label("Settings", systemImage: "gear")
                 }
@@ -348,7 +366,7 @@ public struct BookshelfView: View {
                     Label("Downloads", systemImage: "arrow.down.circle")
                 }
                 
-                Button(action: viewModel.showStats) {
+                Button(action: { showStatsSheet = true }) {
                     Label("Stats", systemImage: "chart.bar")
                 }
             } label: {

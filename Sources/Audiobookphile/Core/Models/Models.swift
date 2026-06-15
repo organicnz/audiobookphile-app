@@ -383,33 +383,21 @@ public struct ServerConnection: Codable, Sendable {
 
 // MARK: - App Settings
 public struct AppSettings: Codable, Sendable {
-    public var jumpForwardTime: Int
-    public var jumpBackwardsTime: Int
-    public var lockScreenControls: Bool
-    public var autoDownloadPodcasts: Bool
-    public var sleepTimerAutoStart: Bool
-    public var sleepTimerDefaultTime: Int // 15 minutes
-    public var theme: AppTheme
-    public var bookCoverAspectRatio: BookCoverAspectRatio
+    public var jumpForwardTime: Int = 30
+    public var jumpBackwardsTime: Int = 10
+    public var lockScreenControls: Bool = true
+    public var autoDownloadPodcasts: Bool = false
+    public var sleepTimerAutoStart: Bool = false
+    public var sleepTimerDefaultTime: Int = 900 // 15 minutes
+    public var theme: AppTheme = .system
+    public var bookCoverAspectRatio: BookCoverAspectRatio = .square
     
     // UI Settings
-    public var autoResume: Bool
-    public var hapticsEnabled: Bool
-    public var lockOrientation: Bool
+    public var autoResume: Bool = true
+    public var hapticsEnabled: Bool = true
+    public var lockOrientation: Bool = false
     
-    public init() {
-        self.jumpForwardTime = 30
-        self.jumpBackwardsTime = 10
-        self.lockScreenControls = true
-        self.autoDownloadPodcasts = false
-        self.sleepTimerAutoStart = false
-        self.sleepTimerDefaultTime = 900
-        self.theme = .system
-        self.bookCoverAspectRatio = .square
-        self.autoResume = true
-        self.hapticsEnabled = true
-        self.lockOrientation = false
-    }
+    public init() {}
     
     public enum CodingKeys: String, CodingKey {
         case jumpForwardTime
@@ -423,36 +411,6 @@ public struct AppSettings: Codable, Sendable {
         case autoResume
         case hapticsEnabled
         case lockOrientation
-    }
-    
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.jumpForwardTime = try container.decodeIfPresent(Int.self, forKey: .jumpForwardTime) ?? 30
-        self.jumpBackwardsTime = try container.decodeIfPresent(Int.self, forKey: .jumpBackwardsTime) ?? 10
-        self.lockScreenControls = try container.decodeIfPresent(Bool.self, forKey: .lockScreenControls) ?? true
-        self.autoDownloadPodcasts = try container.decodeIfPresent(Bool.self, forKey: .autoDownloadPodcasts) ?? false
-        self.sleepTimerAutoStart = try container.decodeIfPresent(Bool.self, forKey: .sleepTimerAutoStart) ?? false
-        self.sleepTimerDefaultTime = try container.decodeIfPresent(Int.self, forKey: .sleepTimerDefaultTime) ?? 900
-        self.theme = try container.decodeIfPresent(AppTheme.self, forKey: .theme) ?? .system
-        self.bookCoverAspectRatio = try container.decodeIfPresent(BookCoverAspectRatio.self, forKey: .bookCoverAspectRatio) ?? .square
-        self.autoResume = try container.decodeIfPresent(Bool.self, forKey: .autoResume) ?? true
-        self.hapticsEnabled = try container.decodeIfPresent(Bool.self, forKey: .hapticsEnabled) ?? true
-        self.lockOrientation = try container.decodeIfPresent(Bool.self, forKey: .lockOrientation) ?? false
-    }
-    
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(jumpForwardTime, forKey: .jumpForwardTime)
-        try container.encode(jumpBackwardsTime, forKey: .jumpBackwardsTime)
-        try container.encode(lockScreenControls, forKey: .lockScreenControls)
-        try container.encode(autoDownloadPodcasts, forKey: .autoDownloadPodcasts)
-        try container.encode(sleepTimerAutoStart, forKey: .sleepTimerAutoStart)
-        try container.encode(sleepTimerDefaultTime, forKey: .sleepTimerDefaultTime)
-        try container.encode(theme, forKey: .theme)
-        try container.encode(bookCoverAspectRatio, forKey: .bookCoverAspectRatio)
-        try container.encode(autoResume, forKey: .autoResume)
-        try container.encode(hapticsEnabled, forKey: .hapticsEnabled)
-        try container.encode(lockOrientation, forKey: .lockOrientation)
     }
 }
 

@@ -94,6 +94,8 @@ public struct AccountView: View {
             }
         }
         .navigationTitle("Account")
+        #if os(iOS) || SKIP
         .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 }
