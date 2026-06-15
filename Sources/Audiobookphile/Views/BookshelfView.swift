@@ -392,7 +392,7 @@ public struct ContinueListeningCard: View {
                             fallbackCover
                         }
                         .blur(radius: 15)
-                        .opacity(0.7)
+                        .overlay(Color.black.opacity(0.4))
                         .frame(width: 120, height: 120)
                         .clipped()
                         

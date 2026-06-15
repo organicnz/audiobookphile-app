@@ -67,7 +67,7 @@ public struct BookCard: View {
                 placeholderCover
             }
             .blur(radius: 15)
-            .opacity(0.7)
+            .overlay(Color.black.opacity(0.4))
             .frame(minWidth: 0, maxWidth: .infinity)
             .aspectRatio(aspectRatio, contentMode: .fit)
             .clipped()
