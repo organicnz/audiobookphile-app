@@ -79,4 +79,15 @@ Carthage/Build/
 .env
 .env.*
 !.env.example
+Skip.env
 
+# Sensitive metadata & credentials
+docs/app_store_metadata.md
+docs/APP_STORE_METADATA.md
+
+# Build logs (may contain team IDs and paths)
+*.log
+Darwin/*.log
+
+# Export options (contains Team ID)
+exportOptions.plist

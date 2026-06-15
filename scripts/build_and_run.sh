@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 
-PROJECT_DIR="/Users/organic/dev/work/audiobookshelf/audiobookphile-app"
-SIMULATOR_ID="CC7BF58A-218E-4EC6-A084-F673841B51E3"
-APP_BUNDLE_ID="club.foodshare.audiobookphile"
+PROJECT_DIR="${ABP_PROJECT_DIR:?Set ABP_PROJECT_DIR to your local project path}"
+SIMULATOR_ID="${ABP_SIMULATOR_ID:?Set ABP_SIMULATOR_ID to your target simulator UDID}"
+APP_BUNDLE_ID="${ABP_BUNDLE_ID:?Set ABP_BUNDLE_ID to your app bundle identifier}"
 WORKSPACE="$PROJECT_DIR/Project.xcworkspace"
 SCHEME="Audiobookphile App"
 DERIVED_DATA="$PROJECT_DIR/DerivedData"

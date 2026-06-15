@@ -3,7 +3,7 @@ import SkipFuse
 import SwiftUI
 
 /// A logger for the Audiobookphile module.
-let logger: Logger = Logger(subsystem: "club.foodshare.audiobookphile", category: "Audiobookphile")
+let logger: Logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Audiobookphile", category: "Audiobookphile")
 
 /// The shared top-level view for the app, loaded from the platform-specific App delegates below.
 ///
