@@ -19,13 +19,13 @@ defaults read com.apple.dt.Xcode | grep IDESkip || true
 
 echo "=== Generating Skip.env ==="
 cat << EOF > ../Skip.env
-PRODUCT_NAME = Audiobookphile
-PRODUCT_BUNDLE_IDENTIFIER = club.foodshare.audiobookphile
-MARKETING_VERSION = 0.0.1
-CURRENT_PROJECT_VERSION = 1
-ANDROID_PACKAGE_NAME = audiobookphile.module
-TEAM_ID = DCKVD6LKYV
-API_SERVER_URL = https://audiobookphile.vercel.app/api
+PRODUCT_NAME = ${SKIP_PRODUCT_NAME:-Audiobookphile}
+PRODUCT_BUNDLE_IDENTIFIER = ${SKIP_BUNDLE_ID:-club.foodshare.audiobookphile}
+MARKETING_VERSION = ${SKIP_MARKETING_VERSION:-0.0.1}
+CURRENT_PROJECT_VERSION = ${SKIP_BUILD_NUMBER:-1}
+ANDROID_PACKAGE_NAME = ${SKIP_ANDROID_PACKAGE_NAME:-audiobookphile.module}
+TEAM_ID = ${SKIP_TEAM_ID}
+API_SERVER_URL = ${SKIP_API_SERVER_URL}
 NEXT_PUBLIC_SUPABASE_URL = ${NEXT_PUBLIC_SUPABASE_URL}
 NEXT_PUBLIC_SUPABASE_ANON_KEY = ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
 EOF
