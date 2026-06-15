@@ -1,7 +1,7 @@
 #!/bin/sh
-defaults write com.apple.dt.Xcode IDESkipPackagePluginFingerprintValidation -bool YES
-defaults write com.apple.dt.Xcode IDESkipPackagePluginFingerprintValidatation -bool YES
-defaults write com.apple.dt.Xcode IDESkipMacroFingerprintValidation -bool YES
+defaults write com.apple.dt.Xcode IDESkipPackagePluginFingerprintValidation -bool YES || true
+defaults write com.apple.dt.Xcode IDESkipPackagePluginFingerprintValidatation -bool YES || true
+defaults write com.apple.dt.Xcode IDESkipMacroFingerprintValidation -bool YES || true
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Pin Xcode Cloud workflows to a stable Xcode version via App Store Connect API
@@ -115,12 +115,12 @@ else
 fi
 
 # Force defaults on xcodebuild and global domains just in case
-defaults write com.apple.dt.xcodebuild IDESkipPackagePluginFingerprintValidatation -bool YES
-defaults write com.apple.dt.xcodebuild IDESkipPackagePluginFingerprintValidation -bool YES
-defaults write -g IDESkipPackagePluginFingerprintValidatation -bool YES
-defaults write -g IDESkipPackagePluginFingerprintValidation -bool YES
-defaults write com.apple.dt.xcodebuild IDESkipMacroFingerprintValidation -bool YES
-defaults write -g IDESkipMacroFingerprintValidation -bool YES
+defaults write com.apple.dt.xcodebuild IDESkipPackagePluginFingerprintValidatation -bool YES || true
+defaults write com.apple.dt.xcodebuild IDESkipPackagePluginFingerprintValidation -bool YES || true
+defaults write -g IDESkipPackagePluginFingerprintValidatation -bool YES || true
+defaults write -g IDESkipPackagePluginFingerprintValidation -bool YES || true
+defaults write com.apple.dt.xcodebuild IDESkipMacroFingerprintValidation -bool YES || true
+defaults write -g IDESkipMacroFingerprintValidation -bool YES || true
 
 echo "Defaults applied:"
 defaults read com.apple.dt.Xcode | grep IDESkip || true
