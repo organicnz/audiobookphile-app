@@ -14,7 +14,7 @@ public final class OfflineDownloadManager: NSObject, ObservableObject, @unchecke
     
     private override init() {
         super.init()
-        let config = URLSessionConfiguration.background(withIdentifier: "com.audiobookshelf.offline.downloads")
+        let config = URLSessionConfiguration.background(withIdentifier: "com.audiobookphile.offline.downloads")
         config.isDiscretionary = false
         config.sessionSendsLaunchEvents = true
         self.session = URLSession(configuration: config, delegate: self, delegateQueue: nil)

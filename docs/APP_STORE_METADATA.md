@@ -4,10 +4,10 @@
 Audiobookphile
 
 ## Subtitle
-Liquid Glass Audiobookshelf Player
+Liquid Glass Audiobook Player
 
 ## Promotional Text
-Experience your Audiobookshelf library like never before with bleeding-edge Liquid Glass aesthetics and native iOS performance.
+Experience your audiobook library like never before with bleeding-edge Liquid Glass aesthetics and native iOS performance.
 
 ## Description
 

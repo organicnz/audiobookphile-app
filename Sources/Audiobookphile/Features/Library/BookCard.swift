@@ -58,7 +58,7 @@ public struct BookCard: View {
     
     private var coverImage: some View {
         ZStack(alignment: .topTrailing) {
-            // Background blur layer (Audiobookshelf best practice for off-ratio covers)
+            // Background blur layer (Audiobookphile best practice for off-ratio covers)
             SmartAsyncImage(url: coverURL) { image in
                 image
                     .resizable()
