@@ -58,7 +58,7 @@ public struct BookCard: View {
     
     private var coverImage: some View {
         ZStack(alignment: .topTrailing) {
-            // Cover
+            // Background blur layer (Audiobookshelf best practice for off-ratio covers)
             SmartAsyncImage(url: coverURL) { image in
                 image
                     .resizable()
@@ -66,25 +66,40 @@ public struct BookCard: View {
             } placeholder: {
                 placeholderCover
             }
+            .blur(radius: 15)
+            .opacity(0.7)
             .frame(minWidth: 0, maxWidth: .infinity)
             .aspectRatio(aspectRatio, contentMode: .fit)
             .clipped()
-            .cornerRadius(12)
-            .shadow(
-                color: coverColor.opacity(0.4),
-                radius: 15,
-                y: 8
-            )
             
-            // Download badge (if downloaded)
-            if isDownloaded {
-                downloadBadge
-                    .padding(8)
-            } else if book.isMissing == true {
-                missingBadge
-                    .padding(8)
+            // Actual cover fitted
+            SmartAsyncImage(url: coverURL) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+            } placeholder: {
+                Color.clear
             }
+            .frame(minWidth: 0, maxWidth: .infinity)
+            .aspectRatio(aspectRatio, contentMode: .fit)
+            .clipped()
+            
+            // Badges
+            Group {
+                if isDownloaded {
+                    downloadBadge
+                } else if book.isMissing == true {
+                    missingBadge
+                }
+            }
+            .padding(8)
         }
+        .cornerRadius(12)
+        .shadow(
+            color: coverColor.opacity(0.4),
+            radius: 15,
+            y: 8
+        )
     }
     
     private var placeholderCover: some View {

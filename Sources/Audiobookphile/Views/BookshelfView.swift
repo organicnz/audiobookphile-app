@@ -382,16 +382,31 @@ public struct ContinueListeningCard: View {
             // Cover image
             Group {
                 if let url = coverURL {
-                    SmartAsyncImage(url: url) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 120, height: 120)
-                            .clipped()
-                    } placeholder: {
-                        fallbackCover
+                    ZStack {
+                        // Blurred background
+                        SmartAsyncImage(url: url) { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        } placeholder: {
+                            fallbackCover
+                        }
+                        .blur(radius: 15)
+                        .opacity(0.7)
+                        .frame(width: 120, height: 120)
+                        .clipped()
+                        
+                        // Fit image
+                        SmartAsyncImage(url: url) { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                        } placeholder: {
+                            Color.clear
+                        }
+                        .frame(width: 120, height: 120)
+                        .clipped()
                     }
-                    .frame(width: 120, height: 120)
                 } else {
                     fallbackCover
                 }
@@ -474,7 +489,14 @@ public class BookshelfViewModel: ObservableObject {
     
     public var totalBooks: Int { books.count }
     public var inProgressCount: Int { continueListening.count }
-    public var coverAspectRatio: CGFloat = 1.0
+    public var coverAspectRatio: CGFloat {
+        if let settings = currentLibrary?.settings, let ratioInt = settings.coverAspectRatio {
+            // Audiobookshelf constants: 0 = STANDARD (1:1.6), 1 = SQUARE (1:1)
+            return ratioInt == 1 ? 1.0 : (1.0 / 1.6)
+        }
+        // Fallback to standard book ratio
+        return 1.0 / 1.6
+    }
     
     public var totalDurationFormatted: String {
         let totalSeconds = books.reduce(0) { $0 + $1.duration }
@@ -493,6 +515,11 @@ public class BookshelfViewModel: ObservableObject {
         errorMessage = nil
         
         let service = customService ?? (isAuthenticated ? LiveLibraryService() : MockLibraryService())
+        
+        // Sync current library from AppState
+        if let id = libraryId {
+            self.currentLibrary = AppState.shared.libraries.first { $0.id == id }
+        }
         
         do {
             let fetched = try await service.fetchLibraryItems(libraryId: libraryId)
