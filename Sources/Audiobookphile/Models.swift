@@ -463,16 +463,16 @@ public enum AppTheme: String, Codable, Sendable {
 }
 
 public enum BookCoverAspectRatio: Int, Codable, Sendable {
-    case square = 1
-    case standard = 16 // 1.6:1
+    case standard = 0 // 1:1.6
+    case square = 1 // 1:1
     
     #if canImport(CoreGraphics)
     public var ratio: CGFloat {
-        self == .square ? 1.0 : 1.6
+        self == .square ? 1.0 : (1.0 / 1.6)
     }
     #else
     public var ratio: Double {
-        self == .square ? 1.0 : 1.6
+        self == .square ? 1.0 : (1.0 / 1.6)
     }
     #endif
 }

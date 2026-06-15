@@ -52,10 +52,23 @@
     "%lld%% complete" : {
 
     },
+    "%lldh %lldm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lldh %2$lldm"
+          }
+        }
+      }
+    },
     "•" : {
 
     },
-    "14h 32m" : {
+    "Account" : {
+
+    },
+    "Account Type: %@" : {
 
     },
     "Add" : {
@@ -87,6 +100,9 @@
           }
         }
       }
+    },
+    "Add Bookmark" : {
+
     },
     "All Books" : {
 
@@ -124,6 +140,12 @@
     "Audiobookphile" : {
 
     },
+    "Bookmark Title (Optional)" : {
+
+    },
+    "Bookmarks" : {
+
+    },
     "Browse Categories" : {
 
     },
@@ -132,7 +154,6 @@
     },
     "Cancel" : {
       "comment" : "Button title indicating that the operation should be cancelled",
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -167,6 +188,9 @@
 
     },
     "Connection Error" : {
+
+    },
+    "Connection Failed" : {
 
     },
     "Continue (%lld%%)" : {
@@ -380,6 +404,12 @@
         }
       }
     },
+    "Listening Stats" : {
+
+    },
+    "Log Out" : {
+
+    },
     "Missing Audio Files" : {
 
     },
@@ -417,6 +447,9 @@
       }
     },
     "Narrated by %@" : {
+
+    },
+    "No bookmarks yet." : {
 
     },
     "No downloads yet" : {
@@ -461,13 +494,22 @@
     "Pause" : {
 
     },
+    "Pause Audiobook" : {
+
+    },
     "Paused" : {
+
+    },
+    "Pauses playback of your current audiobook in Audiobookphile." : {
 
     },
     "Pending..." : {
 
     },
     "Play" : {
+
+    },
+    "Play Audiobook" : {
 
     },
     "Playback Error" : {
@@ -506,7 +548,13 @@
     "Read More" : {
 
     },
+    "Recent Connections" : {
+
+    },
     "Recent Searches" : {
+
+    },
+    "Resumes playback of your current audiobook in Audiobookphile." : {
 
     },
     "Retry" : {
@@ -514,7 +562,6 @@
     },
     "Save" : {
       "comment" : "Button title indicating that the current contents should be saved",
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -589,6 +636,9 @@
     "Signing in..." : {
 
     },
+    "Starting..." : {
+
+    },
     "Stats" : {
 
     },
@@ -660,6 +710,9 @@
     "Title, Author, or Series" : {
 
     },
+    "Total Time Listened" : {
+
+    },
     "Try searching for something else" : {
 
     },
@@ -701,6 +754,9 @@
           }
         }
       }
+    },
+    "View Bookmarks" : {
+
     },
     "Waiting..." : {
 
