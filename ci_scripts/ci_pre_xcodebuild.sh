@@ -18,7 +18,7 @@ echo "Defaults for com.apple.dt.Xcode (IDESkip):"
 defaults read com.apple.dt.Xcode | grep IDESkip || true
 
 echo "=== Generating Skip.env ==="
-cat << 'EOF' > ../Skip.env
+cat << EOF > ../Skip.env
 PRODUCT_NAME = Audiobookphile
 PRODUCT_BUNDLE_IDENTIFIER = club.foodshare.audiobookphile
 MARKETING_VERSION = 0.0.1
@@ -26,7 +26,7 @@ CURRENT_PROJECT_VERSION = 1
 ANDROID_PACKAGE_NAME = audiobookphile.module
 TEAM_ID = DCKVD6LKYV
 API_SERVER_URL = https://audiobookphile.vercel.app/api
-NEXT_PUBLIC_SUPABASE_URL = https://iambzzclljayqdxkeepy.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhbWJ6emNsbGpheXFkeGtlZXB5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NzI0MjcsImV4cCI6MjA5MzI0ODQyN30.GqEkaYrkCSNgO89ZqtIgJ28TNI0QfoLrPzW1zCj8st8
+NEXT_PUBLIC_SUPABASE_URL = ${NEXT_PUBLIC_SUPABASE_URL}
+NEXT_PUBLIC_SUPABASE_ANON_KEY = ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
 EOF
 echo "Skip.env successfully generated!"
