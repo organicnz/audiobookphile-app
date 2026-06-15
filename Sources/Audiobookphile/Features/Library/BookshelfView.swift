@@ -489,7 +489,7 @@ public struct ContinueListeningCard: View {
         if let path = book.coverPath, path.hasPrefix("http") {
             return URL(string: path)
         }
-        return AppState.shared.getCoverURL(itemId: book.id)
+        return AppState.shared.getCoverURL(itemId: book.id, updatedAt: book.updatedAt)
     }
 }
 

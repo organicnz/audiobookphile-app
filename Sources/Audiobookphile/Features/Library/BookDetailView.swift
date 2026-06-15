@@ -187,7 +187,7 @@ public struct BookDetailView: View {
     }
     
     private func coverArtSection(_ detailed: Book) -> some View {
-        SmartAsyncImage(url: appState.getCoverURL(itemId: detailed.id, width: 600)) { image in
+        SmartAsyncImage(url: appState.getCoverURL(itemId: detailed.id, width: 600, updatedAt: detailed.updatedAt)) { image in
             image
                 .resizable()
                 .aspectRatio(contentMode: .fit)
@@ -464,7 +464,7 @@ public struct BookDetailView: View {
         do {
             let detailed = try await AudiobookphileAPI.shared.getLibraryItem(id: book.id)
             self.detailedBook = detailed
-            if let coverUrl = appState.getCoverURL(itemId: detailed.id, width: 600) {
+            if let coverUrl = appState.getCoverURL(itemId: detailed.id, width: 600, updatedAt: detailed.updatedAt) {
                 await colorLoader.loadColor(from: coverUrl)
             }
         } catch {

@@ -171,7 +171,7 @@ public struct BookCard: View {
             if path == "missing" { return nil }
             if path.hasPrefix("http") { return URL(string: path) }
         }
-        return appState.getCoverURL(itemId: book.id)
+        return appState.getCoverURL(itemId: book.id, updatedAt: book.updatedAt)
     }
     
     private var isDownloaded: Bool {
@@ -263,6 +263,6 @@ public struct GlassBookCard: View {
         if let path = book.coverPath, path.hasPrefix("http") {
             return URL(string: path)
         }
-        return appState.getCoverURL(itemId: book.id)
+        return appState.getCoverURL(itemId: book.id, updatedAt: book.updatedAt)
     }
 }

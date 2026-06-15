@@ -479,7 +479,7 @@ public actor AudiobookphileAPI {
     // MARK: - Cover Images
 
     /// Get cover image URL
-    public func getCoverURL(itemId: String, width: Int = 400) -> URL? {
+    public func getCoverURL(itemId: String, width: Int = 400, updatedAt: Date? = nil) -> URL? {
         guard var components = URLComponents(string: endpointUrlString(for: "/api/items/\(itemId)/cover")) else {
             return nil
         }
@@ -488,6 +488,13 @@ public actor AudiobookphileAPI {
             URLQueryItem(name: "format", value: "jpeg"),
             URLQueryItem(name: "token", value: accessToken)
         ]
+        
+        if let updated = updatedAt {
+            queryItems.append(URLQueryItem(name: "ts", value: "\(Int(updated.timeIntervalSince1970))"))
+        } else {
+            // Fallback cache buster if updatedAt isn't provided but we want to avoid stale broken redirects
+            queryItems.append(URLQueryItem(name: "ts", value: "1"))
+        }
         
         let anonKey = EnvironmentConfig.supabaseAnonKey
         if !anonKey.isEmpty {

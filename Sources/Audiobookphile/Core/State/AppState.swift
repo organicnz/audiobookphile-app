@@ -151,24 +151,8 @@ public class AppState {
         token = ""
     }
     
-    public func getCoverURL(itemId: String, width: Int = 400) -> URL? {
-        guard !serverURL.isEmpty, !token.isEmpty else { return nil }
-        guard var components = URLComponents(string: "\(serverURL)/api/items/\(itemId)/cover") else {
-            return nil
-        }
-        var queryItems = [
-            URLQueryItem(name: "width", value: "\(width)"),
-            URLQueryItem(name: "format", value: "jpeg"),
-            URLQueryItem(name: "token", value: token)
-        ]
-        
-        let anonKey = EnvironmentConfig.supabaseAnonKey
-        if !anonKey.isEmpty {
-            queryItems.append(URLQueryItem(name: "apikey", value: anonKey))
-        }
-        
-        components.queryItems = queryItems
-        return components.url
+    public func getCoverURL(itemId: String, width: Int = 400, updatedAt: Date? = nil) -> URL? {
+        return AudiobookphileAPI.shared.getCoverURL(itemId: itemId, width: width, updatedAt: updatedAt)
     }
 }
 
