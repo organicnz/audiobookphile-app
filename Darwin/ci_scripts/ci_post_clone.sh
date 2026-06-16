@@ -1,7 +1,7 @@
 #!/bin/sh
-defaults write com.apple.dt.Xcode IDESkipPackagePluginFingerprintValidation -bool YES
-defaults write com.apple.dt.Xcode IDESkipPackagePluginFingerprintValidatation -bool YES
-defaults write com.apple.dt.Xcode IDESkipMacroFingerprintValidation -bool YES
+defaults write com.apple.dt.Xcode IDESkipPackagePluginFingerprintValidation -bool YES || true
+defaults write com.apple.dt.Xcode IDESkipPackagePluginFingerprintValidatation -bool YES || true
+defaults write com.apple.dt.Xcode IDESkipMacroFingerprintValidation -bool YES || true
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Pin Xcode Cloud workflows to a stable Xcode version via App Store Connect API
@@ -115,13 +115,35 @@ else
 fi
 
 # Force defaults on xcodebuild and global domains just in case
-defaults write com.apple.dt.xcodebuild IDESkipPackagePluginFingerprintValidatation -bool YES
-defaults write com.apple.dt.xcodebuild IDESkipPackagePluginFingerprintValidation -bool YES
-defaults write -g IDESkipPackagePluginFingerprintValidatation -bool YES
-defaults write -g IDESkipPackagePluginFingerprintValidation -bool YES
-defaults write com.apple.dt.xcodebuild IDESkipMacroFingerprintValidation -bool YES
-defaults write -g IDESkipMacroFingerprintValidation -bool YES
+defaults write com.apple.dt.xcodebuild IDESkipPackagePluginFingerprintValidatation -bool YES || true
+defaults write com.apple.dt.xcodebuild IDESkipPackagePluginFingerprintValidation -bool YES || true
+defaults write -g IDESkipPackagePluginFingerprintValidatation -bool YES || true
+defaults write -g IDESkipPackagePluginFingerprintValidation -bool YES || true
+defaults write com.apple.dt.xcodebuild IDESkipMacroFingerprintValidation -bool YES || true
+defaults write -g IDESkipMacroFingerprintValidation -bool YES || true
 
 echo "Defaults applied:"
-defaults read com.apple.dt.Xcode | grep IDESkip
+defaults read com.apple.dt.Xcode | grep IDESkip || true
 
+
+echo "=== Generating Skip.env ==="
+# Xcode Cloud provides CI_PRIMARY_REPOSITORY_PATH pointing to the repo root
+WORKSPACE_PATH="${CI_PRIMARY_REPOSITORY_PATH:-$(git rev-parse --show-toplevel)}"
+ENV_FILE="$WORKSPACE_PATH/Skip.env"
+
+echo "Writing Skip.env to $ENV_FILE"
+
+cat << INNER_EOF > "$ENV_FILE"
+PRODUCT_NAME = ${SKIP_PRODUCT_NAME:-Audiobookphile}
+PRODUCT_BUNDLE_IDENTIFIER = ${SKIP_BUNDLE_ID:-club.yourdomain.audiobookphile}
+MARKETING_VERSION = ${SKIP_MARKETING_VERSION:-0.0.1}
+CURRENT_PROJECT_VERSION = ${SKIP_BUILD_NUMBER:-1}
+ANDROID_PACKAGE_NAME = ${SKIP_ANDROID_PACKAGE_NAME:-audiobookphile.module}
+TEAM_ID = ${SKIP_TEAM_ID:-YOUR_TEAM_ID}
+API_SERVER_URL = ${SKIP_API_SERVER_URL:-https://your-server-url.vercel.app/api}
+NEXT_PUBLIC_SUPABASE_URL = ${NEXT_PUBLIC_SUPABASE_URL:-https://your-supabase-url.supabase.co}
+NEXT_PUBLIC_SUPABASE_ANON_KEY = ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-your_supabase_anon_key}
+INNER_EOF
+
+echo "Skip.env successfully generated!"
+cat "$ENV_FILE"
