@@ -17,18 +17,18 @@ public struct BookCard: View {
     @State var coverColor: Color = .gray
     @StateObject var proMotion = ProMotionManager.shared
     @ObservedObject var downloadService = DownloadService.shared
-    
+
     public init(book: Book, aspectRatio: CGFloat = 1.0, onTap: @escaping () -> Void) {
         self.book = book
         self.aspectRatio = aspectRatio
         self.onTap = onTap
     }
-    
+
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Cover image with glass shadow
             coverImage
-            
+
             // Book info
             VStack(alignment: .leading, spacing: 4) {
                 Text(book.title)
@@ -36,14 +36,14 @@ public struct BookCard: View {
                     .fontWeight(.semibold)
                     .lineLimit(2)
                     .foregroundStyle(.white)
-                
+
                 if let author = book.author {
                     Text(author)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
-                
+
                 // Progress indicator
                 if let progress = book.userMediaProgress {
                     progressBar(progress: progress.progress)
@@ -53,37 +53,32 @@ public struct BookCard: View {
         }
         .contentShape(Rectangle())
     }
-    
+
     // MARK: - Cover Image
-    
+
     private var coverImage: some View {
         ZStack(alignment: .topTrailing) {
-            // Background blur layer (Audiobookphile best practice for off-ratio covers)
             SmartAsyncImage(url: coverURL) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
+                ZStack {
+                    // Background blur layer (Audiobookphile best practice for off-ratio covers)
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .blur(radius: 15)
+                        .overlay(Color.black.opacity(0.4))
+
+                    // Actual cover fitted
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                }
             } placeholder: {
                 placeholderCover
             }
-            .blur(radius: 15)
-            .overlay(Color.black.opacity(0.4))
             .frame(minWidth: 0, maxWidth: .infinity)
             .aspectRatio(aspectRatio, contentMode: .fit)
             .clipped()
-            
-            // Actual cover fitted
-            SmartAsyncImage(url: coverURL) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-            } placeholder: {
-                Color.clear
-            }
-            .frame(minWidth: 0, maxWidth: .infinity)
-            .aspectRatio(aspectRatio, contentMode: .fit)
-            .clipped()
-            
+
             // Badges
             Group {
                 if isDownloaded {
@@ -101,7 +96,7 @@ public struct BookCard: View {
             y: 8
         )
     }
-    
+
     private var placeholderCover: some View {
         RoundedRectangle(cornerRadius: 12)
             .fill(.ultraThinMaterial)
@@ -111,7 +106,7 @@ public struct BookCard: View {
                     .foregroundStyle(.secondary)
             }
     }
-    
+
     private var downloadBadge: some View {
         Image(systemName: "arrow.down.circle.fill")
             .font(.title3)
@@ -123,7 +118,7 @@ public struct BookCard: View {
             }
             .shadow(radius: 4)
     }
-    
+
     private var missingBadge: some View {
         Image(systemName: "exclamationmark.triangle.fill")
             .font(.title3)
@@ -135,9 +130,9 @@ public struct BookCard: View {
             }
             .shadow(radius: 4)
     }
-    
+
     // MARK: - Progress Bar
-    
+
     private func progressBar(progress: Double) -> some View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
@@ -145,7 +140,7 @@ public struct BookCard: View {
                 Capsule()
                     .fill(.white.opacity(0.2))
                     .frame(height: 3)
-                
+
                 // Progress
                 Capsule()
                     .fill(
@@ -163,16 +158,16 @@ public struct BookCard: View {
         }
         .frame(height: 3)
     }
-    
+
     // MARK: - Helpers
-    
+
     private var coverURL: URL? {
         if let path = book.coverPath {
             if path.hasPrefix("http") { return URL(string: path) }
         }
         return appState.getCoverURL(itemId: book.id, updatedAt: book.updatedAt)
     }
-    
+
     private var isDownloaded: Bool {
         downloadService.downloads.contains { $0.libraryItemId == book.id && $0.status == .completed }
     }
@@ -195,12 +190,12 @@ public struct GlassBookCard: View {
     @Environment(AppState.self) private var appState
     let book: Book
     public let onTap: () -> Void
-    
+
     public init(book: Book, onTap: @escaping () -> Void) {
         self.book = book
         self.onTap = onTap
     }
-    
+
     public var body: some View {
         HStack(spacing: 16) {
             // Small cover
@@ -213,21 +208,21 @@ public struct GlassBookCard: View {
             }
             .frame(width: 60, height: 60)
             .cornerRadius(8)
-            
+
             // Info
             VStack(alignment: .leading, spacing: 6) {
                 Text(book.title)
                     .font(.headline)
                     .lineLimit(2)
                     .foregroundStyle(.white)
-                
+
                 if let author = book.author {
                     Text(author)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
-                
+
                 if let progress = book.userMediaProgress {
                     HStack {
                         Image(systemName: "clock.fill")
@@ -246,9 +241,9 @@ public struct GlassBookCard: View {
                     .foregroundStyle(.red)
                 }
             }
-            
+
             Spacer()
-            
+
             Image(systemName: "chevron.right")
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -257,7 +252,7 @@ public struct GlassBookCard: View {
         .onTapGesture(perform: onTap)
         .glassCard()
     }
-    
+
     private var coverURL: URL? {
         if let path = book.coverPath, path.hasPrefix("http") {
             return URL(string: path)
