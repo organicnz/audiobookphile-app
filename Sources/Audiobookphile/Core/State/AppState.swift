@@ -152,7 +152,31 @@ public class AppState {
     }
     
     public func getCoverURL(itemId: String, width: Int = 400, updatedAt: Date? = nil) -> URL? {
-        return AudiobookphileAPI.shared.getCoverURL(itemId: itemId, width: width, updatedAt: updatedAt)
+        guard !serverURL.isEmpty else { return nil }
+        
+        let path = "/api/items/\(itemId)/cover"
+        let endpoint = serverURL.hasSuffix("/") ? "\(serverURL)\(path.dropFirst())" : "\(serverURL)\(path)"
+        guard var components = URLComponents(string: endpoint) else { return nil }
+        
+        var queryItems = [
+            URLQueryItem(name: "width", value: "\(width)"),
+            URLQueryItem(name: "format", value: "jpeg"),
+            URLQueryItem(name: "token", value: token)
+        ]
+        
+        if let updated = updatedAt {
+            queryItems.append(URLQueryItem(name: "ts", value: "\(Int(updated.timeIntervalSince1970))"))
+        } else {
+            queryItems.append(URLQueryItem(name: "ts", value: "1"))
+        }
+        
+        let anonKey = EnvironmentConfig.supabaseAnonKey
+        if !anonKey.isEmpty {
+            queryItems.append(URLQueryItem(name: "apikey", value: anonKey))
+        }
+        
+        components.queryItems = queryItems
+        return components.url
     }
 }
 

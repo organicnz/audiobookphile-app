@@ -383,7 +383,7 @@ public actor AudiobookphileAPI {
 
         let items = response.results ?? []
         let searchResults = items.map { book in
-            SearchResponse.SearchResult(libraryItem: book, matchKey: "title", matchText: book.media?.metadata.title)
+            SearchResponse.SearchResult(libraryItem: book, matchKey: "title", matchText: book.media.metadata.title)
         }
         
         return SearchResponse(results: searchResults)
