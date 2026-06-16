@@ -133,6 +133,20 @@ ENV_FILE="$WORKSPACE_PATH/Skip.env"
 
 echo "Writing Skip.env to $ENV_FILE"
 
+echo "=== Validating Environment Variables ==="
+if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] || [ "$NEXT_PUBLIC_SUPABASE_URL" = "https://your-supabase-url.supabase.co" ]; then
+    echo "❌ ERROR: NEXT_PUBLIC_SUPABASE_URL is not set in Xcode Cloud."
+    echo "Please add it to the Xcode Cloud Workflow Environment Variables."
+    exit 1
+fi
+
+if [ -z "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ] || [ "$NEXT_PUBLIC_SUPABASE_ANON_KEY" = "your_supabase_anon_key" ]; then
+    echo "❌ ERROR: NEXT_PUBLIC_SUPABASE_ANON_KEY is not set in Xcode Cloud."
+    echo "Please add it to the Xcode Cloud Workflow Environment Variables."
+    exit 1
+fi
+echo "✅ Environment variables validated."
+
 cat << INNER_EOF > "$ENV_FILE"
 PRODUCT_NAME = ${SKIP_PRODUCT_NAME:-${PRODUCT_NAME:-Audiobookphile}}
 PRODUCT_BUNDLE_IDENTIFIER = ${SKIP_BUNDLE_ID:-${PRODUCT_BUNDLE_IDENTIFIER:-club.foodshare.audiobookphile}}
@@ -141,8 +155,8 @@ CURRENT_PROJECT_VERSION = ${SKIP_BUILD_NUMBER:-1}
 ANDROID_PACKAGE_NAME = ${SKIP_ANDROID_PACKAGE_NAME:-audiobookphile.module}
 TEAM_ID = ${SKIP_TEAM_ID:-${TEAM_ID:-${CI_TEAM_ID:-DCKVD6LKYV}}}
 API_SERVER_URL = ${SKIP_API_SERVER_URL:-https://your-server-url.vercel.app/api}
-NEXT_PUBLIC_SUPABASE_URL = ${NEXT_PUBLIC_SUPABASE_URL:-https://your-supabase-url.supabase.co}
-NEXT_PUBLIC_SUPABASE_ANON_KEY = ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-your_supabase_anon_key}
+NEXT_PUBLIC_SUPABASE_URL = ${NEXT_PUBLIC_SUPABASE_URL}
+NEXT_PUBLIC_SUPABASE_ANON_KEY = ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
 INNER_EOF
 
 echo "Skip.env successfully generated!"
