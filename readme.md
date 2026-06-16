@@ -1,203 +1,74 @@
 # Audiobookphile Mobile App
 
-Audiobookphile is a self-hosted audiobook and podcast server.
+Audiobookphile is a premium, serverless audiobook and podcast client that connects to the Audiobookphile ecosystem.
 
-### Android (beta)
-
-Get the Android app on the [Google Play Store](https://play.google.com/store/apps/details?id=com.audiobookphile.app)
-
-### iOS (early beta)
-
-**Beta is currently full. Apple has a hard limit of 10k beta testers. Updates will be posted in Discord.**
-
-Using Test Flight: https://testflight.apple.com/join/wiic7QIW **_(beta is full)_**
-
----
-
-[Go to the main project repo github.com/advplyr/audiobookphile](https://github.com/advplyr/audiobookphile) or the project site [audiobookphile.org](https://audiobookphile.org)
-
-Join us on [discord](https://discord.gg/pJsjuNCKRq)
-
-**Requires an Audiobookphile server to connect with**
+This mobile application is built natively for both **iOS** and **Android** using **Swift** and the [Skip framework](https://skip.dev). Skip allows us to write the app completely in Swift and SwiftUI, and it transpiles the logic and UI into native Kotlin/Compose for Android, providing a unified codebase with true native performance on both platforms.
 
 <img alt="Screenshot" src="https://github.com/advplyr/audiobookphile-app/raw/master/screenshots/DeviceDemoScreens.png" />
 
-## Contributing
+## Architecture
 
-This application is built using [NuxtJS](https://nuxtjs.org/), [Capacitor](https://capacitorjs.com/), and [Bun](https://bun.sh/) in order to run on both iOS and Android with rapid build times and native performance.
+- **Language:** Swift 5.9+
+- **UI Framework:** SwiftUI (iOS) / Compose (Android via Skip)
+- **Backend:** Supabase (Postgres + Auth + Storage)
+- **Cross-Platform Bridge:** Skip
 
-### Localization
+## Prerequisites
 
-Thank you to [Weblate](https://hosted.weblate.org/engage/audiobookphile/) for hosting our localization infrastructure pro-bono. If you want to see Audiobookphile in your language, please help us localize. Additional information on helping with the translations [here](https://www.audiobookphile.org/faq#how-do-i-help-with-translations). <a href="https://hosted.weblate.org/engage/audiobookphile/"> <img src="https://hosted.weblate.org/widget/audiobookphile/abs-mobile-app/horizontal-auto.svg" alt="Translation status" /> </a>
+To build and run this project, you need a macOS environment with the following installed:
 
-### Windows Environment Setup for Android
+1. **Xcode 15+** (for iOS development)
+2. **Android Studio** and the Android SDK (for Android development)
+3. **Homebrew** (for installing Skip tools)
 
-Required Software:
+## Getting Started
 
-- [Git](https://git-scm.com/downloads)
-- [Bun](https://bun.sh/) (or Node.js version 20 as fallback)
-- Code editor of choice([VSCode](https://code.visualstudio.com/download), etc)
-- [Android Studio](https://developer.android.com/studio)
-- [Android SDK](https://developer.android.com/studio)
+1. **Install the Skip CLI:**
+   ```bash
+   brew install skiptools/skip/skip
+   ```
 
-<details>
-<summary>Install the required software with <a href=(https://docs.microsoft.com/en-us/windows/package-manager/winget/#production-recommended)>winget</a></summary>
+2. **Clone the Repository:**
+   ```bash
+   git clone https://github.com/organicnz/audiobookphile-app.git
+   cd audiobookphile-app
+   ```
 
-<p>
-Note: This requires a PowerShell prompt with winget installed.  You should be able to copy and paste the code block to install.  If you use an elevated PowerShell prompt, UAC will not pop up during the installs.
+3. **Configure Environment Variables:**
+   Copy the example environment file and fill in your Supabase configuration and Apple Developer Team ID:
+   ```bash
+   cp Skip.env.example Skip.env
+   ```
+   > **Note:** Do NOT commit your `Skip.env` to version control. It should remain ignored.
 
-```PowerShell
-winget install -e --id Git.Git; `
-winget install -e --id Microsoft.VisualStudioCode; `
-winget install -e --id  Google.AndroidStudio; `
-winget install -e --id JarredSumner.Bun;
-```
+4. **Open the Project:**
+   Open `Package.swift` in Xcode. Alternatively, open the generated `.xcodeproj` or `.xcworkspace`.
 
-</p>
-</details>
-<br>
+5. **Build and Run:**
+   - **For iOS:** Select an iOS Simulator or connected device in Xcode and press Run (`Cmd + R`).
+   - **For Android:** Ensure you have an Android emulator running or a device connected via ADB. Skip integrates with the Xcode build process to compile the Android app simultaneously.
 
-Your Windows environment should now be set up and ready to proceed!
+## Localization
 
-### Mac Environment Setup for Android
-
-Required Software:
-
-- [Android Studio](https://developer.android.com/studio)
-- [Bun](https://bun.sh/)
-- [Cocoapods](https://guides.cocoapods.org/using/getting-started.html#installation)
-- [Android SDK](https://developer.android.com/studio)
-
-<details>
-<summary>Install the required software with <a href=(https://brew.sh/)>homebrew</a></summary>
-
-<p>
-
-```zsh
-brew install android-studio oven-sh/bun/bun cocoapods
-```
-
-</p>
-</details>
-
-### Start working on the Android app
-
-Clone or fork the project from terminal or powershell and `cd` into the project directory.
-
-Install the required node packages:
-
-```shell
-bun install
-```
-
-<br>
-
-Generate static web app:
-
-```shell
-bun run generate
-```
-
-<br>
-
-Copy web app into native android/ios folders:
-
-```shell
-bunx cap sync
-```
-
-<br>
-
-Open Android Studio:
-
-```shell
-bunx cap open android
-```
-
-<br>
-
-Start coding!
-
-After making changes to the JS layer you need to rebuild the nuxt pages and sync them to the native shells:
-
-```shell
-bun run sync
-```
-
-### Mac Environment Setup for iOS
-
-Required Software:
-
-- [Xcode](https://developer.apple.com/xcode/)
-- [Bun](https://bun.sh/)
-- [Cocoapods](https://guides.cocoapods.org/using/getting-started.html#installation)
-
-### Start working on the iOS app
-
-Clone or fork the project in the terminal and `cd` into the project directory.
-
-Install the required packages:
-
-```shell
-bun install
-```
-
-<br>
-
-Generate static web app:
-
-```shell
-bun run generate
-```
-
-<br>
-
-Copy web app into native android/ios folders:
-
-```shell
-bunx cap sync
-```
-
-<br>
-
-Open Xcode:
-
-```shell
-bunx cap open ios
-```
-
-<br>
-
-Start coding!
-
-After making changes to the JS layer you need to rebuild the nuxt pages and sync them to the native shells:
-
-```shell
-bun run sync
-```
-
----
+Thank you to [Weblate](https://hosted.weblate.org/engage/audiobookphile/) for hosting our localization infrastructure pro-bono. If you want to see Audiobookphile in your language, please help us localize. <a href="https://hosted.weblate.org/engage/audiobookphile/"> <img src="https://hosted.weblate.org/widget/audiobookphile/abs-mobile-app/horizontal-auto.svg" alt="Translation status" /> </a>
 
 ## Xcode Cloud Build Pipeline
 
-The iOS client uses **Xcode Cloud** for automated TestFlight building and distribution. The pipeline uses **Bun** in combination with Node.js in the post-clone script step for rapid compilation.
+The iOS client uses **Xcode Cloud** for automated TestFlight building and distribution. During the build process, a custom `ci_post_clone.sh` script dynamically generates a `Skip.env` file from Xcode Cloud environment variables.
 
-### How it Works (Post-Clone Shell)
-When Xcode Cloud triggers a build, it executes the custom post-clone script located at `ios/App/ci_scripts/ci_post_clone.sh`. This script:
-1. Installs Node.js via Homebrew (required to support capacitor shebang environments).
-2. Installs Bun natively on the Apple build container.
-3. Runs `bun install --frozen-lockfile` to install all packages.
-4. Executes `bun run generate` to compile Nuxt static pages.
-5. Runs `bunx cap sync ios` to move compile outputs into Xcode.
-6. Installs CocoaPods dependencies via `pod install`.
-
-### Environment Variables Setup
-To allow Nuxt to bake the Supabase credentials into the client bundle at build-time, you **MUST** configure the following environment variables in your Xcode Cloud Workflow settings under the **Environment** tab:
+To ensure your TestFlight builds are properly code-signed and connected to the correct Supabase instance, you **MUST** configure the following environment variables in your Xcode Cloud Workflow settings (under the **Environment** tab):
 
 | Variable | Description |
 |---|---|
-| `NUXT_ENV_SUPABASE_URL` | Your Supabase Project API URL (e.g. `https://xxxx.supabase.co`) |
-| `NUXT_ENV_SUPABASE_ANON_KEY` | Your Supabase publishable anonymous key |
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase Project API URL (e.g. `https://xxxx.supabase.co`) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase publishable anonymous key |
+| `TEAM_ID` | Your 10-character Apple Developer Team ID (Required for code signing) |
+| `PRODUCT_BUNDLE_IDENTIFIER` | Your app's Bundle ID (e.g. `club.yourdomain.audiobookphile`) |
 
-Ensure both are marked as **Required** in your Xcode Cloud workflow parameters so the build pipeline has access to them.
+If these are not set, the build will use generic fallback values which will cause code signing to fail.
 
+## Contributing
+
+Pull requests are highly encouraged! When contributing to the Swift codebase, keep in mind that the code must be compatible with Skip's transpilation process. Avoid using iOS-only proprietary APIs unless you surround them with `#if !SKIP` compiler directives and provide an Android alternative.
+
+Join us on [Discord](https://discord.gg/pJsjuNCKRq) to discuss features and development.
