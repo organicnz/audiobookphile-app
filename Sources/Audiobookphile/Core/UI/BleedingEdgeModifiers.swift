@@ -64,7 +64,7 @@ public extension View {
         if #available(iOS 16.0, *) {
             self
                 .toolbarColorScheme(isLight ? .light : .dark, for: .navigationBar)
-                .toolbarVisibility(isHidden ? .hidden : .automatic, for: .navigationBar)
+                .toolbar(isHidden ? .hidden : .automatic, for: .navigationBar)
         } else {
             self
         }
