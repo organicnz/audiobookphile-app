@@ -38,3 +38,17 @@ lane :release do |options|
   )
 end
 
+lane :release_metadata do |options|
+  desc "Upload only the App Store metadata (screenshots, descriptions, privacy details)"
+  
+  get_provisioning_profile(api_key_path: "fastlane/apikey.json")
+  
+  # Upload metadata and screenshots using deliver
+  deliver(
+    api_key_path: "fastlane/apikey.json",
+    skip_binary_upload: true,
+    force: true,
+    submit_for_review: false # Set to true to automatically submit for review
+  )
+end
+
