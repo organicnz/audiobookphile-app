@@ -54,8 +54,7 @@ CODE_SIGN_ENTITLEMENTS = Entitlements.plist
 // Disable code signing for macOS targets (e.g. Swift Macros) to prevent Xcode Cloud from crashing
 CODE_SIGNING_REQUIRED[sdk=macosx*] = NO
 CODE_SIGNING_ALLOWED[sdk=macosx*] = NO
-// Development team — uses TEAM_ID from Skip.env (also set as Xcode Cloud shared env var)
-DEVELOPMENT_TEAM = $(TEAM_ID)
+// Xcode Cloud automatic signing manages the development team.
 
 INFOPLIST_KEY_ServerURL = $(API_SERVER_URL)
 INFOPLIST_KEY_SupabaseURL = $(NEXT_PUBLIC_SUPABASE_URL)
