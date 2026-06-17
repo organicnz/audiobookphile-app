@@ -129,7 +129,7 @@ defaults read com.apple.dt.Xcode | grep IDESkip || true
 echo "=== Generating Skip.env ==="
 # Xcode Cloud provides CI_PRIMARY_REPOSITORY_PATH pointing to the repo root
 WORKSPACE_PATH="${CI_PRIMARY_REPOSITORY_PATH:-$(git rev-parse --show-toplevel)}"
-ENV_FILE="$WORKSPACE_PATH/audiobookphile-app/Skip.env"
+ENV_FILE="$WORKSPACE_PATH/Skip.env"
 
 echo "Writing Skip.env to $ENV_FILE"
 
