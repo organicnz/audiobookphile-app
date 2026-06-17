@@ -1,0 +1,6 @@
+pre-commit:
+  parallel: false
+  commands:
+    swiftlint:
+      glob: "*.swift"
+      run: ./scripts/pre-commit.sh {staged_files}
