@@ -1,3 +1,10 @@
+
+
+// Default values to prevent Xcode Cloud from crashing during initial build graph resolution
+// These will be overridden by Skip.env once ci_post_clone.sh executes.
+PRODUCT_NAME = Audiobookphile
+PRODUCT_BUNDLE_IDENTIFIER = club.foodshare.audiobookphile
+
 #include? "../Skip.env"
 
 // Set the action that will be executed as part of the Xcode Run Script phase
