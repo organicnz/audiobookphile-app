@@ -61,6 +61,9 @@ class CachedImageLoader: ObservableObject {
                 } else if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 429 {
                     // Rate limit exceeded. We MUST retry with exponential backoff.
                     throw URLError(.badServerResponse)
+                } else if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 404 {
+                    // Not found, permanently missing for now. Do not retry.
+                    break
                 } else {
                     // Not a 200 or not an image. We should retry to allow backend scraping to finish.
                     throw URLError(.badServerResponse)
