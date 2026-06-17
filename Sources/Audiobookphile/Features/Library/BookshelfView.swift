@@ -11,7 +11,7 @@ import SwiftUI
 /// Main bookshelf/library view
 public struct BookshelfView: View {
     @StateObject var viewModel = BookshelfViewModel()
-    @StateObject var proMotion = ProMotionManager.shared
+    @ObservedObject var proMotion = ProMotionManager.shared
     @Environment(AppState.self) private var appState
     @State var showSearch = false
     @State var searchText = ""

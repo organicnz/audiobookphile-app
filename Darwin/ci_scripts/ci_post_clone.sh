@@ -160,4 +160,3 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY = ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
 INNER_EOF
 
 echo "Skip.env successfully generated!"
-cat "$ENV_FILE"

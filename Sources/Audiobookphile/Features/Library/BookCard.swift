@@ -15,7 +15,7 @@ public struct BookCard: View {
     public var aspectRatio: CGFloat = 1.0
     public let onTap: () -> Void
     @State var coverColor: Color = .gray
-    @StateObject var proMotion = ProMotionManager.shared
+    @ObservedObject var proMotion = ProMotionManager.shared
     @ObservedObject var downloadService = DownloadService.shared
 
     public init(book: Book, aspectRatio: CGFloat = 1.0, onTap: @escaping () -> Void) {
