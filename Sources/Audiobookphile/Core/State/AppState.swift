@@ -20,11 +20,11 @@ public class AppState {
     public var currentUser: User?
     public var selectedLibraryId: String?
     public var selectedTab = 0
-    
+
     // Real API loaded libraries
     public var libraries: [Library] = []
     public var currentLibraryId: String?
-    
+
     public var serverURL: String = ""
     public var token: String = ""
 
@@ -53,7 +53,7 @@ public class AppState {
 
             self.serverURL = credentials.serverURL
             self.token = credentials.token
-            
+
             isAuthenticated = true
 
             // Connect socket (no-op)
@@ -61,13 +61,13 @@ public class AppState {
                 serverAddress: credentials.serverURL,
                 token: credentials.token
             )
-            
+
             await AudiobookphileAPI.shared.configure(
                 serverURL: credentials.serverURL,
                 token: credentials.token,
                 refreshToken: credentials.refreshToken
             )
-            
+
             // Await library fetch so currentLibraryId is set before
             // isLoading is cleared — otherwise BookshelfView renders
             // with a nil libraryId and shows no books.
@@ -126,7 +126,7 @@ public class AppState {
                 serverAddress: serverURL,
                 token: user.token
             )
-            
+
             // Fetch libraries immediately
             await fetchLibraries()
         } catch {
@@ -150,33 +150,42 @@ public class AppState {
         serverURL = ""
         token = ""
     }
-    
+
     public func getCoverURL(itemId: String, width: Int = 400, updatedAt: Date? = nil) -> URL? {
         guard !serverURL.isEmpty else { return nil }
-        
-        let path = "/api/items/\(itemId)/cover"
-        let endpoint = serverURL.hasSuffix("/") ? "\(serverURL)\(path.dropFirst())" : "\(serverURL)\(path)"
+
+        let isDirectSupabase = serverURL.contains(".supabase.co") || serverURL.contains("54321")
+        var base = serverURL
+        if isDirectSupabase && !serverURL.contains("/functions/v1") {
+            base = "\(serverURL)/functions/v1"
+        }
+
+        var adjustedPath = "/api/items/\(itemId)/cover"
+        if base.hasSuffix("/api") && adjustedPath.starts(with: "/api") {
+            adjustedPath = String(adjustedPath.dropFirst(4))
+        }
+
+        let endpoint = base.hasSuffix("/") ? "\(base)\(adjustedPath.dropFirst())" : "\(base)\(adjustedPath)"
         guard var components = URLComponents(string: endpoint) else { return nil }
-        
+
         var queryItems = [
             URLQueryItem(name: "width", value: "\(width)"),
             URLQueryItem(name: "format", value: "jpeg"),
             URLQueryItem(name: "token", value: token)
         ]
-        
+
         if let updated = updatedAt {
             queryItems.append(URLQueryItem(name: "ts", value: "\(Int(updated.timeIntervalSince1970))"))
         } else {
             queryItems.append(URLQueryItem(name: "ts", value: "1"))
         }
-        
+
         let anonKey = EnvironmentConfig.supabaseAnonKey
         if !anonKey.isEmpty {
             queryItems.append(URLQueryItem(name: "apikey", value: anonKey))
         }
-        
+
         components.queryItems = queryItems
         return components.url
     }
 }
-
