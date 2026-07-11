@@ -42,6 +42,7 @@ class CachedImageLoader: ObservableObject {
             return
         }
 
+        self.image = nil
         isLoading = true
 
         let maxRetries = 6
@@ -112,7 +113,7 @@ public struct CachedAsyncImage<Content: View, Placeholder: View>: View {
                 placeholder()
             }
         }
-        .task {
+        .task(id: url) {
             if let url = url {
                 await loader.load(url: url)
             }
