@@ -45,6 +45,7 @@ public final class AudiobookphileAppDelegate: Sendable {
 
     /* SKIP @bridge */public func onInit() {
         logger.debug("onInit")
+        migrateLegacyKeys()
 
         #if !SKIP && os(iOS)
         BGTaskScheduler.shared.register(
@@ -116,4 +117,32 @@ public final class AudiobookphileAppDelegate: Sendable {
         }
     }
     #endif
+
+    private func migrateLegacyKeys() {
+        let standard = UserDefaults.standard
+        let migrations = [
+            "abs_serverURL": "abp_serverURL",
+            "abs_token": "abp_token",
+            "abs_refreshToken": "abp_refreshToken",
+            "abs_offlineProgressQueue": "abp_offlineProgressQueue",
+            "abs_recent_servers": "abp_recent_servers"
+        ]
+        for (oldKey, newKey) in migrations {
+            if let value = standard.value(forKey: oldKey) {
+                standard.set(value, forKey: newKey)
+                standard.removeObject(forKey: oldKey)
+                logger.info("Migrated UserDefaults key \(oldKey) to \(newKey)")
+            }
+        }
+        // Migrate dynamic bookmarks keys
+        let allKeys = standard.dictionaryRepresentation().keys
+        for oldKey in allKeys where oldKey.hasPrefix("abs_bookmarks_") {
+            let newKey = oldKey.replacingOccurrences(of: "abs_bookmarks_", with: "abp_bookmarks_")
+            if let value = standard.value(forKey: oldKey) {
+                standard.set(value, forKey: newKey)
+                standard.removeObject(forKey: oldKey)
+                logger.info("Migrated UserDefaults bookmark key \(oldKey) to \(newKey)")
+            }
+        }
+    }
 }

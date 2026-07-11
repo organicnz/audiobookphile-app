@@ -608,7 +608,7 @@ public class AudioPlayerService {
 
     // MARK: - Progress Syncing
 
-    private let offlineProgressQueueKey = "abs_offlineProgressQueue"
+    private let offlineProgressQueueKey = "abp_offlineProgressQueue"
     private var isFlushingQueue = false
 
     private func queueOfflineProgress(item: ProgressSyncQueueItem) {
@@ -778,7 +778,7 @@ public class AudioPlayerService {
 
     // MARK: - Bookmarks
 
-    private let bookmarksKeyPrefix = "abs_bookmarks_"
+    private let bookmarksKeyPrefix = "abp_bookmarks_"
 
     public func getBookmarks(for libraryItemId: String) -> [Bookmark] {
         guard let data = UserDefaults.standard.data(forKey: bookmarksKeyPrefix + libraryItemId),

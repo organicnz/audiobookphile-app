@@ -714,9 +714,9 @@ public final class KeychainManager: Sendable {
     public static let shared = KeychainManager()
     private init() {}
 
-    private let serverURLKey = "abs_serverURL"
-    private let tokenKey = "abs_token"
-    private let refreshTokenKey = "abs_refreshToken"
+    private let serverURLKey = "abp_serverURL"
+    private let tokenKey = "abp_token"
+    private let refreshTokenKey = "abp_refreshToken"
 
     public func saveCredentials(serverURL: String, token: String, refreshToken: String) throws {
         #if !SKIP && !os(Android)

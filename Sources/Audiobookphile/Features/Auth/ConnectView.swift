@@ -282,7 +282,7 @@ class ConnectViewModel {
     }
 
     private func loadRecentServers() {
-        if let data = UserDefaults.standard.data(forKey: "abs_recent_servers"),
+        if let data = UserDefaults.standard.data(forKey: "abp_recent_servers"),
            let list = try? JSONDecoder().decode([RecentServer].self, from: data) {
             recentServers = list
         }
@@ -295,7 +295,7 @@ class ConnectViewModel {
         recentServers = Array(servers.prefix(5))
 
         if let data = try? JSONEncoder().encode(recentServers) {
-            UserDefaults.standard.set(data, forKey: "abs_recent_servers")
+            UserDefaults.standard.set(data, forKey: "abp_recent_servers")
         }
     }
 }

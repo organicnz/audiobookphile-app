@@ -2,14 +2,14 @@
 
 **Effective Date:** 2026-06-11
 
-Audiobookphile is a completely free and open-source application designed to interface with your own self-hosted Audiobookshelf server. We believe your library is your private property.
+Audiobookphile is a completely free and open-source application designed to interface with your own self-hosted Audiobookphile ecosystem. We believe your library is your private property.
 
 ## 1. Data Collection
 **We collect absolutely zero data.** 
 Audiobookphile does not contain any third-party tracking APIs, analytics SDKs, or crash-reporting telemetry. We do not track your reading habits, IP address, or usage statistics.
 
 ## 2. Server Communication
-The app only communicates directly with the URL of the self-hosted Audiobookshelf server that you explicitly provide. No data is ever routed through, intercepted by, or stored on our servers, because we do not have any servers.
+The app only communicates directly with the URL of the self-hosted Audiobookphile backend that you explicitly provide. No data is ever routed through, intercepted by, or stored on our servers, because we do not have any servers.
 
 ## 3. Local Storage (UserDefaults)
 To function, the app stores your server URL, authentication tokens (if applicable), and local preferences (like playback speed or sleep timer configurations) securely on your device using Apple's standard `UserDefaults` and `Keychain` APIs. This data never leaves your device except to communicate with your specified server.
