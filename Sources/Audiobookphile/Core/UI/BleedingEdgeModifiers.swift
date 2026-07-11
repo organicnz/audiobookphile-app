@@ -18,7 +18,7 @@ public extension View {
         self
         #endif
     }
-    
+
     @ViewBuilder
     func applyPlayPauseSymbolEffect(isPlaying: Bool) -> some View {
         #if os(iOS) && !SKIP
@@ -31,7 +31,7 @@ public extension View {
         self
         #endif
     }
-    
+
     @ViewBuilder
     func applyConnectPulseEffect(isAnimating: Bool) -> some View {
         #if os(iOS) && !SKIP
@@ -44,7 +44,7 @@ public extension View {
         self
         #endif
     }
-    
+
     @ViewBuilder
     func applySensoryFeedback<T: Equatable>(trigger: T) -> some View {
         #if os(iOS) && !SKIP
@@ -57,7 +57,7 @@ public extension View {
         self
         #endif
     }
-    
+
     @ViewBuilder
     func applyToolbarAdapters(isLight: Bool, isHidden: Bool) -> some View {
         #if os(iOS) && !SKIP

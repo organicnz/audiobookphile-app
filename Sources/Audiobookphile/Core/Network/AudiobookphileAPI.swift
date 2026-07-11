@@ -33,21 +33,21 @@ public actor AudiobookphileAPI {
         let isDirectSupabase = baseURL.contains(".supabase.co") || baseURL.contains("54321")
         let isVercelProxy = baseURL.contains("vercel.app") || baseURL.hasSuffix("/api")
         let isSupabaseBackend = isDirectSupabase || isVercelProxy
-        
+
         var base = baseURL
         if isDirectSupabase && !baseURL.contains("/functions/v1") {
             base = "\(baseURL)/functions/v1"
         }
-        
+
         var adjustedPath = path
         if isSupabaseBackend && (path.starts(with: "/login") || path.starts(with: "/auth/refresh")) {
             adjustedPath = "/api\(path)"
         }
-        
+
         if base.hasSuffix("/api") && adjustedPath.starts(with: "/api") {
             adjustedPath = String(adjustedPath.dropFirst(4))
         }
-        
+
         return "\(base)\(adjustedPath)"
     }
 
@@ -93,7 +93,7 @@ public actor AudiobookphileAPI {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
         let anonKey = EnvironmentConfig.supabaseAnonKey
         if !anonKey.isEmpty {
             request.setValue(anonKey, forHTTPHeaderField: "apikey")
@@ -164,12 +164,12 @@ public actor AudiobookphileAPI {
         let task = Task<Void, Error> {
             try await self.performRefreshToken()
         }
-        
+
         refreshTask = task
         defer { refreshTask = nil }
         return try await task.value
     }
-    
+
     private func performRefreshToken() async throws {
         guard !self.refreshToken.isEmpty else {
             throw APIError.noRefreshToken
@@ -184,7 +184,7 @@ public actor AudiobookphileAPI {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(self.refreshToken, forHTTPHeaderField: "x-refresh-token")
-        
+
         let anonKey = EnvironmentConfig.supabaseAnonKey
         if !anonKey.isEmpty {
             request.setValue(anonKey, forHTTPHeaderField: "apikey")
@@ -228,7 +228,7 @@ public actor AudiobookphileAPI {
     private func executeRequest<T: Decodable>(_ request: URLRequest, responseType: T.Type, isRetry: Bool = false) async throws -> T {
         var authRequest = request
         authRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        
+
         let anonKey = EnvironmentConfig.supabaseAnonKey
         if !anonKey.isEmpty {
             authRequest.setValue(anonKey, forHTTPHeaderField: "apikey")
@@ -377,7 +377,7 @@ public actor AudiobookphileAPI {
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         let response = try await executeRequest(request, responseType: SemanticEdgeResponse.self)
-        
+
         if let error = response.error {
             throw APIError.serverError(statusCode: 500, message: error, code: nil)
         }
@@ -386,7 +386,7 @@ public actor AudiobookphileAPI {
         let searchResults = items.map { book in
             SearchResponse.SearchResult(libraryItem: book, matchKey: "title", matchText: book.media.metadata.title)
         }
-        
+
         return SearchResponse(results: searchResults)
     }
 
@@ -441,7 +441,7 @@ public actor AudiobookphileAPI {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        
+
         let anonKey = EnvironmentConfig.supabaseAnonKey
         if !anonKey.isEmpty {
             request.setValue(anonKey, forHTTPHeaderField: "apikey")
@@ -468,9 +468,9 @@ public actor AudiobookphileAPI {
     }
 
     /// Bulk sync playback progress
-    public func bulkSyncProgress(items: [ProgressSyncQueueItem]) async throws {
-        guard !items.isEmpty else { return }
-        
+    public func bulkSyncProgress(items: [ProgressSyncQueueItem]) async throws -> [String] {
+        guard !items.isEmpty else { return [] }
+
         guard let url = URL(string: endpointUrlString(for: "/api/session/bulk-sync")) else {
             throw APIError.invalidResponse
         }
@@ -478,7 +478,7 @@ public actor AudiobookphileAPI {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        
+
         let anonKey = EnvironmentConfig.supabaseAnonKey
         if !anonKey.isEmpty {
             request.setValue(anonKey, forHTTPHeaderField: "apikey")
@@ -498,14 +498,27 @@ public actor AudiobookphileAPI {
             }
             return body
         }
-        
+
         request.httpBody = try JSONSerialization.data(withJSONObject: payloads)
 
-        let (_, response) = try await session.data(for: request)
+        let (data, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse,
               (200...299).contains(httpResponse.statusCode) else {
             throw APIError.syncFailed
+        }
+
+        struct BulkSyncResponse: Codable {
+            let success: Bool
+            let syncedSessionIds: [String]?
+            let error: String?
+        }
+
+        do {
+            let result = try JSONDecoder().decode(BulkSyncResponse.self, from: data)
+            return result.syncedSessionIds ?? []
+        } catch {
+            throw APIError.invalidResponse
         }
     }
 
@@ -518,7 +531,7 @@ public actor AudiobookphileAPI {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        
+
         let anonKey = EnvironmentConfig.supabaseAnonKey
         if !anonKey.isEmpty {
             request.setValue(anonKey, forHTTPHeaderField: "apikey")
@@ -570,19 +583,19 @@ public actor AudiobookphileAPI {
             URLQueryItem(name: "format", value: "jpeg"),
             URLQueryItem(name: "token", value: accessToken)
         ]
-        
+
         if let updated = updatedAt {
             queryItems.append(URLQueryItem(name: "ts", value: "\(Int(updated.timeIntervalSince1970))"))
         } else {
             // Fallback cache buster if updatedAt isn't provided but we want to avoid stale broken redirects
             queryItems.append(URLQueryItem(name: "ts", value: "1"))
         }
-        
+
         let anonKey = EnvironmentConfig.supabaseAnonKey
         if !anonKey.isEmpty {
             queryItems.append(URLQueryItem(name: "apikey", value: anonKey))
         }
-        
+
         components.queryItems = queryItems
         return components.url
     }
@@ -599,34 +612,34 @@ public actor AudiobookphileAPI {
     }
 
     // MARK: - Preferences
-    
+
     public struct PreferencesResponse: Codable, Sendable {
         public let preferences: AppSettings?
     }
-    
+
     public func getPreferences() async throws -> AppSettings {
         guard let url = URL(string: endpointUrlString(for: "/api/users/me/preferences")) else {
             throw APIError.invalidResponse
         }
-        
+
         let request = URLRequest(url: url)
-        
+
         let response = try await executeRequest(request, responseType: PreferencesResponse.self)
         return response.preferences ?? AppSettings()
     }
-    
+
     public func updatePreferences(_ settings: AppSettings) async throws -> AppSettings {
         guard let url = URL(string: endpointUrlString(for: "/api/users/me/preferences")) else {
             throw APIError.invalidResponse
         }
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = "PATCH"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
         let encoder = JSONEncoder()
         request.httpBody = try encoder.encode(settings)
-        
+
         let response = try await executeRequest(request, responseType: PreferencesResponse.self)
         return response.preferences ?? settings
     }

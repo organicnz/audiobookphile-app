@@ -194,7 +194,7 @@ public struct AudioPlayerView: View {
             }
 
             Spacer()
-            
+
             Button {
                 withAnimation {
                     isUiLocked.toggle()
@@ -249,7 +249,7 @@ public struct AudioPlayerView: View {
             Image("BookPlaceholder", bundle: .module)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
-            
+
             Color.black.opacity(0.15)
         }
         .clipShape(RoundedRectangle(cornerRadius: 20))
@@ -521,4 +521,3 @@ public struct AudioPlayerView: View {
         .accessibilityAddTraits(.isButton)
     }
 }
-

@@ -36,23 +36,23 @@ public struct AccountView: View {
                                         .foregroundStyle(.white)
                                 }
                                 .shadow(color: .appPrimary.opacity(0.3), radius: 20)
-                            
+
                             Text(user.username)
                                 .font(.title)
                                 .fontWeight(.bold)
                                 .foregroundStyle(.white)
-                            
+
                             Text("Account Type: \(user.type.capitalized)")
                                 .font(.subheadline)
                                 .foregroundStyle(.white.opacity(0.6))
                         }
                         .padding(.top, 40)
-                        
+
                         SettingsSection(title: "Account Details") {
                             SettingsRow(icon: "person.circle", title: "User ID", value: user.id) {}
                             SettingsRow(icon: "server.rack", title: "Server", value: viewModel.serverURL) {}
                         }
-                        
+
                         // Navigation to Stats
                         NavigationLink(destination: StatsView()) {
                             HStack {
@@ -70,7 +70,7 @@ public struct AccountView: View {
                             .background(.ultraThinMaterial)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
-                        
+
                         Button {
                             viewModel.logout()
                         } label: {

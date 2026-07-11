@@ -7,12 +7,12 @@ import Observation
 @MainActor
 public class PlayerCoordinator {
     public static let shared = PlayerCoordinator()
-    
+
     /// Controls whether the full-screen audio player is visible.
     public var isPlayerPresented: Bool = false
-    
+
     private init() {}
-    
+
     /// Safely presents the player with an optional delay to allow current modal dismissals to complete.
     /// This prevents the "black screen" bug in SwiftUI when transitioning between sheets/covers.
     public func presentPlayer(delayMilliseconds: Int = 300) {
@@ -25,7 +25,7 @@ public class PlayerCoordinator {
             self.isPlayerPresented = true
         }
     }
-    
+
     /// Dismisses the player.
     public func dismissPlayer() {
         self.isPlayerPresented = false

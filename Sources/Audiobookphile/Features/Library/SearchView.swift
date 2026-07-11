@@ -17,8 +17,8 @@ public struct SearchView: View {
     @State var query = ""
     @State var results: [Book] = []
     @State var isSearching = false
-    @State var searchTask: Task<Void, Never>? = nil
-    @State var selectedBook: Book? = nil
+    @State var searchTask: Task<Void, Never>?
+    @State var selectedBook: Book?
     @State var useSemanticSearch = false
 
     // Recent searches (mock for now, would use UserDefaults)
@@ -80,7 +80,7 @@ public struct SearchView: View {
                 placement: .automatic,
                 prompt: "Title, Author, or Series"
             )
-            .onChange(of: query) { oldValue, newValue in
+            .onChange(of: query) { _, newValue in
                 performSearch(newValue)
             }
             .sheet(item: $selectedBook) { book in
@@ -232,11 +232,11 @@ public struct SearchView: View {
             do {
                 let libraryId = await MainActor.run { appState.currentLibraryId ?? "" }
                 let isSemantic = await MainActor.run { useSemanticSearch }
-                
-                let response = try await isSemantic 
-                    ? AudiobookphileAPI.shared.searchSemantic(query: text) 
+
+                let response = try await isSemantic
+                    ? AudiobookphileAPI.shared.searchSemantic(query: text)
                     : AudiobookphileAPI.shared.searchLibrary(libraryId: libraryId, query: text)
-                
+
                 await MainActor.run {
                     self.results = response.results.map { $0.libraryItem }
                     self.isSearching = false

@@ -16,7 +16,7 @@ struct GlassCard<Content: View>: View {
     var borderOpacity: Double = 0.2
     var shadowRadius: CGFloat = 10
     var shadowY: CGFloat = 5
-    
+
     init(
         padding: CGFloat = 16,
         cornerRadius: CGFloat = 20,
@@ -34,7 +34,7 @@ struct GlassCard<Content: View>: View {
         self.shadowRadius = shadowRadius
         self.shadowY = shadowY
     }
-    
+
     var body: some View {
         content
             .padding(padding)
@@ -83,7 +83,7 @@ struct GlassCardModifier: ViewModifier {
     let padding: CGFloat
     let cornerRadius: CGFloat
     let material: Material
-    
+
     func body(content: Content) -> some View {
         GlassCard(
             padding: padding,

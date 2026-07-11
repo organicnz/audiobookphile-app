@@ -32,13 +32,13 @@ public struct MainTabView: View {
     @Environment(AppState.self) private var appState
     @Environment(AudioPlayerService.self) private var audioPlayer
     @Environment(PlayerCoordinator.self) private var playerCoordinator
-    
+
     // Value-based navigation paths for deep linking
     @State private var libraryPath = NavigationPath()
     @State private var searchPath = NavigationPath()
     @State private var downloadsPath = NavigationPath()
     @State private var settingsPath = NavigationPath()
-    
+
     public init() {}
 
     public var body: some View {

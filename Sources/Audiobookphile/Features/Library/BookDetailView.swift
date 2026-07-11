@@ -11,30 +11,30 @@ public struct BookDetailView: View {
     public let book: Book
     @Environment(\.dismiss) var dismiss
     @Environment(AppState.self) private var appState
-    
+
     @State var detailedBook: Book?
     @State var isLoading = true
-    @State private var playbackError: String? = nil
+    @State private var playbackError: String?
     @State private var showPlaybackError = false
     @State private var isStartingPlayback = false
     @State var isDescriptionExpanded = false
     @State var colorLoader = DynamicColorLoader()
     @ObservedObject var downloadService = DownloadService.shared
-    
+
     public init(book: Book) {
         self.book = book
     }
-    
+
     public var body: some View {
         ZStack {
             // Background
             backgroundLayer
-            
+
             ScrollView {
                 VStack(spacing: 24) {
                     // Back / Close handle
                     dragHandle
-                    
+
                     if isLoading {
                         loadingState
                     } else if let detailed = detailedBook {
@@ -42,7 +42,7 @@ public struct BookDetailView: View {
                     } else {
                         errorState
                     }
-                    
+
                     Spacer(minLength: 40)
                 }
                 .padding(.horizontal, 20)
@@ -58,15 +58,15 @@ public struct BookDetailView: View {
             await fetchDetails()
         }
     }
-    
+
     // MARK: - Background Layer
-    
+
     private var backgroundLayer: some View {
         ZStack {
             if colorLoader.isLoaded {
                 colorLoader.backgroundColor
                     .ignoresSafeArea()
-                
+
                 LinearGradient(
                     colors: [
                         colorLoader.backgroundColor.opacity(0.6),
@@ -81,12 +81,12 @@ public struct BookDetailView: View {
                 Color.appBackground
                     .ignoresSafeArea()
             }
-            
+
             Color.appBackground.opacity(0.75)
                 .ignoresSafeArea()
         }
     }
-    
+
     private var dragHandle: some View {
         Capsule()
             .fill(.white.opacity(0.3))
@@ -94,9 +94,9 @@ public struct BookDetailView: View {
             .padding(.top, 12)
             .padding(.bottom, 8)
     }
-    
+
     // MARK: - Loading State
-    
+
     private var loadingState: some View {
         VStack(spacing: 20) {
             Spacer(minLength: 100)
@@ -109,9 +109,9 @@ public struct BookDetailView: View {
             Spacer(minLength: 100)
         }
     }
-    
+
     // MARK: - Error State
-    
+
     private var errorState: some View {
         VStack(spacing: 16) {
             Spacer(minLength: 100)
@@ -132,14 +132,14 @@ public struct BookDetailView: View {
             Spacer(minLength: 100)
         }
     }
-    
+
     // MARK: - Book Content
-    
+
     private func bookDetailsContent(_ detailed: Book) -> some View {
         VStack(spacing: 24) {
             // Large Cover Art
             coverArtSection(detailed)
-            
+
             // Title & Authors
             VStack(spacing: 6) {
                 Text(detailed.title)
@@ -147,14 +147,14 @@ public struct BookDetailView: View {
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.white)
-                
+
                 if let author = detailed.author {
                     Text("by \(author)")
                         .font(.headline)
                         .foregroundStyle(Color.appPrimary)
                         .multilineTextAlignment(.center)
                 }
-                
+
                 if let narrator = detailed.media.metadata.narratorName {
                     Text("Narrated by \(narrator)")
                         .font(.subheadline)
@@ -162,30 +162,30 @@ public struct BookDetailView: View {
                         .multilineTextAlignment(.center)
                 }
             }
-            
+
             // Play & Download Actions
             actionButtonsSection(detailed)
-            
+
             // Missing Files Warning
             if detailed.isMissing == true {
                 missingFilesWarning
             }
-            
+
             // Metadata Stats Row
             statsRowSection(detailed)
-            
+
             // Description (Expandable)
             if let description = detailed.description, !description.isEmpty {
                 descriptionSection(description)
             }
-            
+
             // Chapters List
             if !detailed.chapters.isEmpty {
                 chaptersSection(detailed)
             }
         }
     }
-    
+
     private func coverArtSection(_ detailed: Book) -> some View {
         SmartAsyncImage(url: appState.getCoverURL(itemId: detailed.id, width: 600, updatedAt: detailed.updatedAt)) { image in
             image
@@ -198,19 +198,19 @@ public struct BookDetailView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: .black.opacity(0.5), radius: 20, y: 10)
     }
-    
+
     private var placeholderCover: some View {
         ZStack {
             Image("BookPlaceholder", bundle: .module)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
-            
+
             Color.black.opacity(0.15)
         }
         .frame(width: 160, height: 240)
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
-    
+
     private func actionButtonsSection(_ detailed: Book) -> some View {
         HStack(spacing: 16) {
             // Main Play / Continue Button
@@ -241,7 +241,7 @@ public struct BookDetailView: View {
                 .shadow(color: (detailed.isMissing == true || isStartingPlayback) ? .clear : .appPrimary.opacity(0.3), radius: 10)
             }
             .disabled(detailed.isMissing == true || isStartingPlayback)
-            
+
             // Dynamic Download Button
             if detailed.isMissing == true {
                 Button {
@@ -272,7 +272,7 @@ public struct BookDetailView: View {
                         .background(.white.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
-                    
+
                 case .downloading:
                     Button {
                         downloadService.cancelDownload(bookId: detailed.id)
@@ -289,7 +289,7 @@ public struct BookDetailView: View {
                         .background(.white.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
-                    
+
                 case .completed:
                     Button {
                         try? downloadService.deleteDownload(bookId: detailed.id)
@@ -301,7 +301,7 @@ public struct BookDetailView: View {
                             .background(.white.opacity(0.1))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
-                    
+
                 case .failed:
                     Button {
                         Task {
@@ -345,13 +345,13 @@ public struct BookDetailView: View {
             }
         }
     }
-    
+
     private var missingFilesWarning: some View {
         HStack(spacing: 12) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.title2)
                 .foregroundStyle(.red)
-            
+
             VStack(alignment: .leading, spacing: 4) {
                 Text("Missing Audio Files")
                     .font(.headline)
@@ -369,7 +369,7 @@ public struct BookDetailView: View {
                 .strokeBorder(.red.opacity(0.5), lineWidth: 1)
         )
     }
-    
+
     private func statsRowSection(_ detailed: Book) -> some View {
         HStack(spacing: 12) {
             statBadge(icon: "clock", value: formatDuration(detailed.duration), label: "Duration")
@@ -379,7 +379,7 @@ public struct BookDetailView: View {
             statBadge(icon: "list.bullet", value: "\(detailed.chapters.count)", label: "Chapters")
         }
     }
-    
+
     private func statBadge(icon: String, value: String, label: String) -> some View {
         VStack(spacing: 4) {
             Image(systemName: icon)
@@ -397,19 +397,19 @@ public struct BookDetailView: View {
         .padding(.vertical, 8)
         .glassCard()
     }
-    
+
     private func descriptionSection(_ text: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Synopsis")
                 .font(.headline)
                 .foregroundStyle(.white)
-            
+
             Text(cleanHTML(text))
                 .font(.body)
                 .foregroundStyle(.white.opacity(0.8))
                 .lineLimit(isDescriptionExpanded ? nil : 4)
                 .animation(.easeInOut, value: isDescriptionExpanded)
-            
+
             Button {
                 isDescriptionExpanded.toggle()
             } label: {
@@ -421,14 +421,14 @@ public struct BookDetailView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .glassCard()
     }
-    
+
     private func chaptersSection(_ detailed: Book) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Chapters")
                 .font(.headline)
                 .foregroundStyle(.white)
                 .padding(.horizontal, 4)
-            
+
             VStack(spacing: 8) {
                 ForEach(detailed.chapters) { chapter in
                     Button {
@@ -440,9 +440,9 @@ public struct BookDetailView: View {
                                 .fontWeight(.medium)
                                 .foregroundStyle(.white)
                                 .multilineTextAlignment(.leading)
-                            
+
                             Spacer()
-                            
+
                             Text(formatDuration(chapter.duration))
                                 .font(.caption.monospaced())
                                 .foregroundStyle(.secondary)
@@ -456,9 +456,9 @@ public struct BookDetailView: View {
             }
         }
     }
-    
+
     // MARK: - Operations / Helpers
-    
+
     private func fetchDetails() async {
         isLoading = true
         do {
@@ -474,28 +474,28 @@ public struct BookDetailView: View {
         }
         isLoading = false
     }
-    
+
     private func playBook(_ detailed: Book, seekToTime: TimeInterval? = nil) {
         Task {
             isStartingPlayback = true
             defer { isStartingPlayback = false }
             do {
                 let session = try await AudiobookphileAPI.shared.startPlaybackSession(libraryItemId: detailed.id)
-                
+
                 // If a seek time is supplied (e.g. from tapping a chapter), store it before starting
                 if let seekTime = seekToTime {
                     UserDefaults.standard.set(seekTime, forKey: "pendingSeekTime-\(session.id)")
                 }
-                
+
                 // Actually start playback (loads tracks, sets up AVPlayer, starts playing)
                 AudioPlayerService.shared.startPlayback(session: session)
-                
+
                 dismiss()
-                
+
                 // Open full player using the Coordinator with a slight delay
                 // to allow the dismissal animation to complete.
                 PlayerCoordinator.shared.presentPlayer(delayMilliseconds: 500)
-                
+
             } catch {
                 print("Failed to start playback session: \(error)")
                 playbackError = error.localizedDescription
@@ -503,14 +503,14 @@ public struct BookDetailView: View {
             }
         }
     }
-    
+
     private func hasProgress(_ detailed: Book) -> Bool {
         if let progress = detailed.userMediaProgress, !progress.isFinished, progress.progress > 0 {
             return true
         }
         return false
     }
-    
+
     private func formatDuration(_ duration: TimeInterval) -> String {
         let hours = Int(duration) / 3600
         let minutes = (Int(duration) % 3600) / 60
@@ -520,7 +520,7 @@ public struct BookDetailView: View {
             return "\(minutes)m"
         }
     }
-    
+
     private func cleanHTML(_ html: String) -> String {
         // Strip basic HTML tag patterns for cleaner text display
         html.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)

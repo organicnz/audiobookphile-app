@@ -7,7 +7,7 @@ public struct GlassIconButton: View {
     public var fill: Bool = false
     public var size: ButtonSize = .medium
     public var color: Color = .white
-    public var label: String? = nil
+    public var label: String?
     public let action: () -> Void
 
     public enum ButtonSize {
@@ -69,11 +69,10 @@ public struct GlassIconButton: View {
     }
 }
 
-
 public struct BookmarksListView: View {
     var viewModel: AudioPlayerViewModel
     @Environment(\.dismiss) var dismiss
-    
+
     public var body: some View {
         NavigationStack {
             List {

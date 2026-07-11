@@ -8,10 +8,11 @@ import BackgroundTasks
 /// A logger for the Audiobookphile module.
 let logger: Logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Audiobookphile", category: "Audiobookphile")
 
+/* SKIP @bridge */
 /// The shared top-level view for the app, loaded from the platform-specific App delegates below.
 ///
 /// The default implementation merely loads the `ContentView` for the app and logs a message.
-/* SKIP @bridge */public struct AudiobookphileRootView : View {
+public struct AudiobookphileRootView: View {
     @State private var appState = AppState.shared
     @State private var audioPlayer = AudioPlayerService.shared
     @State private var playerCoordinator = PlayerCoordinator.shared
@@ -25,15 +26,18 @@ let logger: Logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Audioboo
             .environment(audioPlayer)
             .environment(playerCoordinator)
             .task {
-                logger.info("Skip app logs are viewable in the Xcode console for iOS; Android logs can be viewed in Studio or using adb logcat")
+                logger.info(
+                    "Skip app logs are viewable in the Xcode console for iOS; Android logs via Studio/adb logcat"
+                )
             }
     }
 }
 
+/* SKIP @bridge */
 /// Global application delegate functions.
 ///
 /// These functions can update a shared observable object to communicate app state changes to interested views.
-/* SKIP @bridge */public final class AudiobookphileAppDelegate : Sendable {
+public final class AudiobookphileAppDelegate: Sendable {
     /* SKIP @bridge */public static let shared = AudiobookphileAppDelegate()
 
     private init() {
@@ -41,22 +45,33 @@ let logger: Logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Audioboo
 
     /* SKIP @bridge */public func onInit() {
         logger.debug("onInit")
-        
+
         #if !SKIP && os(iOS)
-        BGTaskScheduler.shared.register(forTaskWithIdentifier: "club.foodshare.audiobookphile.progress-sync", using: nil) { task in
+        BGTaskScheduler.shared.register(
+            forTaskWithIdentifier: "club.foodshare.audiobookphile.progress-sync",
+            using: nil
+        ) { task in
             guard let processingTask = task as? BGProcessingTask else { return }
             self.handleProgressSync(task: processingTask)
         }
         #endif
-        
+
         // Configure global URLCache for AsyncImage and network requests
         let memoryCapacity = 50 * 1024 * 1024 // 50 MB
         let diskCapacity = 200 * 1024 * 1024 // 200 MB
         #if os(iOS)
-        URLCache.shared = URLCache(memoryCapacity: memoryCapacity, diskCapacity: diskCapacity, diskPath: "audiobookphile_images")
+        URLCache.shared = URLCache(
+            memoryCapacity: memoryCapacity,
+            diskCapacity: diskCapacity,
+            diskPath: "audiobookphile_images"
+        )
         #else
         // Configure for Skip if needed, but URLCache.shared works natively on most platforms.
-        URLCache.shared = URLCache(memoryCapacity: memoryCapacity, diskCapacity: diskCapacity, diskPath: "audiobookphile_images")
+        URLCache.shared = URLCache(
+            memoryCapacity: memoryCapacity,
+            diskCapacity: diskCapacity,
+            diskPath: "audiobookphile_images"
+        )
         #endif
     }
 
@@ -93,7 +108,7 @@ let logger: Logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Audioboo
         task.expirationHandler = {
             // OS requested us to stop early
         }
-        
+
         let sendableTask = UncheckedSendableTask(task: task)
         Task {
             await AudioPlayerService.shared.flushOfflineProgressQueue()

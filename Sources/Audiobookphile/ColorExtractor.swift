@@ -202,7 +202,7 @@ public class DynamicColorLoader {
     public func loadColor(from url: URL?) async {
         isLoaded = true
     }
-    
+
     // Stub to avoid compilation issues in macOS
     #if canImport(AppKit)
     public func loadColor(from image: NSImage) {

@@ -11,26 +11,26 @@ import SwiftUI
 struct GlassParticlesView: View {
     @State var particles: [Particle] = []
     @ObservedObject var proMotion = ProMotionManager.shared
-    
+
     let particleCount: Int
     let colors: [Color]
-    
+
     init(particleCount: Int = 20, colors: [Color] = [.white, .appPrimary, .appAccent]) {
         self.particleCount = particleCount
         self.colors = colors
     }
-    
+
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { timeline in
             Canvas { context, size in
                 let date = timeline.date.timeIntervalSinceReferenceDate
-                
+
                 for particle in particles {
                     let phase = date * particle.speed + particle.offset
-                    
+
                     let x = particle.startX + sin(phase) * particle.amplitude
                     let y = particle.startY + (date * particle.verticalSpeed).truncatingRemainder(dividingBy: size.height)
-                    
+
                     let point = CGPoint(x: x, y: y)
                     let rect = CGRect(
                         x: point.x - particle.size / 2,
@@ -38,14 +38,14 @@ struct GlassParticlesView: View {
                         width: particle.size,
                         height: particle.size
                     )
-                    
+
                     // Draw particle with blur
                     context.opacity = particle.opacity
                     context.fill(
                         Circle().path(in: rect),
                         with: .color(particle.color)
                     )
-                    
+
                     // Glow effect
                     context.opacity = particle.opacity * 0.3
                     context.fill(
@@ -61,7 +61,7 @@ struct GlassParticlesView: View {
         }
         .drawingGroup() // Metal acceleration
     }
-    
+
     private func generateParticles() {
         #if os(iOS) && !SKIP
         let screenWidth = UIScreen.main.bounds.width
@@ -71,7 +71,7 @@ struct GlassParticlesView: View {
         let screenHeight: CGFloat = 844
         #endif
 
-        particles = (0..<particleCount).map { index in
+        particles = (0..<particleCount).map { _ in
             Particle(
                 startX: CGFloat.random(in: 0...screenWidth),
                 startY: CGFloat.random(in: 0...screenHeight),

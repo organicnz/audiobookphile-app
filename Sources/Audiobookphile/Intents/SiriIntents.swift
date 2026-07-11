@@ -49,7 +49,7 @@ public struct AudiobookphileShortcuts: AppShortcutsProvider {
             shortTitle: "Play Audiobook",
             systemImageName: "play.circle.fill"
         )
-        
+
         AppShortcut(
             intent: PauseAudiobookIntent(),
             phrases: [

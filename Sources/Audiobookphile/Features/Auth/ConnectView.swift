@@ -175,12 +175,12 @@ public struct ConnectView: View {
                 let generator = UIImpactFeedbackGenerator(style: .medium)
                 generator.impactOccurred()
                 #endif
-                
+
                 Task {
                     do {
                         let trimmedURL = serverURL.trimmingCharacters(in: .whitespacesAndNewlines)
                         let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
-                        
+
                         try await appState.login(
                             serverURL: trimmedURL,
                             username: trimmedUsername,
@@ -417,26 +417,26 @@ public struct FluidAuraBackground: View {
     public var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            
+
             // Background base
             Color(red: 0.05, green: 0.05, blue: 0.08).ignoresSafeArea()
-            
+
             GeometryReader { proxy in
                 let w = proxy.size.width
                 let h = proxy.size.height
-                
+
                 Circle()
                     .fill(Color.appPrimary.opacity(0.5))
                     .frame(width: w * 0.9)
                     .offset(x: sin(phase) * w * 0.25, y: cos(phase) * h * 0.2)
                     .blur(radius: 90)
-                
+
                 Circle()
                     .fill(Color.appSecondary.opacity(0.4))
                     .frame(width: w * 0.8)
                     .offset(x: cos(phase + .pi/2) * w * 0.2, y: sin(phase + .pi/2) * h * 0.25)
                     .blur(radius: 90)
-                
+
                 Circle()
                     .fill(Color.purple.opacity(0.3))
                     .frame(width: w)

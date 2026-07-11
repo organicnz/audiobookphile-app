@@ -2,16 +2,16 @@ import SwiftUI
 
 public struct SleepTimerView: View {
     @Environment(\.dismiss) var dismiss
-    
+
     // Using simple options for now, this can integrate with AudioPlayerViewModel
     public let onSetTimer: (TimeInterval?) -> Void
     public let onSetEndOfChapter: () -> Void
-    
+
     public init(onSetTimer: @escaping (TimeInterval?) -> Void, onSetEndOfChapter: @escaping () -> Void) {
         self.onSetTimer = onSetTimer
         self.onSetEndOfChapter = onSetEndOfChapter
     }
-    
+
     public var body: some View {
         NavigationStack {
             List {
@@ -24,7 +24,7 @@ public struct SleepTimerView: View {
                             .foregroundStyle(.primary)
                     }
                 }
-                
+
                 Section {
                     Button {
                         onSetTimer(15 * 60)
@@ -33,7 +33,7 @@ public struct SleepTimerView: View {
                         Text("15 Minutes")
                             .foregroundStyle(.primary)
                     }
-                    
+
                     Button {
                         onSetTimer(30 * 60)
                         dismiss()
@@ -41,7 +41,7 @@ public struct SleepTimerView: View {
                         Text("30 Minutes")
                             .foregroundStyle(.primary)
                     }
-                    
+
                     Button {
                         onSetTimer(60 * 60)
                         dismiss()
@@ -52,7 +52,7 @@ public struct SleepTimerView: View {
                 } header: {
                     Text("Time")
                 }
-                
+
                 Section {
                     Button {
                         onSetEndOfChapter()

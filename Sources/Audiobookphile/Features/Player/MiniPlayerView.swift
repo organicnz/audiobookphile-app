@@ -34,7 +34,6 @@ public struct MiniPlayerView: View {
             .frame(width: 44, height: 44)
             .clipShape(RoundedRectangle(cornerRadius: 6))
 
-
             VStack(alignment: .leading, spacing: 2) {
                 Text(audioPlayer.session?.displayTitle ?? "Sample Book Title")
                     .font(.subheadline.bold())
@@ -67,13 +66,13 @@ public struct MiniPlayerView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        
+
         // Progress Bar
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
                 Rectangle()
                     .fill(Color.white.opacity(0.1))
-                
+
                 Rectangle()
                     .fill(Color.appPrimary)
                     .frame(width: max(0, min(geometry.size.width, geometry.size.width * CGFloat(audioPlayer.duration > 0 ? audioPlayer.currentTime / audioPlayer.duration : 0))))

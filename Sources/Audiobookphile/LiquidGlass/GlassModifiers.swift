@@ -12,7 +12,7 @@ struct GlassBackgroundModifier: ViewModifier {
     let material: Material
     let cornerRadius: CGFloat
     let borderOpacity: Double
-    
+
     func body(content: Content) -> some View {
         content
             .background {
@@ -56,7 +56,7 @@ struct LiquidGradientModifier: ViewModifier {
     let colors: [Color]
     let startPoint: UnitPoint
     let endPoint: UnitPoint
-    
+
     func body(content: Content) -> some View {
         content
             .background {
@@ -87,7 +87,7 @@ extension View {
 // MARK: - Glass Overlay Modifier
 struct GlassOverlayModifier: ViewModifier {
     let opacity: Double
-    
+
     func body(content: Content) -> some View {
         content
             .overlay {
@@ -109,7 +109,7 @@ extension View {
 struct AnimatedGlassModifier: ViewModifier {
     @State var animateGradient = false
     let colors: [Color]
-    
+
     func body(content: Content) -> some View {
         content
             .background {
@@ -147,7 +147,7 @@ extension View {
 struct FrostedGlassModifier: ViewModifier {
     let blur: CGFloat
     let saturation: Double
-    
+
     func body(content: Content) -> some View {
         content
             .blur(radius: blur)
@@ -189,7 +189,7 @@ extension View {
 // MARK: - Shimmer Effect for Glass
 struct ShimmerModifier: ViewModifier {
     @State var phase: CGFloat = 0
-    
+
     func body(content: Content) -> some View {
         content
             .overlay {

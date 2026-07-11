@@ -18,14 +18,14 @@ public struct BookshelfView: View {
     @State var scrollOffset: CGFloat = 0
     @State var selectedBookForDetails: Book?
     @State var showStatsSheet = false
-    
+
     public init() {}
-    
+
     public var body: some View {
         ZStack {
             // Animated background with particles
             backgroundLayer
-            
+
             // Main content
             ScrollView {
                 VStack(spacing: 24) {
@@ -34,12 +34,12 @@ public struct BookshelfView: View {
                         .offset(y: scrollOffset > 0 ? 0 : scrollOffset * 0.4)
                         .blur(radius: max(0, -scrollOffset / 15))
                         .opacity(1.0 - max(0, -scrollOffset / 250))
-                    
+
                     // Continue listening section
                     if !viewModel.continueListening.isEmpty {
                         continueListeningSection
                     }
-                    
+
                     // Main library grid
                     libraryGridSection
                 }
@@ -56,7 +56,7 @@ public struct BookshelfView: View {
                 await viewModel.refresh(libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated)
             }
             #endif
-            
+
             // Search overlay
             if showSearch {
                 searchOverlay
@@ -91,9 +91,9 @@ public struct BookshelfView: View {
             StatsDashboardView()
         }
     }
-    
+
     // MARK: - Background Layer
-    
+
     private var backgroundLayer: some View {
         ZStack {
             // Base gradient
@@ -110,9 +110,9 @@ public struct BookshelfView: View {
         }
         .allowsHitTesting(false)
     }
-    
+
     // MARK: - Header Section
-    
+
     private var headerSection: some View {
         VStack(spacing: 16) {
             // Library name
@@ -120,7 +120,7 @@ public struct BookshelfView: View {
                 .font(.system(size: 42, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
                 .shadow(radius: 10)
-            
+
             // Stats row
             HStack(spacing: 16) {
                 statItem(
@@ -128,13 +128,13 @@ public struct BookshelfView: View {
                     value: "\(viewModel.totalBooks)",
                     label: "Books"
                 )
-                
+
                 statItem(
                     icon: "clock.fill",
                     value: viewModel.totalDurationFormatted,
                     label: "Hours"
                 )
-                
+
                 statItem(
                     icon: "headphones",
                     value: "\(viewModel.inProgressCount)",
@@ -146,27 +146,27 @@ public struct BookshelfView: View {
         }
         .padding(.top, 40)
     }
-    
+
     private func statItem(icon: String, value: String, label: String) -> some View {
         VStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.title3)
                 .foregroundStyle(.cyan)
-            
+
             Text(value)
                 .font(.headline)
                 .fontWeight(.bold)
                 .foregroundStyle(.white)
-            
+
             Text(label)
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
     }
-    
+
     // MARK: - Continue Listening
-    
+
     private var continueListeningSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Continue Listening")
@@ -174,7 +174,7 @@ public struct BookshelfView: View {
                 .fontWeight(.bold)
                 .foregroundStyle(.white)
                 .padding(.horizontal)
-            
+
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
                     ForEach(viewModel.continueListening) { book in
@@ -187,9 +187,9 @@ public struct BookshelfView: View {
             }
         }
     }
-    
+
     // MARK: - Library Grid
-    
+
     private var libraryGridSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Section header
@@ -198,9 +198,9 @@ public struct BookshelfView: View {
                     .font(.title3)
                     .fontWeight(.bold)
                     .foregroundStyle(.white)
-                
+
                 Spacer()
-                
+
                 // Filter/sort button
                 Button(action: viewModel.showFilterOptions) {
                     Image(systemName: "line.3.horizontal.decrease.circle")
@@ -209,7 +209,7 @@ public struct BookshelfView: View {
                 }
             }
             .padding(.horizontal)
-            
+
             // Virtualized grid (optimized for 1000+ books)
             LazyVGrid(
                 columns: [
@@ -234,7 +234,7 @@ public struct BookshelfView: View {
                 }
             }
             .padding(.horizontal)
-            
+
             // Loading indicator
             if viewModel.isLoading {
                 HStack {
@@ -256,7 +256,7 @@ public struct BookshelfView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
-                    
+
                     Button("Log Out") {
                         AppState.shared.logout()
                     }
@@ -271,20 +271,20 @@ public struct BookshelfView: View {
             }
         }
     }
-    
+
     // MARK: - Search Overlay
-    
+
     private var searchOverlay: some View {
         VStack(spacing: 0) {
             // Search bar
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.secondary)
-                
+
                 TextField("Search books...", text: $searchText)
                     .textFieldStyle(.plain)
                     .foregroundStyle(.white)
-                
+
                 if !searchText.isEmpty {
                     Button(action: { searchText = "" }) {
                         Image(systemName: "xmark.circle.fill")
@@ -294,7 +294,7 @@ public struct BookshelfView: View {
             }
             .glassCard()
             .padding()
-            
+
             // Search results
             if !searchText.isEmpty {
                 ScrollView {
@@ -309,12 +309,12 @@ public struct BookshelfView: View {
                     .padding()
                 }
             }
-            
+
             Spacer()
         }
         .background(.ultraThinMaterial)
     }
-    
+
     private var leadingPlacement: ToolbarItemPlacement {
         #if os(iOS) || SKIP
         return .navigationBarLeading
@@ -322,7 +322,7 @@ public struct BookshelfView: View {
         return .navigation
         #endif
     }
-    
+
     private var trailingPlacement: ToolbarItemPlacement {
         #if os(iOS) || SKIP
         return .navigationBarTrailing
@@ -332,7 +332,7 @@ public struct BookshelfView: View {
     }
 
     // MARK: - Toolbar
-    
+
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: leadingPlacement) {
@@ -341,7 +341,7 @@ public struct BookshelfView: View {
                     .foregroundStyle(.white)
             }
         }
-        
+
         ToolbarItem(placement: trailingPlacement) {
             Menu {
                 Menu("Sort & Filter") {
@@ -355,17 +355,17 @@ public struct BookshelfView: View {
                         Label("By Author", systemImage: "person.fill")
                     }
                 }
-                
+
                 Divider()
-                
+
                 Button(action: viewModel.showSettings) {
                     Label("Settings", systemImage: "gear")
                 }
-                
+
                 Button(action: viewModel.showDownloads) {
                     Label("Downloads", systemImage: "arrow.down.circle")
                 }
-                
+
                 Button(action: { showStatsSheet = true }) {
                     Label("Stats", systemImage: "chart.bar")
                 }
@@ -382,12 +382,12 @@ public struct BookshelfView: View {
 public struct ContinueListeningCard: View {
     public let book: Book
     public let onTap: () -> Void
-    
+
     public init(book: Book, onTap: @escaping () -> Void) {
         self.book = book
         self.onTap = onTap
     }
-    
+
     public var body: some View {
         Button(action: {
             #if os(iOS) && !SKIP
@@ -413,7 +413,7 @@ public struct ContinueListeningCard: View {
                         .overlay(Color.black.opacity(0.4))
                         .frame(width: 120, height: 120)
                         .clipped()
-                        
+
                         // Fit image
                         SmartAsyncImage(url: url) { image in
                             image
@@ -430,7 +430,7 @@ public struct ContinueListeningCard: View {
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: 12))
-            
+
             // Title & Progress with strict height
             VStack(alignment: .leading, spacing: 4) {
                 Text(book.title)
@@ -439,15 +439,15 @@ public struct ContinueListeningCard: View {
                     .lineLimit(2)
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.leading)
-                
+
                 if let progress = book.userMediaProgress {
                     HStack {
                         Text("\(Int(progress.progress * 100))%")
                             .font(.caption)
                             .foregroundStyle(.cyan)
-                        
+
                         Spacer()
-                        
+
                         Image(systemName: "play.circle.fill")
                             .foregroundStyle(.cyan)
                     }
@@ -463,16 +463,16 @@ public struct ContinueListeningCard: View {
         }
         .buttonStyle(.plain)
     }
-    
+
     private var fallbackCover: some View {
         ZStack {
             Color(white: 0.2)
-            
+
             VStack(spacing: 6) {
                 Image(systemName: "book.closed.fill")
                     .font(.headline)
                     .foregroundStyle(.white.opacity(0.3))
-                
+
                 Text(book.title)
                     .font(.caption2)
                     .fontWeight(.bold)
@@ -484,7 +484,7 @@ public struct ContinueListeningCard: View {
         }
         .frame(width: 120, height: 120)
     }
-    
+
     private var coverURL: URL? {
         if let path = book.coverPath, path.hasPrefix("http") {
             return URL(string: path)
@@ -503,8 +503,8 @@ public class BookshelfViewModel: ObservableObject {
     @Published public var currentLibrary: Library?
     @Published public var selectedBook: Book?
     @Published public var isLoading = false
-    @Published public var errorMessage: String? = nil
-    
+    @Published public var errorMessage: String?
+
     public var totalBooks: Int { books.count }
     public var inProgressCount: Int { continueListening.count }
     public var coverAspectRatio: CGFloat {
@@ -515,30 +515,30 @@ public class BookshelfViewModel: ObservableObject {
         // Fallback to standard book ratio
         return 1.0 / 1.6
     }
-    
+
     public var totalDurationFormatted: String {
         let totalSeconds = books.reduce(0) { $0 + $1.duration }
         let hours = Int(totalSeconds) / 3600
         return "\(hours)"
     }
-    
-    private var customService: LibraryServiceProtocol? = nil
-    
+
+    private var customService: LibraryServiceProtocol?
+
     public init(service: LibraryServiceProtocol? = nil) {
         self.customService = service
     }
-    
+
     public func loadLibrary(libraryId: String?, isAuthenticated: Bool) async {
         isLoading = true
         errorMessage = nil
-        
+
         let service = customService ?? (isAuthenticated ? LiveLibraryService() : MockLibraryService())
-        
+
         // Sync current library from AppState
         if let id = libraryId {
             self.currentLibrary = AppState.shared.libraries.first { $0.id == id }
         }
-        
+
         do {
             let fetched = try await service.fetchLibraryItems(libraryId: libraryId)
             self.books = fetched
@@ -548,22 +548,22 @@ public class BookshelfViewModel: ObservableObject {
             print("[BookshelfViewModel] Failed to load library items: \(error)")
             self.errorMessage = error.localizedDescription
         }
-        
+
         isLoading = false
     }
-    
+
     public func refresh(libraryId: String?, isAuthenticated: Bool) async {
         await loadLibrary(libraryId: libraryId, isAuthenticated: isAuthenticated)
     }
-    
+
     public func selectBook(_ book: Book) {
         selectedBook = book
     }
-    
+
     public func playBook(_ book: Book) {
         print("Playing: \(book.title)")
     }
-    
+
     public func searchResults(for query: String) -> [Book] {
         guard !query.isEmpty else { return [] }
         return books.filter {
@@ -571,7 +571,7 @@ public class BookshelfViewModel: ObservableObject {
             ($0.author?.localizedCaseInsensitiveContains(query) ?? false)
         }
     }
-    
+
     public func showFilterOptions() {}
     public func showSettings() {}
     public func showDownloads() {}

@@ -28,8 +28,6 @@ public class AudioPlayerViewModel {
     }
     public var chapters: [Chapter] { session.chapters }
 
-
-
     public var isPlaying: Bool {
         AudioPlayerService.shared.isPlaying
     }
@@ -97,7 +95,7 @@ public class AudioPlayerViewModel {
 
     public init(session: PlaybackSession) {
         self.session = session
-        
+
         // Start playback if it's a new or different session
         if AudioPlayerService.shared.session?.id != session.id {
             AudioPlayerService.shared.startPlayback(session: session)
@@ -132,19 +130,18 @@ public class AudioPlayerViewModel {
         }
     }
 
-    
     public var bookmarks: [Bookmark] {
         AudioPlayerService.shared.getBookmarks(for: session.libraryItemId)
     }
-    
+
     public var hasBookmarks: Bool {
         !bookmarks.isEmpty
     }
-    
+
     public func addBookmark(title: String) {
         AudioPlayerService.shared.addBookmark(title: title)
     }
-    
+
     public func deleteBookmark(_ bookmark: Bookmark) {
         AudioPlayerService.shared.deleteBookmark(bookmark)
     }

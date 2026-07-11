@@ -28,42 +28,42 @@ public struct Book: Identifiable, Codable, Hashable, Sendable {
     public let relPath: String?
     public let isMissing: Bool?
     public let libraryFiles: [LibraryFile]?
-    
+
     // Media Info
     public let media: BookMedia
-    
+
     // Metadata
     public var title: String {
         media.metadata.title
     }
-    
+
     public var author: String? {
         media.metadata.authorName
     }
-    
+
     public var description: String? {
         media.metadata.description
     }
-    
+
     public var coverPath: String? {
         media.coverPath
     }
-    
+
     public var duration: TimeInterval {
         media.duration ?? 0
     }
-    
+
     public var chapters: [Chapter] {
         media.chapters ?? []
     }
-    
+
     // Progress
     public let userMediaProgress: MediaProgress?
-    
+
     // Timestamps
     public let addedAt: Date?
     public let updatedAt: Date?
-    
+
     public enum CodingKeys: String, CodingKey {
         case id, libraryId, folderId, path, relPath, media
         case userMediaProgress, addedAt, updatedAt, libraryFiles
@@ -82,7 +82,7 @@ public struct BookMedia: Codable, Hashable, Sendable {
     public let tags: [String]?
     public let audioFiles: [AudioFile]?
     public let ebookFile: EbookFile?
-    
+
     public enum CodingKeys: String, CodingKey {
         case libraryFiles, chapters, duration, size, metadata
         case coverPath, tags, audioFiles, ebookFile
@@ -105,7 +105,7 @@ public struct BookMetadata: Codable, Hashable, Sendable {
     public let asin: String?
     public let language: String?
     public let explicit: Bool
-    
+
     public enum CodingKeys: String, CodingKey {
         case title, subtitle
         case authorName, narratorName, seriesName
@@ -120,7 +120,7 @@ public struct Chapter: Identifiable, Codable, Hashable, Sendable {
     public let title: String
     public let start: TimeInterval
     public let end: TimeInterval
-    
+
     public var duration: TimeInterval {
         end - start
     }
@@ -194,11 +194,11 @@ public struct MediaProgress: Codable, Hashable, Sendable {
     public let lastUpdate: Date
     public let startedAt: Date?
     public let finishedAt: Date?
-    
+
     public var progressPercentage: Int {
         Int(progress * 100)
     }
-    
+
     public var timeRemaining: TimeInterval {
         duration - currentTime
     }
@@ -211,22 +211,22 @@ public struct PlaybackSession: Codable, Sendable {
     public let libraryId: String
     public let libraryItemId: String
     public let episodeId: String?
-    
+
     // Display info
     public let displayTitle: String
     public let displayAuthor: String
     public let coverPath: String?
-    
+
     // Playback info
     public let duration: TimeInterval
     public let playMethod: Int
     public let mediaPlayer: String
     public let mediaType: String
-    
+
     // Audio tracks and chapters
     public var audioTracks: [AudioTrack]
     public let chapters: [Chapter]
-    
+
     // State
     public let currentTime: TimeInterval
     public let playbackRate: Float
@@ -243,7 +243,7 @@ public struct AudioTrack: Identifiable, Codable, Sendable {
     public let contentUrl: String
     public let mimeType: String
     public let codec: String?
-    
+
     public var id: Int {
         index
     }
@@ -261,7 +261,7 @@ public struct Library: Identifiable, Codable, Sendable {
     public let settings: LibrarySettings?
     public let createdAt: Date?
     public let updatedAt: Date?
-    
+
     public enum CodingKeys: String, CodingKey {
         case id, name, folders, displayOrder, icon, mediaType, provider, settings, createdAt
         case updatedAt = "updatedAt"
@@ -308,7 +308,7 @@ public struct Bookmark: Identifiable, Codable, Sendable {
     public let title: String
     public let time: TimeInterval
     public let createdAt: Date
-    
+
     public var id: String {
         "\(libraryItemId)-\(time)"
     }
@@ -375,7 +375,7 @@ public struct ServerConnection: Codable, Sendable {
     public let url: String
     public let name: String?
     public let lastConnected: Date
-    
+
     public var displayName: String {
         name ?? url
     }
@@ -391,14 +391,14 @@ public struct AppSettings: Codable, Sendable {
     public var sleepTimerDefaultTime: Int = 900 // 15 minutes
     public var theme: AppTheme = .system
     public var bookCoverAspectRatio: BookCoverAspectRatio = .square
-    
+
     // UI Settings
     public var autoResume: Bool = true
     public var hapticsEnabled: Bool = true
     public var lockOrientation: Bool = false
-    
+
     public init() {}
-    
+
     public enum CodingKeys: String, CodingKey {
         case jumpForwardTime
         case jumpBackwardsTime
@@ -423,7 +423,7 @@ public enum AppTheme: String, Codable, Sendable {
 public enum BookCoverAspectRatio: Int, Codable, Sendable {
     case standard = 0 // 1:1.6
     case square = 1 // 1:1
-    
+
     #if canImport(CoreGraphics)
     public var ratio: CGFloat {
         self == .square ? 1.0 : (1.0 / 1.6)
@@ -452,7 +452,7 @@ public struct ProgressSyncQueueItem: Codable, Sendable {
     public let duration: TimeInterval
     public let timeListened: TimeInterval
     public let dateAdded: Date
-    
+
     public init(sessionId: String, episodeId: String? = nil, currentTime: TimeInterval, duration: TimeInterval, timeListened: TimeInterval, dateAdded: Date = Date()) {
         self.sessionId = sessionId
         self.episodeId = episodeId
@@ -462,5 +462,3 @@ public struct ProgressSyncQueueItem: Codable, Sendable {
         self.dateAdded = dateAdded
     }
 }
-
-

@@ -2,11 +2,11 @@ import SwiftUI
 
 public struct StatsDashboardView: View {
     let title: String
-    
+
     public init(title: String = "Listening Stats") {
         self.title = title
     }
-    
+
     public var body: some View {
         NavigationStack {
             ScrollView {
@@ -16,14 +16,14 @@ public struct StatsDashboardView: View {
                         .bold()
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal)
-                    
+
                     // Heatmap Mock
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Listening Activity")
                             .font(.headline)
-                        
+
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 7), spacing: 4) {
-                            ForEach(0..<28, id: \.self) { index in
+                            ForEach(0..<28, id: \.self) { _ in
                                 RoundedRectangle(cornerRadius: 4)
                                     .fill(Color.appPrimary.opacity(Double.random(in: 0.2...1.0)))
                                     .aspectRatio(1.0, contentMode: .fit)
@@ -34,12 +34,12 @@ public struct StatsDashboardView: View {
                     .background(Color.white.opacity(0.1))
                     .cornerRadius(12)
                     .padding(.horizontal)
-                    
+
                     // Finished Books Mock
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Finished Books (This Year)")
                             .font(.headline)
-                        
+
                         HStack(alignment: .bottom, spacing: 8) {
                             ForEach([3, 5, 2, 8, 4, 10, 6], id: \.self) { count in
                                 VStack {
@@ -59,7 +59,7 @@ public struct StatsDashboardView: View {
                     .background(Color.white.opacity(0.1))
                     .cornerRadius(12)
                     .padding(.horizontal)
-                    
+
                     Spacer(minLength: 40)
                 }
             }

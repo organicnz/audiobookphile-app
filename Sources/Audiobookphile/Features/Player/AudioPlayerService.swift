@@ -24,13 +24,13 @@ public class AudioPlayerService {
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Audiobookphile", category: "AudioPlayer")
     public static let shared = AudioPlayerService()
 
-    public var session: PlaybackSession? = nil
+    public var session: PlaybackSession?
     public var isPlaying = false
     public var currentTime: TimeInterval = 0
     public var duration: TimeInterval = 0
     public var playbackRate: Float = 1.0
     public var isBuffering = false
-    public var sleepTimerRemaining: TimeInterval? = nil
+    public var sleepTimerRemaining: TimeInterval?
     private var sleepTimer: Timer?
 
     private var currentTrackIndex = 0
@@ -40,18 +40,18 @@ public class AudioPlayerService {
     private var timeObserverToken: Any?
     private var playerItemObserverToken: Any?
     #endif
-    
+
     private var progressSyncTimer: Timer?
     private var lastSyncedTime: TimeInterval = 0
 
     private init() {
         #if os(iOS)
         setupAudioSession()
-        
+
         NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
                 self?.syncProgressImmediately()
-                
+
                 let queue = self?.getOfflineProgressQueue() ?? []
                 if !queue.isEmpty {
                     let request = BGProcessingTaskRequest(identifier: "club.foodshare.audiobookphile.progress-sync")
@@ -66,7 +66,7 @@ public class AudioPlayerService {
                 }
             }
         }
-        
+
         NotificationCenter.default.addObserver(forName: UIApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
                 self?.syncProgressImmediately()
@@ -84,7 +84,7 @@ public class AudioPlayerService {
             let syncTime = self.currentTime
             let syncDuration = self.duration
             let timeListened = max(0, self.currentTime - self.lastSyncedTime)
-            
+
             pause()
             stopSyncTimer()
             stopSleepTimer()
@@ -101,7 +101,7 @@ public class AudioPlayerService {
             player = nil
             #endif
             self.session = nil
-            
+
             #if os(iOS)
             var bgTask: UIBackgroundTaskIdentifier = .invalid
             bgTask = UIApplication.shared.beginBackgroundTask(withName: "closePlaybackSession") {
@@ -124,7 +124,7 @@ public class AudioPlayerService {
                     let item = ProgressSyncQueueItem(sessionId: syncId, episodeId: episodeId, currentTime: syncTime, duration: syncDuration, timeListened: timeListened)
                     queueOfflineProgress(item: item)
                 }
-                
+
                 #if os(iOS)
                 if bgTask != .invalid {
                     UIApplication.shared.endBackgroundTask(bgTask)
@@ -135,7 +135,7 @@ public class AudioPlayerService {
 
         logger.info("startPlayback called - session id: \(session.id)")
         logger.info("duration: \(session.duration), currentTime: \(session.currentTime), tracks: \(session.audioTracks.count)")
-        
+
         // Write debug info to file for diagnostics asynchronously to avoid blocking MainActor
         Task.detached {
             var debugInfo = "[Player] startPlayback called\n"
@@ -191,18 +191,18 @@ public class AudioPlayerService {
 
     public func play() {
         guard session != nil else { return }
-        
+
         #if !SKIP && !os(Android)
         player?.play()
         player?.rate = playbackRate
         #endif
-        
+
         isPlaying = true
-        
+
         #if !SKIP && !os(Android)
         updateNowPlaying(rate: playbackRate)
         #endif
-        
+
         syncWidgetState()
     }
 
@@ -210,13 +210,13 @@ public class AudioPlayerService {
         #if !SKIP && !os(Android)
         player?.pause()
         #endif
-        
+
         isPlaying = false
-        
+
         #if !SKIP && !os(Android)
         updateNowPlaying(rate: 0)
         #endif
-        
+
         // Sync progress immediately on pause
         syncProgressImmediately()
         syncWidgetState()
@@ -232,11 +232,11 @@ public class AudioPlayerService {
 
     public func seek(to time: TimeInterval) {
         guard let session = session else { return }
-        
+
         let targetTime = max(0, min(time, duration))
         self.logger.info("SEEK CALLED: requestedTime=\(time), duration=\(self.duration), targetTime=\(targetTime)")
         self.currentTime = targetTime
-        
+
         // Find the correct track for targetTime
         var targetTrackIndex = session.audioTracks.count > 0 ? session.audioTracks.count - 1 : 0
         var seekTimeWithinTrack = targetTime
@@ -251,7 +251,7 @@ public class AudioPlayerService {
                 break
             }
         }
-        
+
         if targetTrackIndex == session.audioTracks.count - 1 && session.audioTracks.count > 0 {
             let trackStart = session.audioTracks[targetTrackIndex].startOffset
             seekTimeWithinTrack = max(0, targetTime - trackStart)
@@ -308,7 +308,7 @@ public class AudioPlayerService {
             seek(to: 0)
             return
         }
-        
+
         let current = currentTime
         // Find current chapter
         var currentChapterIdx = 0
@@ -318,14 +318,14 @@ public class AudioPlayerService {
                 break
             }
         }
-        
+
         // If we are past the last chapter, pretend we are in the last chapter
         if current >= session.chapters.last!.end {
             currentChapterIdx = session.chapters.count - 1
         }
-        
+
         let chapter = session.chapters[currentChapterIdx]
-        
+
         // If we are less than 4 seconds into the chapter, go to previous chapter
         if current - chapter.start <= 4.0 {
             if currentChapterIdx > 0 {
@@ -342,7 +342,7 @@ public class AudioPlayerService {
     public func jumpNextChapter() {
         guard let session = session, !session.chapters.isEmpty else { return }
         let current = currentTime
-        
+
         for chapter in session.chapters {
             if chapter.start > current + 0.1 { // adding a small delta to avoid rounding issues
                 seek(to: chapter.start)
@@ -511,10 +511,10 @@ public class AudioPlayerService {
                     // Update if the track duration is 0, or if the actual duration is significantly different from the estimate
                     if itemDur > 0 && !itemDur.isNaN && (trackDuration <= 0 || abs(itemDur - trackDuration) > 2) {
                         trackDuration = itemDur
-                        
+
                         // Update session track durations and offsets to enable accurate seeking
                         self.session?.audioTracks[self.currentTrackIndex].duration = itemDur
-                        
+
                         var currentOffset: TimeInterval = 0
                         if let tracks = self.session?.audioTracks {
                             for i in 0..<tracks.count {
@@ -555,7 +555,7 @@ public class AudioPlayerService {
         nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = session.duration
         nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentTime
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = playbackRate
-        
+
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
 
@@ -579,27 +579,27 @@ public class AudioPlayerService {
         let commandCenter = MPRemoteCommandCenter.shared()
 
         commandCenter.playCommand.isEnabled = true
-        commandCenter.playCommand.addTarget { [weak self] event in
+        commandCenter.playCommand.addTarget { [weak self] _ in
             self?.play()
             return .success
         }
 
         commandCenter.pauseCommand.isEnabled = true
-        commandCenter.pauseCommand.addTarget { [weak self] event in
+        commandCenter.pauseCommand.addTarget { [weak self] _ in
             self?.pause()
             return .success
         }
 
         commandCenter.skipForwardCommand.isEnabled = true
         commandCenter.skipForwardCommand.preferredIntervals = [30]
-        commandCenter.skipForwardCommand.addTarget { [weak self] event in
+        commandCenter.skipForwardCommand.addTarget { [weak self] _ in
             self?.skipForward(30)
             return .success
         }
 
         commandCenter.skipBackwardCommand.isEnabled = true
         commandCenter.skipBackwardCommand.preferredIntervals = [10]
-        commandCenter.skipBackwardCommand.addTarget { [weak self] event in
+        commandCenter.skipBackwardCommand.addTarget { [weak self] _ in
             self?.skipBackward(10)
             return .success
         }
@@ -610,7 +610,7 @@ public class AudioPlayerService {
 
     private let offlineProgressQueueKey = "abs_offlineProgressQueue"
     private var isFlushingQueue = false
-    
+
     private func queueOfflineProgress(item: ProgressSyncQueueItem) {
         var queue = getOfflineProgressQueue()
         // If we already have a pending sync for this session, replace it with the latest one
@@ -636,7 +636,7 @@ public class AudioPlayerService {
         }
         logger.info("Queued offline progress for session \(item.sessionId)")
     }
-    
+
     private func removeOfflineProgressItem(sessionId: String, dateAdded: Date) {
         var queue = getOfflineProgressQueue()
         queue.removeAll { $0.sessionId == sessionId && $0.dateAdded == dateAdded }
@@ -644,7 +644,7 @@ public class AudioPlayerService {
             UserDefaults.standard.set(data, forKey: offlineProgressQueueKey)
         }
     }
-    
+
     private func getOfflineProgressQueue() -> [ProgressSyncQueueItem] {
         if let data = UserDefaults.standard.data(forKey: offlineProgressQueueKey),
            let queue = try? JSONDecoder().decode([ProgressSyncQueueItem].self, from: data) {
@@ -652,7 +652,7 @@ public class AudioPlayerService {
         }
         return []
     }
-    
+
     func flushOfflineProgressQueue() async {
         guard !isFlushingQueue else { return }
         isFlushingQueue = true
@@ -661,19 +661,22 @@ public class AudioPlayerService {
         let queue = getOfflineProgressQueue()
         guard !queue.isEmpty else { return }
         guard NetworkMonitor.shared.isConnected else { return }
-        
+
         logger.info("Flushing \(queue.count) offline progress items via Bulk Sync")
-        
+
         do {
-            try await AudiobookphileAPI.shared.bulkSyncProgress(items: queue)
-            logger.info("Bulk offline sync succeeded for \(queue.count) items")
-            
-            // Clear the queue for items that were just synced
-            // We do this by removing all items that have a dateAdded older than or equal to the newest item in this batch
-            // This prevents deleting any new items that might have been queued while the sync was in flight
-            if let latestDateInBatch = queue.map({ $0.dateAdded }).max() {
+            let syncedSessionIds = try await AudiobookphileAPI.shared.bulkSyncProgress(items: queue)
+            logger.info(
+                "Bulk sync completed. Synced \(syncedSessionIds.count) of \(queue.count) items."
+            )
+
+            if !syncedSessionIds.isEmpty {
                 var currentQueue = getOfflineProgressQueue()
-                currentQueue.removeAll { $0.dateAdded <= latestDateInBatch }
+                for item in queue where syncedSessionIds.contains(item.sessionId) {
+                    currentQueue.removeAll {
+                        $0.sessionId == item.sessionId && $0.dateAdded <= item.dateAdded
+                    }
+                }
                 if let data = try? JSONEncoder().encode(currentQueue) {
                     UserDefaults.standard.set(data, forKey: offlineProgressQueueKey)
                 }
@@ -685,7 +688,7 @@ public class AudioPlayerService {
 
     private func startSyncTimer() {
         stopSyncTimer()
-        
+
         // Sync every 15 seconds
         progressSyncTimer = Timer.scheduledTimer(withTimeInterval: 15.0, repeats: true) { [weak self] _ in
             Task { @MainActor in
@@ -702,20 +705,20 @@ public class AudioPlayerService {
 
     private func syncProgress() async {
         guard let session = session else { return }
-        
+
         let elapsedListened = currentTime - lastSyncedTime
         guard elapsedListened >= 1.0 || abs(elapsedListened) > 5.0 else { return }
 
         let timeListenedToSync = elapsedListened > 0 ? elapsedListened : 0
         lastSyncedTime = currentTime
-        
+
         guard NetworkMonitor.shared.isConnected else {
             logger.info("Device offline, queueing sync...")
             let item = ProgressSyncQueueItem(sessionId: session.id, episodeId: session.episodeId, currentTime: currentTime, duration: duration, timeListened: timeListenedToSync)
             queueOfflineProgress(item: item)
             return
         }
-        
+
         do {
             try await AudiobookphileAPI.shared.syncProgress(
                 sessionId: session.id,
@@ -768,16 +771,15 @@ public class AudioPlayerService {
         if trackPath.hasPrefix("http") {
             return URL(string: trackPath)
         }
-        
+
         logger.error("Error: trackPath is not a valid HTTP URL or local path: \\(trackPath)")
         return nil
     }
 
-    
     // MARK: - Bookmarks
-    
+
     private let bookmarksKeyPrefix = "abs_bookmarks_"
-    
+
     public func getBookmarks(for libraryItemId: String) -> [Bookmark] {
         guard let data = UserDefaults.standard.data(forKey: bookmarksKeyPrefix + libraryItemId),
               let bookmarks = try? JSONDecoder().decode([Bookmark].self, from: data) else {
@@ -785,7 +787,7 @@ public class AudioPlayerService {
         }
         return bookmarks.sorted(by: { $0.time < $1.time })
     }
-    
+
     public func addBookmark(title: String) {
         guard let session = session else { return }
         let newBookmark = Bookmark(
@@ -794,24 +796,24 @@ public class AudioPlayerService {
             time: currentTime,
             createdAt: Date()
         )
-        
+
         var currentBookmarks = getBookmarks(for: session.libraryItemId)
         currentBookmarks.append(newBookmark)
-        
+
         if let data = try? JSONEncoder().encode(currentBookmarks) {
             UserDefaults.standard.set(data, forKey: bookmarksKeyPrefix + session.libraryItemId)
         }
     }
-    
+
     public func deleteBookmark(_ bookmark: Bookmark) {
         var currentBookmarks = getBookmarks(for: bookmark.libraryItemId)
         currentBookmarks.removeAll { $0.id == bookmark.id }
-        
+
         if let data = try? JSONEncoder().encode(currentBookmarks) {
             UserDefaults.standard.set(data, forKey: bookmarksKeyPrefix + bookmark.libraryItemId)
         }
     }
-    
+
     private func formatTime(_ time: TimeInterval) -> String {
         let hours = Int(time) / 3600
         let minutes = Int(time) / 60 % 60
@@ -850,10 +852,10 @@ public class AudioPlayerService {
     }
 
     // MARK: - Widget State Sync
-    
+
     private func syncWidgetState() {
         guard let session = session, let defaults = UserDefaults(suiteName: EnvironmentConfig.appGroupIdentifier) else { return }
-        
+
         // Find current chapter
         var currentChapterName = "Reading"
         for chapter in session.chapters {
@@ -862,7 +864,7 @@ public class AudioPlayerService {
                 break
             }
         }
-        
+
         let stateDict: [String: Any] = [
             "bookTitle": session.displayTitle,
             "author": session.displayAuthor,
@@ -872,7 +874,7 @@ public class AudioPlayerService {
             "isPlaying": isPlaying,
             "updatedAt": Date().timeIntervalSince1970
         ]
-        
+
         defaults.set(stateDict, forKey: "audiobookWidgetState")
     }
 }
@@ -885,7 +887,7 @@ public final class ProMotionManager: ObservableObject, Sendable {
         print("[ProMotion] High performance mode enabled")
         #endif
     }
-    
+
     public func optimizedSpring(response: Double = 0.3, dampingFraction: Double = 0.8) -> Animation {
         return .spring(response: response, dampingFraction: dampingFraction)
     }

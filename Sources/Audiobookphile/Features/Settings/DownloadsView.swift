@@ -50,19 +50,19 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
     @Published public var downloads: [Download] = []
     @Published public var activeDownloads: [String: Double] = [:]
     @Published public var downloadQueue: [String] = []
-    
+
     private var activeBookId: String?
     private var activeTrackIndex: Int = 0
     private var activeDownloadTask: URLSessionDownloadTask?
-    
+
     private var trackPathsMap: [String: [String]] = [:]
     private var trackSizes: [String: [Int64]] = [:]
-    
+
     private let fm = FileManager.default
     private lazy var urlSession: URLSession = {
         return URLSession(configuration: .default, delegate: self, delegateQueue: nil)
     }()
-    
+
     private var downloadsDirectory: URL {
         let paths = fm.urls(for: .documentDirectory, in: .userDomainMask)
         return paths[0].appendingPathComponent("Downloads", isDirectory: true)
@@ -73,7 +73,7 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
         createDownloadsDirectory()
         loadDownloads()
     }
-    
+
     private func createDownloadsDirectory() {
         try? fm.createDirectory(at: downloadsDirectory, withIntermediateDirectories: true)
     }
@@ -85,7 +85,7 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
         if downloadQueue.contains(book.id) || activeBookId == book.id {
             return
         }
-        
+
         do {
             print("[Download] Requesting playback session to retrieve direct track URLs for: \(book.title)")
             let session = try await AudiobookphileAPI.shared.startPlaybackSession(libraryItemId: book.id)
@@ -94,7 +94,7 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
                 print("[Download] Error: no audio tracks found for \(book.title)")
                 return
             }
-            
+
             Task {
                 try? await AudiobookphileAPI.shared.closePlaybackSession(
                     sessionId: session.id,
@@ -102,11 +102,11 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
                     duration: session.duration
                 )
             }
-            
+
             let trackPaths = tracks.map { $0.contentUrl }
             let mediaSize = book.media.size ?? 0
             let totalSize = mediaSize > 0 ? mediaSize : Int64(session.duration * 32000 / 8)
-            
+
             let download = Download(
                 libraryItemId: book.id,
                 title: book.title,
@@ -117,18 +117,18 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
                 audioTracks: trackPaths,
                 duration: session.duration
             )
-            
+
             if let index = downloads.firstIndex(where: { $0.libraryItemId == book.id }) {
                 downloads[index] = download
             } else {
                 downloads.append(download)
             }
-            
+
             saveDownloadsIndex()
-            
+
             downloadQueue.append(book.id)
             trackPathsMap[book.id] = trackPaths
-            
+
             processQueue()
         } catch {
             print("[Download] Failed to start download for \(book.title): \(error)")
@@ -141,22 +141,22 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
             activeDownloadTask = nil
             activeBookId = nil
         }
-        
+
         // Remove any resume data
         let fileURL = downloadsDirectory.appendingPathComponent("\(bookId)_resume.dat")
         try? fm.removeItem(at: fileURL)
-        
+
         downloadQueue.removeAll { $0 == bookId }
         downloads.removeAll { $0.libraryItemId == bookId }
         activeDownloads.removeValue(forKey: bookId)
-        
+
         saveDownloadsIndex()
         processQueue()
     }
 
     public func pauseDownload(bookId: String) {
         guard activeBookId == bookId, let task = activeDownloadTask else { return }
-        
+
         task.cancel { [weak self] resumeDataOrNil in
             guard let self = self else { return }
             Task { @MainActor in
@@ -164,7 +164,7 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
                     let fileURL = self.downloadsDirectory.appendingPathComponent("\(bookId)_resume.dat")
                     try? resumeData.write(to: fileURL)
                 }
-                
+
                 if let index = self.downloads.firstIndex(where: { $0.libraryItemId == bookId }) {
                     self.downloads[index].status = .paused
                 }
@@ -183,12 +183,12 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
         if let index = downloads.firstIndex(where: { $0.libraryItemId == bookId }) {
             downloads[index].status = .pending
         }
-        
+
         downloadQueue.removeAll { $0 == bookId }
         downloadQueue.insert(bookId, at: 0)
-        
+
         saveDownloadsIndex()
-        
+
         if activeBookId == nil {
             processQueue()
         }
@@ -196,21 +196,21 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
 
     public func deleteDownload(bookId: String) throws {
         cancelDownload(bookId: bookId)
-        
+
         let bookDir = downloadsDirectory.appendingPathComponent(bookId)
         try? fm.removeItem(at: bookDir)
-        
+
         downloads.removeAll { $0.libraryItemId == bookId }
         saveDownloadsIndex()
     }
-    
+
     private func processQueue() {
         guard activeBookId == nil, !downloadQueue.isEmpty else { return }
-        
+
         let nextBookId = downloadQueue.removeFirst()
         activeBookId = nextBookId
         activeTrackIndex = 0
-        
+
         if let paths = trackPathsMap[nextBookId] {
             trackSizes[nextBookId] = Array(repeating: 0, count: paths.count)
             downloadNextTrack()
@@ -227,36 +227,36 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
             }
         }
     }
-    
+
     private func downloadNextTrack() {
         guard let bookId = activeBookId,
               let paths = trackPathsMap[bookId],
               activeTrackIndex < paths.count else {
             return
         }
-        
+
         let trackPath = paths[activeTrackIndex]
         let baseURL = AppState.shared.serverURL
         let token = AppState.shared.token
-        
+
         let fullPath: String
         if trackPath.hasPrefix("http") {
             fullPath = trackPath
         } else {
             fullPath = baseURL + (trackPath.hasPrefix("/") ? "" : "/") + trackPath
         }
-        
+
         guard var components = URLComponents(string: fullPath) else { return }
         var queryItems = components.queryItems ?? []
         if !queryItems.contains(where: { $0.name == "token" }) {
             queryItems.append(URLQueryItem(name: "token", value: token))
         }
         components.queryItems = queryItems
-        
+
         guard let url = components.url else { return }
         var request = URLRequest(url: url)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
+
         let fileURL = downloadsDirectory.appendingPathComponent("\(bookId)_resume.dat")
         if let resumeData = try? Data(contentsOf: fileURL) {
             try? fm.removeItem(at: fileURL)
@@ -266,29 +266,29 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
             let task = urlSession.downloadTask(with: request)
             self.activeDownloadTask = task
         }
-        
+
         if let index = downloads.firstIndex(where: { $0.libraryItemId == bookId }) {
             downloads[index].status = .downloading
         }
         activeDownloads[bookId] = downloads.first(where: { $0.libraryItemId == bookId })?.progress ?? 0.0
         activeDownloadTask?.resume()
     }
-    
+
     private func handleActiveDownloadFailed(error: Error) {
         guard let bookId = activeBookId else { return }
-        
+
         if let index = downloads.firstIndex(where: { $0.libraryItemId == bookId }) {
             downloads[index].status = .failed
             downloads[index].progress = 0.0
         }
         activeDownloads.removeValue(forKey: bookId)
-        
+
         activeBookId = nil
         activeDownloadTask = nil
         saveDownloadsIndex()
         processQueue()
     }
-    
+
     private func fileExtension(for mimeType: String, urlPath: String) -> String {
         if mimeType.contains("audio/mpeg") || mimeType.contains("mp3") {
             return "mp3"
@@ -302,7 +302,7 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
         let ext = URL(fileURLWithPath: urlPath).pathExtension
         return ext.isEmpty ? "m4a" : ext
     }
-    
+
     private func loadDownloads() {
         let fileURL = downloadsDirectory.appendingPathComponent("downloads.json")
         guard let data = try? Data(contentsOf: fileURL),
@@ -318,7 +318,7 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
             return dl
         }
     }
-    
+
     private func saveDownloadsIndex() {
         let fileURL = downloadsDirectory.appendingPathComponent("downloads.json")
         try? fm.createDirectory(at: downloadsDirectory, withIntermediateDirectories: true)
@@ -326,16 +326,16 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
             try? data.write(to: fileURL)
         }
     }
-    
+
     public func getLocalTrackURL(bookId: String, trackPath: String) -> URL? {
         guard let download = downloads.first(where: { $0.libraryItemId == bookId && $0.status == .completed }) else {
             return nil
         }
-        
+
         let fileManager = FileManager.default
         let docs = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let bookDir = docs.appendingPathComponent("Downloads/\(bookId)", isDirectory: true)
-        
+
         let trackPaths = download.audioTracks
         if let index = trackPaths.firstIndex(of: trackPath) {
             if let files = try? fileManager.contentsOfDirectory(at: bookDir, includingPropertiesForKeys: nil),
@@ -343,17 +343,17 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
                 return match
             }
         }
-        
+
         if let files = try? fileManager.contentsOfDirectory(at: bookDir, includingPropertiesForKeys: nil),
            let match = files.first(where: { $0.lastPathComponent.hasPrefix("track_0.") }) {
             return match
         }
-        
+
         return nil
     }
-    
+
     // MARK: - URLSessionDownloadDelegate conformances
-    
+
     public nonisolated func urlSession(
         _ session: URLSession,
         downloadTask: URLSessionDownloadTask,
@@ -364,18 +364,18 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
         Task { @MainActor in
             guard let bookId = self.activeBookId else { return }
             let completedTracksSize = self.trackSizes[bookId]?.prefix(self.activeTrackIndex).reduce(0, +) ?? 0
-            
+
             if let index = self.downloads.firstIndex(where: { $0.libraryItemId == bookId }) {
                 let totalBookSize = self.downloads[index].totalSize
                 let currentTotalWritten = completedTracksSize + totalBytesWritten
-                
+
                 let progress = min(0.99, Double(currentTotalWritten) / Double(max(1, totalBookSize)))
                 self.downloads[index].progress = progress
                 self.activeDownloads[bookId] = progress
             }
         }
     }
-    
+
     public nonisolated func urlSession(
         _ session: URLSession,
         downloadTask: URLSessionDownloadTask,
@@ -385,29 +385,29 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
             guard let bookId = self.activeBookId else { return }
             let trackPaths = self.trackPathsMap[bookId] ?? []
             guard self.activeTrackIndex < trackPaths.count else { return }
-            
+
             let trackPath = trackPaths[self.activeTrackIndex]
             let bookDir = self.downloadsDirectory.appendingPathComponent(bookId)
-            
+
             do {
                 try self.fm.createDirectory(at: bookDir, withIntermediateDirectories: true)
-                
+
                 let ext = self.fileExtension(for: downloadTask.response?.mimeType ?? "", urlPath: trackPath)
                 let destFile = bookDir.appendingPathComponent("track_\(self.activeTrackIndex).\(ext)")
-                
+
                 if self.fm.fileExists(atPath: destFile.path) {
                     try? self.fm.removeItem(at: destFile)
                 }
-                
+
                 try self.fm.moveItem(at: location, to: destFile)
                 print("[Download] Saved track \(self.activeTrackIndex) to \(destFile.path)")
-                
+
                 let fileSize = (try? self.fm.attributesOfItem(atPath: destFile.path)[.size] as? Int64) ?? 0
                 if self.trackSizes[bookId] == nil {
                     self.trackSizes[bookId] = Array(repeating: 0, count: trackPaths.count)
                 }
                 self.trackSizes[bookId]?[self.activeTrackIndex] = fileSize
-                
+
                 self.activeTrackIndex += 1
                 if self.activeTrackIndex >= trackPaths.count {
                     if let index = self.downloads.firstIndex(where: { $0.libraryItemId == bookId }) {
@@ -429,7 +429,7 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
             }
         }
     }
-    
+
     public nonisolated func urlSession(
         _ session: URLSession,
         task: URLSessionTask,
@@ -449,7 +449,7 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
 
 public struct DownloadsView: View {
     @ObservedObject var downloadService = DownloadService.shared
-    @State var selectedBook: Book? = nil
+    @State var selectedBook: Book?
 
     public init() {}
 
@@ -665,7 +665,7 @@ public struct QueueRow: View {
             }
 
             Spacer()
-            
+
             Button {
                 DownloadService.shared.resumeDownload(bookId: download.libraryItemId)
             } label: {
@@ -673,7 +673,7 @@ public struct QueueRow: View {
                     .foregroundStyle(Color.appPrimary)
                     .font(.title3)
             }
-            
+
             Button {
                 DownloadService.shared.cancelDownload(bookId: download.libraryItemId)
             } label: {

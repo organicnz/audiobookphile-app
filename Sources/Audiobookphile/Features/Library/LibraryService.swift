@@ -8,7 +8,7 @@ public protocol LibraryServiceProtocol {
 @MainActor
 public class LiveLibraryService: LibraryServiceProtocol {
     public init() {}
-    
+
     public func fetchLibraryItems(libraryId: String?) async throws -> [Book] {
         guard let libId = libraryId else {
             return []
@@ -21,7 +21,7 @@ public class LiveLibraryService: LibraryServiceProtocol {
 @MainActor
 public class MockLibraryService: LibraryServiceProtocol {
     public init() {}
-    
+
     private let mockCovers = [
         "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=400", // The Midnight Library
         "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=400", // Project Hail Mary
@@ -31,7 +31,7 @@ public class MockLibraryService: LibraryServiceProtocol {
         "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=400", // 1984
         "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&q=80&w=400"  // The Hobbit
     ]
-    
+
     private let bookTitles = [
         "The Midnight Library",
         "Project Hail Mary",
@@ -41,7 +41,7 @@ public class MockLibraryService: LibraryServiceProtocol {
         "1984",
         "The Hobbit"
     ]
-    
+
     private let authors = [
         "Matt Haig",
         "Andy Weir",
@@ -51,15 +51,15 @@ public class MockLibraryService: LibraryServiceProtocol {
         "George Orwell",
         "J.R.R. Tolkien"
     ]
-    
+
     public func fetchLibraryItems(libraryId: String?) async throws -> [Book] {
         // Simulate network delay
         try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
-        
+
         return (0..<20).map { (idx: Int) -> Book in
             let titleIndex = idx % bookTitles.count
             let coverURL = mockCovers[titleIndex]
-            
+
             return Book(
                 id: "book-\(idx)",
                 libraryId: libraryId ?? "lib1",

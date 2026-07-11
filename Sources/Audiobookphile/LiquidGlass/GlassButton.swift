@@ -12,14 +12,14 @@ struct GlassButton: View {
     let title: String
     let icon: String?
     let action: () -> Void
-    
+
     var size: ButtonSize = .medium
     var colors: [Color] = [.blue, .purple]
     var isLoading: Bool = false
     var isDisabled: Bool = false
-    
+
     @State var isPressed = false
-    
+
     var body: some View {
         Button(action: handleTap) {
             HStack(spacing: 8) {
@@ -30,7 +30,7 @@ struct GlassButton: View {
                     Image(systemName: icon)
                         .font(size.iconFont)
                 }
-                
+
                 Text(title)
                     .font(size.textFont)
                     .fontWeight(.semibold)
@@ -76,14 +76,14 @@ struct GlassButton: View {
                 }
         )
     }
-    
+
     private func handleTap() {
         // Trigger haptic feedback
         #if os(iOS) && !SKIP
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
         #endif
-        
+
         action()
     }
 }
@@ -94,7 +94,7 @@ extension GlassButton {
         case small
         case medium
         case large
-        
+
         var textFont: Font {
             switch self {
             case .small: return .subheadline
@@ -102,7 +102,7 @@ extension GlassButton {
             case .large: return .title3
             }
         }
-        
+
         var iconFont: Font {
             switch self {
             case .small: return .subheadline
@@ -110,7 +110,7 @@ extension GlassButton {
             case .large: return .title3
             }
         }
-        
+
         var horizontalPadding: CGFloat {
             switch self {
             case .small: return 16
@@ -118,7 +118,7 @@ extension GlassButton {
             case .large: return 24
             }
         }
-        
+
         var verticalPadding: CGFloat {
             switch self {
             case .small: return 8
@@ -126,7 +126,7 @@ extension GlassButton {
             case .large: return 16
             }
         }
-        
+
         var cornerRadius: CGFloat {
             switch self {
             case .small: return 12
@@ -134,7 +134,7 @@ extension GlassButton {
             case .large: return 20
             }
         }
-        
+
         var isFullWidth: Bool {
             self == .large
         }
