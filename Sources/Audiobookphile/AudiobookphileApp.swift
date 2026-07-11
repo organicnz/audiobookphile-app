@@ -1,6 +1,9 @@
 import Foundation
 import SkipFuse
 import SwiftUI
+#if !SKIP && os(iOS)
+import BackgroundTasks
+#endif
 
 /// A logger for the Audiobookphile module.
 let logger: Logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Audiobookphile", category: "Audiobookphile")
@@ -39,6 +42,13 @@ let logger: Logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Audioboo
     /* SKIP @bridge */public func onInit() {
         logger.debug("onInit")
         
+        #if !SKIP && os(iOS)
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: "club.foodshare.audiobookphile.progress-sync", using: nil) { task in
+            guard let processingTask = task as? BGProcessingTask else { return }
+            self.handleProgressSync(task: processingTask)
+        }
+        #endif
+        
         // Configure global URLCache for AsyncImage and network requests
         let memoryCapacity = 50 * 1024 * 1024 // 50 MB
         let diskCapacity = 200 * 1024 * 1024 // 200 MB
@@ -73,4 +83,22 @@ let logger: Logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Audioboo
     /* SKIP @bridge */public func onLowMemory() {
         logger.debug("onLowMemory")
     }
+
+    #if !SKIP && os(iOS)
+    private struct UncheckedSendableTask: @unchecked Sendable {
+        let task: BGProcessingTask
+    }
+
+    private func handleProgressSync(task: BGProcessingTask) {
+        task.expirationHandler = {
+            // OS requested us to stop early
+        }
+        
+        let sendableTask = UncheckedSendableTask(task: task)
+        Task {
+            await AudioPlayerService.shared.flushOfflineProgressQueue()
+            sendableTask.task.setTaskCompleted(success: true)
+        }
+    }
+    #endif
 }

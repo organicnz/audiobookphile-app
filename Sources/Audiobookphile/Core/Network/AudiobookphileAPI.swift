@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import OSLog
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
@@ -156,7 +157,7 @@ public actor AudiobookphileAPI {
     /// Refresh the access token using the refresh token
     private func refreshAccessToken() async throws {
         if let existingTask = refreshTask {
-            print("[API] Awaiting existing token refresh task...")
+            logger.info("Awaiting existing token refresh task...")
             return try await existingTask.value
         }
 
@@ -174,7 +175,7 @@ public actor AudiobookphileAPI {
             throw APIError.noRefreshToken
         }
 
-        print("[API] Refreshing access token...")
+        logger.info("Refreshing access token...")
 
         guard let url = URL(string: endpointUrlString(for: "/auth/refresh")) else {
             throw APIError.invalidResponse
@@ -218,7 +219,7 @@ public actor AudiobookphileAPI {
             token: self.accessToken,
             refreshToken: self.refreshToken
         )
-        print("[API] Token refreshed successfully")
+        logger.info("Token refreshed successfully")
     }
 
     // MARK: - Request Execution
@@ -269,7 +270,7 @@ public actor AudiobookphileAPI {
                     let jsonStr = String(data: data, encoding: .utf8) ?? "unable to decode"
                     let dumpPath = NSTemporaryDirectory() + "playback_session_raw.json"
                     try? jsonStr.write(toFile: dumpPath, atomically: true, encoding: .utf8)
-                    print("[API] PlaybackSession raw JSON dumped to: \(dumpPath) (\(data.count) bytes)")
+                    logger.info("PlaybackSession raw JSON dumped to: \(dumpPath) (\(data.count) bytes)")
                 }
                 return try decoder.decode(T.self, from: data)
             } catch let decodingError as DecodingError {
@@ -432,7 +433,7 @@ public actor AudiobookphileAPI {
     }
 
     /// Sync playback progress
-    public func syncProgress(sessionId: String, currentTime: TimeInterval, duration: TimeInterval, timeListened: TimeInterval = 0) async throws {
+    public func syncProgress(sessionId: String, episodeId: String? = nil, currentTime: TimeInterval, duration: TimeInterval, timeListened: TimeInterval = 0) async throws {
         guard let url = URL(string: endpointUrlString(for: "/api/session/\(sessionId)/sync")) else {
             throw APIError.invalidResponse
         }
@@ -447,12 +448,15 @@ public actor AudiobookphileAPI {
         }
 
         let progress = duration > 0 ? currentTime / duration : 0
-        let body: [String: Any] = [
+        var body: [String: Any] = [
             "currentTime": currentTime,
             "duration": duration,
             "progress": progress,
             "timeListened": timeListened
         ]
+        if let episodeId = episodeId {
+            body["episodeId"] = episodeId
+        }
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         let (_, response) = try await session.data(for: request)
@@ -463,8 +467,50 @@ public actor AudiobookphileAPI {
         }
     }
 
+    /// Bulk sync playback progress
+    public func bulkSyncProgress(items: [ProgressSyncQueueItem]) async throws {
+        guard !items.isEmpty else { return }
+        
+        guard let url = URL(string: endpointUrlString(for: "/api/session/bulk-sync")) else {
+            throw APIError.invalidResponse
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        
+        let anonKey = EnvironmentConfig.supabaseAnonKey
+        if !anonKey.isEmpty {
+            request.setValue(anonKey, forHTTPHeaderField: "apikey")
+        }
+
+        let payloads = items.map { item -> [String: Any] in
+            let progress = item.duration > 0 ? item.currentTime / item.duration : 0
+            var body: [String: Any] = [
+                "sessionId": item.sessionId,
+                "currentTime": item.currentTime,
+                "duration": item.duration,
+                "progress": progress,
+                "timeListened": item.timeListened
+            ]
+            if let episodeId = item.episodeId {
+                body["episodeId"] = episodeId
+            }
+            return body
+        }
+        
+        request.httpBody = try JSONSerialization.data(withJSONObject: payloads)
+
+        let (_, response) = try await session.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode) else {
+            throw APIError.syncFailed
+        }
+    }
+
     /// Close playback session
-    public func closePlaybackSession(sessionId: String, currentTime: TimeInterval, duration: TimeInterval) async throws {
+    public func closePlaybackSession(sessionId: String, episodeId: String? = nil, currentTime: TimeInterval, duration: TimeInterval, timeListened: TimeInterval = 0) async throws {
         guard let url = URL(string: endpointUrlString(for: "/api/session/\(sessionId)/close")) else {
             throw APIError.invalidResponse
         }
@@ -478,10 +524,14 @@ public actor AudiobookphileAPI {
             request.setValue(anonKey, forHTTPHeaderField: "apikey")
         }
 
-        let body: [String: Any] = [
+        var body: [String: Any] = [
             "currentTime": currentTime,
-            "duration": duration
+            "duration": duration,
+            "timeListened": timeListened
         ]
+        if let episodeId = episodeId {
+            body["episodeId"] = episodeId
+        }
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         _ = try await session.data(for: request)

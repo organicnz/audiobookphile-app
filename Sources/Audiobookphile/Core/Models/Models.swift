@@ -447,13 +447,15 @@ public struct APIErrorResponse: Codable, Sendable {
 
 public struct ProgressSyncQueueItem: Codable, Sendable {
     public let sessionId: String
+    public let episodeId: String?
     public let currentTime: TimeInterval
     public let duration: TimeInterval
     public let timeListened: TimeInterval
     public let dateAdded: Date
     
-    public init(sessionId: String, currentTime: TimeInterval, duration: TimeInterval, timeListened: TimeInterval, dateAdded: Date = Date()) {
+    public init(sessionId: String, episodeId: String? = nil, currentTime: TimeInterval, duration: TimeInterval, timeListened: TimeInterval, dateAdded: Date = Date()) {
         self.sessionId = sessionId
+        self.episodeId = episodeId
         self.currentTime = currentTime
         self.duration = duration
         self.timeListened = timeListened
