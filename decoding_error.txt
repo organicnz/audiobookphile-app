@@ -1,3 +1,0 @@
-[DecodingError] Details: DecodingError.keyNotFound: Key 'jumpForwardTime' not found in keyed decoding container. Path: preferences. Debug description: No value associated with key CodingKeys(stringValue: "jumpForwardTime", intValue: nil) ("jumpForwardTime").
-For type: PreferencesResponse
-JSON length: 18 bytes
