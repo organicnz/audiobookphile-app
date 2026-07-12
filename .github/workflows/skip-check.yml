@@ -21,5 +21,5 @@ jobs:
       - name: Install Skip
         run: brew install skiptools/skip/skip
         
-      - name: Skip Check
-        run: skip check
+      - name: Skip Verify
+        run: skip verify

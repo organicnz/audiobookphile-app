@@ -6,15 +6,17 @@
 //
 
 import Foundation
+import Observation
 
 /// WebSocket service for real-time updates from Audiobookphile server (disabled)
+@Observable
 @MainActor
-public class SocketService: ObservableObject {
+public class SocketService {
     public static let shared = SocketService()
 
-    @Published public var isConnected = false
-    @Published public var isAuthenticated = false
-    @Published public var lastError: String?
+    public var isConnected = false
+    public var isAuthenticated = false
+    public var lastError: String?
 
     // Event handlers (maintained for API compatibility)
     public var onProgressUpdated: ((MediaProgress) -> Void)?

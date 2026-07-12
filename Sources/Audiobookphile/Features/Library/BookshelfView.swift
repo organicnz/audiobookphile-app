@@ -7,11 +7,12 @@
 //
 
 import SwiftUI
+import Observation
 
 /// Main bookshelf/library view
 public struct BookshelfView: View {
-    @StateObject var viewModel = BookshelfViewModel()
-    @ObservedObject var proMotion = ProMotionManager.shared
+    @State var viewModel = BookshelfViewModel()
+    var proMotion = ProMotionManager.shared
     @Environment(AppState.self) private var appState
     @State var showSearch = false
     @State var searchText = ""
@@ -495,15 +496,16 @@ public struct ContinueListeningCard: View {
 
 // MARK: - View Model
 
+@Observable
 @MainActor
-public class BookshelfViewModel: ObservableObject {
-    @Published public var books: [Book] = []
-    @Published public var filteredBooks: [Book] = []
-    @Published public var continueListening: [Book] = []
-    @Published public var currentLibrary: Library?
-    @Published public var selectedBook: Book?
-    @Published public var isLoading = false
-    @Published public var errorMessage: String?
+public class BookshelfViewModel {
+    public var books: [Book] = []
+    public var filteredBooks: [Book] = []
+    public var continueListening: [Book] = []
+    public var currentLibrary: Library?
+    public var selectedBook: Book?
+    public var isLoading = false
+    public var errorMessage: String?
 
     public var totalBooks: Int { books.count }
     public var inProgressCount: Int { continueListening.count }

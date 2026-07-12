@@ -879,7 +879,8 @@ public class AudioPlayerService {
     }
 }
 
-public final class ProMotionManager: ObservableObject, Sendable {
+@Observable
+public final class ProMotionManager: @unchecked Sendable {
     public static let shared = ProMotionManager()
     public init() {}
     public func enableHighPerformanceMode() {

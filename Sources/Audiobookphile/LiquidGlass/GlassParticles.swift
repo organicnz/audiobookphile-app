@@ -10,7 +10,7 @@ import SwiftUI
 /// Particle system for ambient floating particles behind glass
 struct GlassParticlesView: View {
     @State var particles: [Particle] = []
-    @ObservedObject var proMotion = ProMotionManager.shared
+    var proMotion = ProMotionManager.shared
 
     let particleCount: Int
     let colors: [Color]

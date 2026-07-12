@@ -8,6 +8,7 @@
 
 import SwiftUI
 import Foundation
+import Observation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
@@ -43,13 +44,14 @@ public struct Download: Identifiable, Codable {
     }
 }
 
+@Observable
 @MainActor
-public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDelegate {
+public class DownloadService: NSObject, URLSessionDownloadDelegate {
     public static let shared = DownloadService()
 
-    @Published public var downloads: [Download] = []
-    @Published public var activeDownloads: [String: Double] = [:]
-    @Published public var downloadQueue: [String] = []
+    public var downloads: [Download] = []
+    public var activeDownloads: [String: Double] = [:]
+    public var downloadQueue: [String] = []
 
     private var activeBookId: String?
     private var activeTrackIndex: Int = 0
@@ -59,6 +61,7 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
     private var trackSizes: [String: [Int64]] = [:]
 
     private let fm = FileManager.default
+    @ObservationIgnored
     private lazy var urlSession: URLSession = {
         return URLSession(configuration: .default, delegate: self, delegateQueue: nil)
     }()
@@ -448,7 +451,7 @@ public class DownloadService: NSObject, ObservableObject, URLSessionDownloadDele
 }
 
 public struct DownloadsView: View {
-    @ObservedObject var downloadService = DownloadService.shared
+    var downloadService = DownloadService.shared
     @State var selectedBook: Book?
 
     public init() {}

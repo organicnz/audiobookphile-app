@@ -14,7 +14,7 @@ import UIKit
 
 public struct AudioPlayerView: View {
     @State var viewModel: AudioPlayerViewModel
-    @ObservedObject var proMotion = ProMotionManager.shared
+    var proMotion = ProMotionManager.shared
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) var dismiss
 

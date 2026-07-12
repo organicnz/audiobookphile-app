@@ -19,7 +19,7 @@ public struct BookDetailView: View {
     @State private var isStartingPlayback = false
     @State var isDescriptionExpanded = false
     @State var colorLoader = DynamicColorLoader()
-    @ObservedObject var downloadService = DownloadService.shared
+    var downloadService = DownloadService.shared
 
     public init(book: Book) {
         self.book = book

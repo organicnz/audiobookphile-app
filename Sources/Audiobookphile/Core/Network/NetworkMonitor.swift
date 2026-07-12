@@ -10,26 +10,28 @@ import Foundation
 import Network
 #endif
 import SwiftUI
+import Observation
 
 /// Monitors network connectivity and connection type
+@Observable
 @MainActor
-public class NetworkMonitor: ObservableObject {
+public class NetworkMonitor {
     public static let shared = NetworkMonitor()
 
     /// Whether the device has any network connection
-    @Published public var isConnected = true
+    public var isConnected = true
 
     /// Whether the current connection is metered (cellular)
-    @Published public var isMetered = false
+    public var isMetered = false
 
     /// The current connection type
-    @Published public var connectionType: ConnectionType = .unknown
+    public var connectionType: ConnectionType = .unknown
 
     /// Whether the device has WiFi connectivity
-    @Published public var hasWiFi = false
+    public var hasWiFi = false
 
     /// Whether the device has cellular connectivity
-    @Published public var hasCellular = false
+    public var hasCellular = false
 
     #if !SKIP && !os(Android)
     private let monitor = NWPathMonitor()
@@ -146,7 +148,7 @@ public enum DownloadPolicy: String, Codable, CaseIterable {
 // MARK: - SwiftUI View
 
 public struct NetworkStatusView: View {
-    @ObservedObject var networkMonitor = NetworkMonitor.shared
+    var networkMonitor = NetworkMonitor.shared
 
     public init() {}
 

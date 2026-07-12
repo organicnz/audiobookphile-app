@@ -1,4 +1,5 @@
 import SwiftUI
+import Observation
 
 #if canImport(UIKit)
 import UIKit
@@ -30,10 +31,11 @@ class ImageMemoryCache {
     #endif
 }
 
+@Observable
 @MainActor
-class CachedImageLoader: ObservableObject {
-    @Published var image: Image?
-    @Published var isLoading = false
+class CachedImageLoader {
+    var image: Image?
+    var isLoading = false
 
     func load(url: URL) async {
         #if os(iOS)
@@ -92,7 +94,7 @@ public struct CachedAsyncImage<Content: View, Placeholder: View>: View {
     let content: (Image) -> Content
     let placeholder: () -> Placeholder
 
-    @StateObject var loader = CachedImageLoader()
+    @State var loader = CachedImageLoader()
 
     public init(
         url: URL?,

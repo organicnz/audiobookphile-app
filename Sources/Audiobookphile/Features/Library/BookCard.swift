@@ -15,8 +15,8 @@ public struct BookCard: View {
     public var aspectRatio: CGFloat = 1.0
     public let onTap: () -> Void
     @State var coverColor: Color = .gray
-    @ObservedObject var proMotion = ProMotionManager.shared
-    @ObservedObject var downloadService = DownloadService.shared
+    var proMotion = ProMotionManager.shared
+    var downloadService = DownloadService.shared
 
     public init(book: Book, aspectRatio: CGFloat = 1.0, onTap: @escaping () -> Void) {
         self.book = book
@@ -169,7 +169,11 @@ public struct BookCard: View {
     }
 
     private var isDownloaded: Bool {
-        downloadService.downloads.contains { $0.libraryItemId == book.id && $0.status == .completed }
+        let downloads = downloadService.downloads
+        let targetId = book.id
+        return downloads.contains { item in
+            item.libraryItemId == targetId && item.status == .completed
+        }
     }
 }
 

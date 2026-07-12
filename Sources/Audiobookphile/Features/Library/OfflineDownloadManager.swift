@@ -4,11 +4,14 @@ import Foundation
 import Combine
 #endif
 
-public final class OfflineDownloadManager: NSObject, ObservableObject, @unchecked Sendable {
+import Observation
+
+@Observable
+public final class OfflineDownloadManager: NSObject, @unchecked Sendable {
     public static let shared = OfflineDownloadManager()
 
-    @Published public var downloadProgress: [String: Double] = [:]
-    @Published public var activeDownloads: Set<String> = []
+    public var downloadProgress: [String: Double] = [:]
+    public var activeDownloads: Set<String> = []
 
     private var session: URLSession!
 
