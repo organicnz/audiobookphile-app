@@ -547,7 +547,11 @@ public actor AudiobookphileAPI {
         }
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
-        _ = try await session.data(for: request)
+        let (_, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode) else {
+            throw APIError.syncFailed
+        }
     }
 
     // MARK: - Progress
