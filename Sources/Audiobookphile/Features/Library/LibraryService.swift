@@ -3,6 +3,7 @@ import Foundation
 @MainActor
 public protocol LibraryServiceProtocol {
     func fetchLibraryItems(libraryId: String?) async throws -> [Book]
+    func fetchContinueListening(libraryId: String?) async throws -> [Book]
 }
 
 @MainActor
@@ -15,6 +16,14 @@ public class LiveLibraryService: LibraryServiceProtocol {
         }
         let response = try await AudiobookphileAPI.shared.getLibraryItems(libraryId: libId)
         return response.results
+    }
+
+    public func fetchContinueListening(libraryId: String?) async throws -> [Book] {
+        guard let libId = libraryId else {
+            return []
+        }
+        let shelves = try await AudiobookphileAPI.shared.getLibraryPersonalized(libraryId: libId)
+        return shelves.first { $0.id == "continue-listening" }?.entities ?? []
     }
 }
 
@@ -107,9 +116,18 @@ public class MockLibraryService: LibraryServiceProtocol {
                     startedAt: Date(),
                     finishedAt: nil
                 ) : nil,
-                addedAt: Date(),
-                updatedAt: Date()
+                    addedAt: Date(),
+                    updatedAt: Date()
             )
         }
+    }
+
+    public func fetchContinueListening(libraryId: String?) async throws -> [Book] {
+        // Simulate network delay
+        try await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+
+        // Return only mock books that have progress (every 3rd book),
+        // mimicking the server-driven continue-listening shelf.
+        return try await fetchLibraryItems(libraryId: libraryId).filter { $0.userMediaProgress != nil }
     }
 }

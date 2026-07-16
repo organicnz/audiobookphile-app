@@ -502,7 +502,11 @@ public class AudioPlayerService {
 
                 var trackDuration = track.duration
 
-                self.lastSyncedTime = self.currentTime
+                // Note: do NOT update lastSyncedTime here. It must only change
+                // inside syncProgress()/startPlayback(); otherwise the
+                // `elapsedListened` guard in syncProgress() sees a ~0.5s delta
+                // (the observer cadence) and skips the sync entirely, so
+                // progress never persists.
 
                 // Update track duration if needed (handle estimates)
                 trackDuration = self.session?.audioTracks[self.currentTrackIndex].duration ?? track.duration

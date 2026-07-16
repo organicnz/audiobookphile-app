@@ -358,6 +358,15 @@ public actor AudiobookphileAPI {
         return try await executeRequest(request, responseType: SearchResponse.self)
     }
 
+    /// Fetch personalized shelves (continue listening, recently added, etc.)
+    public func getLibraryPersonalized(libraryId: String) async throws -> [PersonalizedShelf] {
+        guard let url = URL(string: endpointUrlString(for: "/api/libraries/\(libraryId)/personalized")) else {
+            throw APIError.invalidResponse
+        }
+        let request = URLRequest(url: url)
+        return try await executeRequest(request, responseType: [PersonalizedShelf].self)
+    }
+
     private struct SemanticEdgeResponse: Codable, Sendable {
         let results: [Book]?
         let error: String?
@@ -673,6 +682,15 @@ public struct SearchResponse: Codable, Sendable {
         public let matchText: String?
     }
     public let results: [SearchResult]
+}
+
+public struct PersonalizedShelf: Codable, Sendable {
+    public let id: String
+    public let label: String
+    public let labelStringKey: String
+    public let type: String
+    public let entities: [Book]
+    public let total: Int
 }
 
 // MARK: - API Errors
