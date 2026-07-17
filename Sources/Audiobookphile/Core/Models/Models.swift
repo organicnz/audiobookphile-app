@@ -301,6 +301,8 @@ public struct User: Identifiable, Codable, Sendable {
     public let permissions: UserPermissions
     public let librariesAccessible: [String]
     public let itemTagsAccessible: [String]
+    public let hasOpenIDLink: Bool?
+    public let isOldToken: Bool?
 }
 
 public struct Bookmark: Identifiable, Codable, Sendable {
@@ -322,6 +324,8 @@ public struct UserPermissions: Codable, Sendable {
     public let accessAllLibraries: Bool
     public let accessAllTags: Bool
     public let accessExplicitContent: Bool
+    public let createEreader: Bool?
+    public let selectedTagsNotAccessible: Bool?
 }
 
 // MARK: - Podcast (for future support)

@@ -240,41 +240,45 @@ public class DownloadService: NSObject, URLSessionDownloadDelegate {
 
         let trackPath = paths[activeTrackIndex]
         let baseURL = AppState.shared.serverURL
-        let token = AppState.shared.token
+        
+        Task {
+            await AppState.shared.refreshSessionIfNeeded()
+            let token = AppState.shared.token
 
-        let fullPath: String
-        if trackPath.hasPrefix("http") {
-            fullPath = trackPath
-        } else {
-            fullPath = baseURL + (trackPath.hasPrefix("/") ? "" : "/") + trackPath
+            let fullPath: String
+            if trackPath.hasPrefix("http") {
+                fullPath = trackPath
+            } else {
+                fullPath = baseURL + (trackPath.hasPrefix("/") ? "" : "/") + trackPath
+            }
+
+            guard var components = URLComponents(string: fullPath) else { return }
+            var queryItems = components.queryItems ?? []
+            if !queryItems.contains(where: { $0.name == "token" }) {
+                queryItems.append(URLQueryItem(name: "token", value: token))
+            }
+            components.queryItems = queryItems
+
+            guard let url = components.url else { return }
+            var request = URLRequest(url: url)
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+            let fileURL = downloadsDirectory.appendingPathComponent("\(bookId)_resume.dat")
+            if let resumeData = try? Data(contentsOf: fileURL) {
+                try? fm.removeItem(at: fileURL)
+                let task = urlSession.downloadTask(withResumeData: resumeData)
+                self.activeDownloadTask = task
+            } else {
+                let task = urlSession.downloadTask(with: request)
+                self.activeDownloadTask = task
+            }
+
+            if let index = downloads.firstIndex(where: { $0.libraryItemId == bookId }) {
+                downloads[index].status = .downloading
+            }
+            activeDownloads[bookId] = downloads.first(where: { $0.libraryItemId == bookId })?.progress ?? 0.0
+            activeDownloadTask?.resume()
         }
-
-        guard var components = URLComponents(string: fullPath) else { return }
-        var queryItems = components.queryItems ?? []
-        if !queryItems.contains(where: { $0.name == "token" }) {
-            queryItems.append(URLQueryItem(name: "token", value: token))
-        }
-        components.queryItems = queryItems
-
-        guard let url = components.url else { return }
-        var request = URLRequest(url: url)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
-        let fileURL = downloadsDirectory.appendingPathComponent("\(bookId)_resume.dat")
-        if let resumeData = try? Data(contentsOf: fileURL) {
-            try? fm.removeItem(at: fileURL)
-            let task = urlSession.downloadTask(withResumeData: resumeData)
-            self.activeDownloadTask = task
-        } else {
-            let task = urlSession.downloadTask(with: request)
-            self.activeDownloadTask = task
-        }
-
-        if let index = downloads.firstIndex(where: { $0.libraryItemId == bookId }) {
-            downloads[index].status = .downloading
-        }
-        activeDownloads[bookId] = downloads.first(where: { $0.libraryItemId == bookId })?.progress ?? 0.0
-        activeDownloadTask?.resume()
     }
 
     private func handleActiveDownloadFailed(error: Error) {

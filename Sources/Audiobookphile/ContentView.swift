@@ -9,6 +9,7 @@ import SwiftUI
 
 public struct ContentView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.scenePhase) private var scenePhase
 
     public init() {}
 
@@ -25,6 +26,13 @@ public struct ContentView: View {
         .animation(.easeInOut, value: appState.isAuthenticated)
         .animation(.easeInOut, value: appState.isLoading)
         .preferredColorScheme(.dark)
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            if newPhase == .active {
+                Task {
+                    await appState.refreshSessionIfNeeded()
+                }
+            }
+        }
     }
 }
 

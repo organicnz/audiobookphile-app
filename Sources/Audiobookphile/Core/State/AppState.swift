@@ -28,6 +28,14 @@ public class AppState {
     public var serverURL: String = ""
     public var token: String = ""
 
+    /// Tracks when the current access token was issued / last refreshed.
+    /// Used to proactively refresh before the JWT expires (default 1h).
+    private var tokenIssuedAt: Date?
+
+    /// How many seconds before expiry to trigger a proactive refresh.
+    /// Default Supabase JWT expiry is 3600s (1h); refresh at 50 min.
+    private let proactiveRefreshThreshold: TimeInterval = 50 * 60
+
     public var currentLibrary: Library? {
         libraries.first { $0.id == currentLibraryId } ?? libraries.first
     }
@@ -55,6 +63,7 @@ public class AppState {
             self.token = credentials.token
 
             isAuthenticated = true
+            tokenIssuedAt = Date()
 
             // Connect socket (no-op)
             SocketService.shared.connect(
@@ -77,6 +86,49 @@ public class AppState {
         }
 
         isLoading = false
+    }
+
+    /// Called when the app returns to foreground (ScenePhase.active / onResume).
+    /// Silently refreshes the access token if it's likely expired without
+    /// disrupting the UI or showing the login screen for transient errors.
+    public func refreshSessionIfNeeded() async {
+        guard isAuthenticated else { return }
+
+        let needsRefresh: Bool
+        if let issued = tokenIssuedAt {
+            needsRefresh = Date().timeIntervalSince(issued) > proactiveRefreshThreshold
+        } else {
+            // No recorded issue time — always refresh to be safe
+            needsRefresh = true
+        }
+
+        guard needsRefresh else {
+            print("[AppState] Token still fresh, skipping foreground refresh.")
+            return
+        }
+
+        print("[AppState] Token likely expired, attempting silent foreground refresh...")
+
+        do {
+            // The API client's internal refresh will use the stored refresh token,
+            // get new tokens, and persist them to Keychain.
+            try await AudiobookphileAPI.shared.refreshTokensFromForeground()
+            tokenIssuedAt = Date()
+            print("[AppState] Silent foreground token refresh succeeded.")
+        } catch let error as APIError {
+            switch error {
+            case .authenticationFailed, .sessionExpired, .noRefreshToken:
+                // Refresh token is genuinely invalid — must re-login
+                print("[AppState] Refresh token rejected, logging out: \(error)")
+                logout()
+            default:
+                // Network error, timeout, etc. — don't log out, retry later
+                print("[AppState] Foreground refresh failed (transient): \(error)")
+            }
+        } catch {
+            // Non-API error (network, etc.) — don't log out
+            print("[AppState] Foreground refresh failed (transient): \(error)")
+        }
     }
 
     public func fetchLibraries() async {

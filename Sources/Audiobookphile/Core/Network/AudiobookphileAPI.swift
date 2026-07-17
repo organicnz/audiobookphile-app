@@ -155,6 +155,11 @@ public actor AudiobookphileAPI {
     // MARK: - Token Refresh
 
     /// Refresh the access token using the refresh token
+    /// Manually triggers a token refresh, usually called when returning to the foreground
+    public func refreshTokensFromForeground() async throws {
+        _ = try await refreshAccessToken()
+    }
+
     private func refreshAccessToken() async throws {
         if let existingTask = refreshTask {
             logger.info("Awaiting existing token refresh task...")
@@ -209,7 +214,11 @@ public actor AudiobookphileAPI {
         let refreshResponse = try decoder.decode(LoginResponse.self, from: data)
 
         self.accessToken = refreshResponse.user.token
-        if let newRefreshToken = refreshResponse.user.refreshToken {
+        // Preserve the existing refresh token if the backend returns nil.
+        // The /authorize endpoint returns null when the JWT is still valid
+        // and no rotation occurred — discarding it here was causing the iOS
+        // client to lose its refresh token and force re-login next session.
+        if let newRefreshToken = refreshResponse.user.refreshToken, !newRefreshToken.isEmpty {
             self.refreshToken = newRefreshToken
         }
 
@@ -441,7 +450,7 @@ public actor AudiobookphileAPI {
         return try await executeRequest(request, responseType: PlaybackSession.self)
     }
 
-    /// Sync playback progress
+    /// Sync playback progress — routes through executeRequest for automatic token refresh
     public func syncProgress(sessionId: String, episodeId: String? = nil, currentTime: TimeInterval, duration: TimeInterval, timeListened: TimeInterval = 0) async throws {
         guard let url = URL(string: endpointUrlString(for: "/api/session/\(sessionId)/sync")) else {
             throw APIError.invalidResponse
@@ -449,12 +458,6 @@ public actor AudiobookphileAPI {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-
-        let anonKey = EnvironmentConfig.supabaseAnonKey
-        if !anonKey.isEmpty {
-            request.setValue(anonKey, forHTTPHeaderField: "apikey")
-        }
 
         let progress = duration > 0 ? currentTime / duration : 0
         var body: [String: Any] = [
@@ -468,15 +471,10 @@ public actor AudiobookphileAPI {
         }
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
-        let (_, response) = try await session.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw APIError.syncFailed
-        }
+        let _: EmptyResponse = try await executeRequest(request, responseType: EmptyResponse.self)
     }
 
-    /// Bulk sync playback progress
+    /// Bulk sync playback progress — routes through executeRequest for automatic token refresh
     public func bulkSyncProgress(items: [ProgressSyncQueueItem]) async throws -> [String] {
         guard !items.isEmpty else { return [] }
 
@@ -486,12 +484,6 @@ public actor AudiobookphileAPI {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-
-        let anonKey = EnvironmentConfig.supabaseAnonKey
-        if !anonKey.isEmpty {
-            request.setValue(anonKey, forHTTPHeaderField: "apikey")
-        }
 
         let payloads = items.map { item -> [String: Any] in
             let progress = item.duration > 0 ? item.currentTime / item.duration : 0
@@ -510,28 +502,11 @@ public actor AudiobookphileAPI {
 
         request.httpBody = try JSONSerialization.data(withJSONObject: payloads)
 
-        let (data, response) = try await session.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw APIError.syncFailed
-        }
-
-        struct BulkSyncResponse: Codable {
-            let success: Bool
-            let syncedSessionIds: [String]?
-            let error: String?
-        }
-
-        do {
-            let result = try JSONDecoder().decode(BulkSyncResponse.self, from: data)
-            return result.syncedSessionIds ?? []
-        } catch {
-            throw APIError.invalidResponse
-        }
+        let result: BulkSyncResponse = try await executeRequest(request, responseType: BulkSyncResponse.self)
+        return result.syncedSessionIds ?? []
     }
 
-    /// Close playback session
+    /// Close playback session — routes through executeRequest for automatic token refresh
     public func closePlaybackSession(sessionId: String, episodeId: String? = nil, currentTime: TimeInterval, duration: TimeInterval, timeListened: TimeInterval = 0) async throws {
         guard let url = URL(string: endpointUrlString(for: "/api/session/\(sessionId)/close")) else {
             throw APIError.invalidResponse
@@ -539,12 +514,6 @@ public actor AudiobookphileAPI {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-
-        let anonKey = EnvironmentConfig.supabaseAnonKey
-        if !anonKey.isEmpty {
-            request.setValue(anonKey, forHTTPHeaderField: "apikey")
-        }
 
         var body: [String: Any] = [
             "currentTime": currentTime,
@@ -556,11 +525,7 @@ public actor AudiobookphileAPI {
         }
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
-        let (_, response) = try await session.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw APIError.syncFailed
-        }
+        let _: EmptyResponse = try await executeRequest(request, responseType: EmptyResponse.self)
     }
 
     // MARK: - Progress
@@ -664,6 +629,15 @@ public struct LoginResponse: Codable, Sendable {
     public let user: User
 }
 
+/// Placeholder response for endpoints that return JSON but we don't need to decode.
+public struct EmptyResponse: Codable, Sendable {}
+
+public struct BulkSyncResponse: Codable, Sendable {
+    public let success: Bool?
+    public let syncedSessionIds: [String]?
+    public let error: String?
+}
+
 public struct LibrariesResponse: Codable, Sendable {
     public let libraries: [Library]
 }
@@ -743,6 +717,10 @@ public final class KeychainManager: Sendable {
     public func saveCredentials(serverURL: String, token: String, refreshToken: String) throws {
         #if !SKIP && !os(Android)
         // iOS Keychain Implementation
+        // kSecAttrAccessibleAfterFirstUnlock ensures credentials survive device
+        // lock/restart cycles. Without this, the default "WhenUnlocked" policy
+        // makes credentials unreachable after a device restart until the user
+        // unlocks the phone — causing the app to show the login screen.
         let credentials = [
             "serverURL": serverURL,
             "token": token,
@@ -759,6 +737,7 @@ public final class KeychainManager: Sendable {
 
         var addQuery = deleteQuery
         addQuery[kSecValueData as String] = data
+        addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
         let status = SecItemAdd(addQuery as CFDictionary, nil)
         guard status == errSecSuccess else {
             throw KeychainError.saveFailed

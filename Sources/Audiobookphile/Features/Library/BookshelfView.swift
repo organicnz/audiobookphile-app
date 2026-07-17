@@ -542,16 +542,14 @@ public class BookshelfViewModel {
         }
 
         do {
-            // Fetch book list and continue-listening concurrently.
+            let fetched = try await service.fetchLibraryItems(libraryId: libraryId)
+            self.books = fetched
+            self.filteredBooks = fetched
+
             // Continue Listening is now server-driven (filtered by is_finished,
             // hide_from_continue_listening, sorted by last_update) instead of
             // derived client-side from the first 50 items.
-            async let itemsResult = service.fetchLibraryItems(libraryId: libraryId)
-            async let continueResult = service.fetchContinueListening(libraryId: libraryId)
-            let fetched = try await itemsResult
-            self.books = fetched
-            self.filteredBooks = fetched
-            self.continueListening = try await continueResult
+            self.continueListening = try await service.fetchContinueListening(libraryId: libraryId)
         } catch {
             print("[BookshelfViewModel] Failed to load library items: \(error)")
             self.errorMessage = error.localizedDescription
