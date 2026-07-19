@@ -466,3 +466,124 @@ public struct ProgressSyncQueueItem: Codable, Sendable {
         self.dateAdded = dateAdded
     }
 }
+
+// MARK: - Library Stats (from /api/libraries/:id/stats)
+
+public struct GenreCount: Codable, Sendable, Identifiable {
+    public let genre: String
+    public let count: Int
+
+    public var id: String { genre }
+}
+
+public struct AuthorCount: Codable, Sendable, Identifiable {
+    public let id: String
+    public let name: String
+    public let count: Int
+}
+
+public struct ItemStat: Codable, Sendable, Identifiable {
+    public let id: String
+    public let title: String
+    public let duration: TimeInterval?
+    public let size: Int64?
+}
+
+public struct LibraryStats: Codable, Sendable {
+    public let totalItems: Int
+    public let totalBooks: Int
+    public let totalAuthors: Int
+    public let totalSeries: Int
+    public let totalDuration: TimeInterval
+    public let totalSize: Int64
+    public let addedLast30Days: Int
+    public let numAudioTracks: Int
+    public let genresWithCount: [GenreCount]
+    public let authorsWithCount: [AuthorCount]
+    public let longestItems: [ItemStat]
+    public let largestItems: [ItemStat]
+}
+
+// MARK: - Author Summary (from /api/libraries/:id/authors)
+
+public struct AuthorSummary: Identifiable, Codable, Sendable {
+    public let id: String
+    public let name: String
+    public let asin: String?
+    public let description: String?
+    public let imagePath: String?
+    public let libraryId: String?
+    public let addedAt: Double?
+    public let updatedAt: Double?
+    public let numBooks: Int
+}
+
+// MARK: - Series Summary (from /api/libraries/:id/series)
+
+public struct SeriesBookSummary: Identifiable, Codable, Sendable {
+    public let id: String
+    public let sequence: String?
+    public let title: String
+    public let cover: String?
+}
+
+public struct SeriesSummary: Identifiable, Codable, Sendable {
+    public let id: String
+    public let name: String
+    public let nameIgnorePrefix: String?
+    public let description: String?
+    public let libraryId: String?
+    public let addedAt: Double?
+    public let updatedAt: Double?
+    public let books: [SeriesBookSummary]?
+    public let numBooks: Int?
+}
+
+// MARK: - Collection Summary (from /api/libraries/:id/collections)
+
+public struct CollectionBookSummary: Identifiable, Codable, Sendable {
+    public let id: String
+    public let order: Int?
+    public let title: String
+    public let cover: String?
+}
+
+public struct CollectionSummary: Identifiable, Codable, Sendable {
+    public let id: String
+    public let name: String
+    public let description: String?
+    public let libraryId: String?
+    public let addedAt: Double?
+    public let updatedAt: Double?
+    public let books: [CollectionBookSummary]?
+    public let numBooks: Int?
+}
+
+// MARK: - Playlist Summary (from /api/libraries/:id/playlists)
+
+public struct PlaylistItemSummary: Identifiable, Codable, Sendable {
+    public let id: String
+    public let order: Int?
+    public let title: String
+    public let cover: String?
+}
+
+public struct PlaylistSummary: Identifiable, Codable, Sendable {
+    public let id: String
+    public let name: String
+    public let description: String?
+    public let libraryId: String?
+    public let userId: String?
+    public let addedAt: Double?
+    public let updatedAt: Double?
+    public let items: [PlaylistItemSummary]?
+}
+
+// MARK: - Paginated Response
+
+public struct PaginatedResponse<T: Codable & Sendable>: Codable, Sendable {
+    public let results: [T]
+    public let total: Int
+    public let limit: Int
+    public let page: Int
+}

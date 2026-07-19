@@ -77,6 +77,11 @@ public class AppState {
                 refreshToken: credentials.refreshToken
             )
 
+            // Restore last-used library before fetching
+            if let savedLibraryId = UserDefaults.standard.string(forKey: StorageKeys.lastLibraryId) {
+                self.currentLibraryId = savedLibraryId
+            }
+
             // Await library fetch so currentLibraryId is set before
             // isLoading is cleared — otherwise BookshelfView renders
             // with a nil libraryId and shows no books.
@@ -137,6 +142,10 @@ public class AppState {
             self.libraries = fetched
             if self.currentLibraryId == nil {
                 self.currentLibraryId = fetched.first?.id
+            }
+            // Persist selected library for next launch
+            if let libId = self.currentLibraryId {
+                UserDefaults.standard.set(libId, forKey: StorageKeys.lastLibraryId)
             }
             print("[AppState] Successfully fetched \(fetched.count) libraries.")
         } catch {
@@ -201,6 +210,7 @@ public class AppState {
         currentLibraryId = nil
         serverURL = ""
         token = ""
+        UserDefaults.standard.removeObject(forKey: StorageKeys.lastLibraryId)
     }
 
     public func getCoverURL(itemId: String, width: Int = 400, updatedAt: Date? = nil) -> URL? {

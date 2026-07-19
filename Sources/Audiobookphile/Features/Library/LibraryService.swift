@@ -4,6 +4,9 @@ import Foundation
 public protocol LibraryServiceProtocol {
     func fetchLibraryItems(libraryId: String?) async throws -> [Book]
     func fetchContinueListening(libraryId: String?) async throws -> [Book]
+    func fetchLibraryStats(libraryId: String?) async throws -> LibraryStats
+    func fetchAuthors(libraryId: String?, page: Int, sort: String) async throws -> AuthorsResponse
+    func fetchSeries(libraryId: String?, page: Int, sort: String) async throws -> SeriesResponse
 }
 
 @MainActor
@@ -24,6 +27,27 @@ public class LiveLibraryService: LibraryServiceProtocol {
         }
         let shelves = try await AudiobookphileAPI.shared.getLibraryPersonalized(libraryId: libId)
         return shelves.first { $0.id == "continue-listening" }?.entities ?? []
+    }
+
+    public func fetchLibraryStats(libraryId: String?) async throws -> LibraryStats {
+        guard let libId = libraryId else {
+            throw APIError.invalidResponse
+        }
+        return try await AudiobookphileAPI.shared.getLibraryStats(libraryId: libId)
+    }
+
+    public func fetchAuthors(libraryId: String?, page: Int = 0, sort: String = "name") async throws -> AuthorsResponse {
+        guard let libId = libraryId else {
+            throw APIError.invalidResponse
+        }
+        return try await AudiobookphileAPI.shared.getLibraryAuthors(libraryId: libId, page: page, sort: sort)
+    }
+
+    public func fetchSeries(libraryId: String?, page: Int = 0, sort: String = "name") async throws -> SeriesResponse {
+        guard let libId = libraryId else {
+            throw APIError.invalidResponse
+        }
+        return try await AudiobookphileAPI.shared.getLibrarySeries(libraryId: libId, page: page, sort: sort)
     }
 }
 
@@ -129,5 +153,61 @@ public class MockLibraryService: LibraryServiceProtocol {
         // Return only mock books that have progress (every 3rd book),
         // mimicking the server-driven continue-listening shelf.
         return try await fetchLibraryItems(libraryId: libraryId).filter { $0.userMediaProgress != nil }
+    }
+
+    public func fetchLibraryStats(libraryId: String?) async throws -> LibraryStats {
+        try await Task.sleep(nanoseconds: 300_000_000)
+        return LibraryStats(
+            totalItems: 42,
+            totalBooks: 42,
+            totalAuthors: 15,
+            totalSeries: 8,
+            totalDuration: 145 * 3600 + 30 * 60,
+            totalSize: 25_000_000_000,
+            addedLast30Days: 5,
+            numAudioTracks: 312,
+            genresWithCount: [
+                GenreCount(genre: "Fiction", count: 20),
+                GenreCount(genre: "Science Fiction", count: 12),
+                GenreCount(genre: "Fantasy", count: 10),
+            ],
+            authorsWithCount: [
+                AuthorCount(id: "a1", name: "Andy Weir", count: 3),
+                AuthorCount(id: "a2", name: "J.R.R. Tolkien", count: 5),
+                AuthorCount(id: "a3", name: "Frank Herbert", count: 4),
+            ],
+            longestItems: [
+                ItemStat(id: "i1", title: "Dune", duration: 72000, size: nil),
+                ItemStat(id: "i2", title: "The Hobbit", duration: 54000, size: nil),
+            ],
+            largestItems: [
+                ItemStat(id: "i1", title: "Dune", duration: nil, size: 2_000_000_000),
+            ]
+        )
+    }
+
+    public func fetchAuthors(libraryId: String?, page: Int = 0, sort: String = "name") async throws -> AuthorsResponse {
+        try await Task.sleep(nanoseconds: 200_000_000)
+        return AuthorsResponse(
+            authors: authors.enumerated().map { idx, name in
+                AuthorSummary(id: "author-\(idx)", name: name, asin: nil, description: nil, imagePath: nil, libraryId: nil, addedAt: nil, updatedAt: nil, numBooks: Int.random(in: 1...10))
+            },
+            total: authors.count,
+            limit: 24,
+            page: 0
+        )
+    }
+
+    public func fetchSeries(libraryId: String?, page: Int = 0, sort: String = "name") async throws -> SeriesResponse {
+        try await Task.sleep(nanoseconds: 200_000_000)
+        return SeriesResponse(
+            results: [
+                SeriesSummary(id: "s1", name: "The Lord of the Rings", nameIgnorePrefix: nil, description: nil, libraryId: nil, addedAt: nil, updatedAt: nil, books: nil, numBooks: 3),
+                SeriesSummary(id: "s2", name: "Dune", nameIgnorePrefix: nil, description: nil, libraryId: nil, addedAt: nil, updatedAt: nil, books: nil, numBooks: 6),
+            ],
+            total: 2,
+            limit: 24,
+            page: 0
+        )
     }
 }

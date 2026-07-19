@@ -621,6 +621,109 @@ public actor AudiobookphileAPI {
         let response = try await executeRequest(request, responseType: PreferencesResponse.self)
         return response.preferences ?? settings
     }
+
+    // MARK: - Library Stats
+
+    /// Get library statistics (total items, duration, authors, genres, etc.)
+    public func getLibraryStats(libraryId: String) async throws -> LibraryStats {
+        guard let url = URL(string: endpointUrlString(for: "/api/libraries/\(libraryId)/stats")) else {
+            throw APIError.invalidResponse
+        }
+        let request = URLRequest(url: url)
+        return try await executeRequest(request, responseType: LibraryStats.self)
+    }
+
+    // MARK: - Authors
+
+    /// Get paginated authors for a library
+    public func getLibraryAuthors(libraryId: String, limit: Int = 24, page: Int = 0, sort: String = "name", desc: Bool = false) async throws -> AuthorsResponse {
+        guard var components = URLComponents(string: endpointUrlString(for: "/api/libraries/\(libraryId)/authors")) else {
+            throw APIError.invalidResponse
+        }
+        components.queryItems = [
+            URLQueryItem(name: "limit", value: "\(limit)"),
+            URLQueryItem(name: "page", value: "\(page)"),
+            URLQueryItem(name: "sort", value: sort),
+            URLQueryItem(name: "desc", value: desc ? "1" : "0")
+        ]
+        guard let url = components.url else { throw APIError.invalidResponse }
+        let request = URLRequest(url: url)
+        return try await executeRequest(request, responseType: AuthorsResponse.self)
+    }
+
+    /// Get a single author with their books
+    public func getAuthorDetail(authorId: String) async throws -> AuthorSummary {
+        guard let url = URL(string: endpointUrlString(for: "/api/authors/\(authorId)")) else {
+            throw APIError.invalidResponse
+        }
+        let request = URLRequest(url: url)
+        return try await executeRequest(request, responseType: AuthorSummary.self)
+    }
+
+    // MARK: - Series
+
+    /// Get paginated series for a library
+    public func getLibrarySeries(libraryId: String, limit: Int = 24, page: Int = 0, sort: String = "name", desc: Bool = false) async throws -> SeriesResponse {
+        guard var components = URLComponents(string: endpointUrlString(for: "/api/libraries/\(libraryId)/series")) else {
+            throw APIError.invalidResponse
+        }
+        components.queryItems = [
+            URLQueryItem(name: "limit", value: "\(limit)"),
+            URLQueryItem(name: "page", value: "\(page)"),
+            URLQueryItem(name: "sort", value: sort),
+            URLQueryItem(name: "desc", value: desc ? "1" : "0")
+        ]
+        guard let url = components.url else { throw APIError.invalidResponse }
+        let request = URLRequest(url: url)
+        return try await executeRequest(request, responseType: SeriesResponse.self)
+    }
+
+    // MARK: - Collections
+
+    /// Get paginated collections for a library
+    public func getLibraryCollections(libraryId: String, limit: Int = 24, page: Int = 0, sort: String = "name", desc: Bool = false) async throws -> CollectionsResponse {
+        guard var components = URLComponents(string: endpointUrlString(for: "/api/libraries/\(libraryId)/collections")) else {
+            throw APIError.invalidResponse
+        }
+        components.queryItems = [
+            URLQueryItem(name: "limit", value: "\(limit)"),
+            URLQueryItem(name: "page", value: "\(page)"),
+            URLQueryItem(name: "sort", value: sort),
+            URLQueryItem(name: "desc", value: desc ? "1" : "0")
+        ]
+        guard let url = components.url else { throw APIError.invalidResponse }
+        let request = URLRequest(url: url)
+        return try await executeRequest(request, responseType: CollectionsResponse.self)
+    }
+
+    // MARK: - Playlists
+
+    /// Get paginated playlists for a library
+    public func getLibraryPlaylists(libraryId: String, limit: Int = 24, page: Int = 0, sort: String = "name", desc: Bool = false) async throws -> PlaylistsResponse {
+        guard var components = URLComponents(string: endpointUrlString(for: "/api/libraries/\(libraryId)/playlists")) else {
+            throw APIError.invalidResponse
+        }
+        components.queryItems = [
+            URLQueryItem(name: "limit", value: "\(limit)"),
+            URLQueryItem(name: "page", value: "\(page)"),
+            URLQueryItem(name: "sort", value: sort),
+            URLQueryItem(name: "desc", value: desc ? "1" : "0")
+        ]
+        guard let url = components.url else { throw APIError.invalidResponse }
+        let request = URLRequest(url: url)
+        return try await executeRequest(request, responseType: PlaylistsResponse.self)
+    }
+
+    // MARK: - Match All
+
+    /// Trigger metadata matching for all items in a library (runs in background)
+    public func triggerMatchAll(libraryId: String) async throws {
+        guard let url = URL(string: endpointUrlString(for: "/api/libraries/\(libraryId)/matchall")) else {
+            throw APIError.invalidResponse
+        }
+        let request = URLRequest(url: url)
+        let _: EmptyResponse = try await executeRequest(request, responseType: EmptyResponse.self)
+    }
 }
 
 // MARK: - Response Models
@@ -665,6 +768,34 @@ public struct PersonalizedShelf: Codable, Sendable {
     public let type: String
     public let entities: [Book]
     public let total: Int
+}
+
+public struct AuthorsResponse: Codable, Sendable {
+    public let authors: [AuthorSummary]
+    public let total: Int
+    public let limit: Int
+    public let page: Int
+}
+
+public struct SeriesResponse: Codable, Sendable {
+    public let results: [SeriesSummary]
+    public let total: Int
+    public let limit: Int
+    public let page: Int
+}
+
+public struct CollectionsResponse: Codable, Sendable {
+    public let results: [CollectionSummary]
+    public let total: Int
+    public let limit: Int
+    public let page: Int
+}
+
+public struct PlaylistsResponse: Codable, Sendable {
+    public let results: [PlaylistSummary]
+    public let total: Int
+    public let limit: Int
+    public let page: Int
 }
 
 // MARK: - API Errors

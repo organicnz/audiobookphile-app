@@ -1,7 +1,21 @@
+//
+//  StatsDashboardView.swift
+//  Audiobookphile
+//
+//  Rich stats dashboard backed by the Supabase Edge API.
+//  Compatible with Swift 6.3 and Skip.
+//
+
 import SwiftUI
 
 public struct StatsDashboardView: View {
     let title: String
+
+    @Environment(AppState.self) private var appState
+
+    @State private var stats: LibraryStats?
+    @State private var isLoading = true
+    @State private var errorMessage: String?
 
     public init(title: String = "Listening Stats") {
         self.title = title
@@ -17,48 +31,13 @@ public struct StatsDashboardView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal)
 
-                    // Heatmap Mock
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Listening Activity")
-                            .font(.headline)
-
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 7), spacing: 4) {
-                            ForEach(0..<28, id: \.self) { _ in
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(Color.appPrimary.opacity(Double.random(in: 0.2...1.0)))
-                                    .aspectRatio(1.0, contentMode: .fit)
-                            }
-                        }
+                    if isLoading {
+                        loadingView
+                    } else if let error = errorMessage {
+                        errorView(error)
+                    } else if let stats = stats {
+                        dashboardContent(stats)
                     }
-                    .padding()
-                    .background(Color.white.opacity(0.1))
-                    .cornerRadius(12)
-                    .padding(.horizontal)
-
-                    // Finished Books Mock
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Finished Books (This Year)")
-                            .font(.headline)
-
-                        HStack(alignment: .bottom, spacing: 8) {
-                            ForEach([3, 5, 2, 8, 4, 10, 6], id: \.self) { count in
-                                VStack {
-                                    Text("\(count)")
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .fill(Color.appPrimary)
-                                        .frame(height: CGFloat(count * 10))
-                                }
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, 16)
-                    }
-                    .padding()
-                    .background(Color.white.opacity(0.1))
-                    .cornerRadius(12)
-                    .padding(.horizontal)
 
                     Spacer(minLength: 40)
                 }
@@ -70,5 +49,260 @@ public struct StatsDashboardView: View {
             #endif
             .applyToolbarAdapters(isLight: false, isHidden: false)
         }
+        .task {
+            await loadStats()
+        }
+    }
+
+    // MARK: - Dashboard Content
+
+    @ViewBuilder
+    private func dashboardContent(_ stats: LibraryStats) -> some View {
+        // Quick Overview Bar
+        HStack(spacing: 0) {
+            overviewStat(label: "Books", value: "\(stats.totalBooks)", icon: "book.fill")
+            Divider().frame(height: 40).background(.white.opacity(0.2))
+            overviewStat(label: "Authors", value: "\(stats.totalAuthors)", icon: "person.fill")
+            Divider().frame(height: 40).background(.white.opacity(0.2))
+            overviewStat(label: "Series", value: "\(stats.totalSeries)", icon: "books.vertical.fill")
+            Divider().frame(height: 40).background(.white.opacity(0.2))
+            overviewStat(label: "Hours", value: "\(Int(stats.totalDuration / 3600))", icon: "clock.fill")
+        }
+        .padding(.vertical, 16)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .padding(.horizontal)
+
+        // Genres Breakdown
+        if !stats.genresWithCount.isEmpty {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Genres")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+
+                let sorted = stats.genresWithCount.sorted { $0.count > $1.count }
+                let maxCount = sorted.first?.count ?? 1
+                ForEach(sorted.prefix(10)) { genre in
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(genre.genre)
+                                .font(.subheadline)
+                                .foregroundStyle(.white.opacity(0.9))
+                            Spacer()
+                            Text("\(genre.count)")
+                                .font(.caption.monospacedDigit())
+                                .foregroundStyle(.white.opacity(0.5))
+                        }
+
+                        GeometryReader { geometry in
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [.appPrimary, .appAccent],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .frame(
+                                    width: geometry.size.width * CGFloat(genre.count) / CGFloat(maxCount)
+                                )
+                        }
+                        .frame(height: 8)
+                    }
+                }
+            }
+            .padding()
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .padding(.horizontal)
+        }
+
+        // Top Authors Chart
+        if !stats.authorsWithCount.isEmpty {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Top Authors")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+
+                let sorted = stats.authorsWithCount.sorted { $0.count > $1.count }
+                HStack(alignment: .bottom, spacing: 8) {
+                    ForEach(sorted.prefix(7)) { author in
+                        VStack(spacing: 4) {
+                            Text("\(author.count)")
+                                .font(.caption2.monospacedDigit())
+                                .foregroundStyle(.white.opacity(0.6))
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.appPrimary)
+                                .frame(height: CGFloat(author.count * 16).clamped(to: 16...120))
+                            Text(abbreviateName(author.name))
+                                .font(.caption2)
+                                .foregroundStyle(.white.opacity(0.6))
+                                .lineLimit(1)
+                                .frame(maxWidth: .infinity)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 8)
+            }
+            .padding()
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .padding(.horizontal)
+        }
+
+        // Longest Books
+        if !stats.longestItems.isEmpty {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Longest Books")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+
+                let topItems = Array(stats.longestItems.prefix(5))
+                ForEach(0..<topItems.count, id: \.self) { idx in
+                    let item = topItems[idx]
+                    let rank = String(idx + 1)
+                    HStack(spacing: 12) {
+                        Text(rank)
+                            .font(.caption.bold())
+                            .foregroundStyle(Color.appPrimary)
+                            .frame(width: 24)
+
+                        Text(item.title)
+                            .font(.subheadline)
+                            .foregroundStyle(.white.opacity(0.9))
+                            .lineLimit(1)
+
+                        Spacer()
+
+                        Text(formatDuration(item.duration ?? 0))
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.white.opacity(0.5))
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+            .padding()
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .padding(.horizontal)
+        }
+
+        // Recently Added Badge
+        if stats.addedLast30Days > 0 {
+            HStack {
+                Image(systemName: "plus.circle.fill")
+                    .foregroundStyle(.green)
+                Text("\(stats.addedLast30Days) books added in the last 30 days")
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.8))
+                Spacer()
+            }
+            .padding()
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal)
+        }
+    }
+
+    // MARK: - Overview Stat
+
+    private func overviewStat(label: String, value: String, icon: String) -> some View {
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.caption)
+                .foregroundStyle(Color.appPrimary)
+            Text(value)
+                .font(.title3.bold())
+                .foregroundStyle(.white)
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(.white.opacity(0.5))
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Error View
+
+    @ViewBuilder
+    private func errorView(_ message: String) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 40))
+                .foregroundStyle(.orange)
+            Text(message)
+                .font(.body)
+                .foregroundStyle(.white.opacity(0.7))
+                .multilineTextAlignment(.center)
+            Button("Retry") {
+                Task { await loadStats() }
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.appPrimary)
+        }
+        .padding(32)
+        .padding(.horizontal)
+    }
+
+    // MARK: - Loading
+
+    @ViewBuilder
+    private var loadingView: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .tint(.appPrimary)
+                .scaleEffect(1.2)
+            Text("Loading stats…")
+                .font(.subheadline)
+                .foregroundStyle(.white.opacity(0.5))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 60)
+    }
+
+    // MARK: - Data Loading
+
+    private func loadStats() async {
+        guard let libraryId = appState.currentLibraryId else {
+            errorMessage = "No library selected"
+            isLoading = false
+            return
+        }
+
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            stats = try await AudiobookphileAPI.shared.getLibraryStats(libraryId: libraryId)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+
+        isLoading = false
+    }
+
+    // MARK: - Formatters
+
+    private func formatDuration(_ seconds: TimeInterval) -> String {
+        let hours = Int(seconds) / 3600
+        let minutes = Int(seconds) / 60 % 60
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        }
+        return "\(minutes)m"
+    }
+
+    private func abbreviateName(_ name: String) -> String {
+        let parts = name.split(separator: " ")
+        guard parts.count > 1, let last = parts.last else { return name }
+        return String(last)
+    }
+}
+
+// MARK: - CGFloat Clamping
+
+extension CGFloat {
+    func clamped(to range: ClosedRange<CGFloat>) -> CGFloat {
+        return Swift.min(Swift.max(self, range.lowerBound), range.upperBound)
     }
 }

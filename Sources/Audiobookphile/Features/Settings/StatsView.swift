@@ -2,17 +2,18 @@
 //  StatsView.swift
 //  Audiobookphile
 //
+//  Library statistics backed by the Supabase Edge API.
 //  Compatible with Swift 6.3 and Skip.
 //
 
 import SwiftUI
 
 public struct StatsView: View {
-    // In a real implementation this would fetch from an API or local CoreData
-    // For now we use placeholder stats as agreed for local storage tracking.
-    @State private var totalListeningTime: TimeInterval = 145 * 3600 + 30 * 60 // 145h 30m
-    @State private var totalBooksFinished = 12
-    @State private var currentStreak = 5
+    @Environment(AppState.self) private var appState
+
+    @State private var stats: LibraryStats?
+    @State private var isLoading = true
+    @State private var errorMessage: String?
 
     public init() {}
 
@@ -37,26 +38,12 @@ public struct StatsView: View {
                     .padding(.top, 32)
                     .padding(.bottom, 16)
 
-                    // Main Stat
-                    VStack(spacing: 8) {
-                        Text("Total Time Listened")
-                            .font(.headline)
-                            .foregroundStyle(.white.opacity(0.7))
-
-                        Text(formatTotalTime(totalListeningTime))
-                            .font(.system(size: 36, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.white)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(24)
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                    .shadow(color: .black.opacity(0.2), radius: 10, y: 5)
-
-                    // Stats Grid
-                    HStack(spacing: 16) {
-                        statCard(title: "Books Finished", value: "\(totalBooksFinished)", icon: "book.closed.fill", color: .green)
-                        statCard(title: "Current Streak", value: "\(currentStreak) Days", icon: "flame.fill", color: .orange)
+                    if isLoading {
+                        statsLoadingSkeleton
+                    } else if let error = errorMessage {
+                        errorView(error)
+                    } else if let stats = stats {
+                        statsContent(stats)
                     }
 
                     Spacer(minLength: 50)
@@ -68,7 +55,210 @@ public struct StatsView: View {
         #if os(iOS) || SKIP
         .navigationBarTitleDisplayMode(.inline)
         #endif
+        .task {
+            await loadStats()
+        }
     }
+
+    // MARK: - Live Stats Content
+
+    @ViewBuilder
+    private func statsContent(_ stats: LibraryStats) -> some View {
+        // Main Stat — Total Duration
+        VStack(spacing: 8) {
+            Text("Total Listening Time")
+                .font(.headline)
+                .foregroundStyle(.white.opacity(0.7))
+
+            Text(formatDuration(stats.totalDuration))
+                .font(.system(size: 36, weight: .bold, design: .monospaced))
+                .foregroundStyle(.white)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(24)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .shadow(color: .black.opacity(0.2), radius: 10, y: 5)
+
+        // Stats Grid — Row 1
+        HStack(spacing: 16) {
+            statCard(
+                title: "Total Books",
+                value: "\(stats.totalBooks)",
+                icon: "book.closed.fill",
+                color: .appPrimary
+            )
+            statCard(
+                title: "Audio Tracks",
+                value: "\(stats.numAudioTracks)",
+                icon: "waveform",
+                color: .cyan
+            )
+        }
+
+        // Stats Grid — Row 2
+        HStack(spacing: 16) {
+            statCard(
+                title: "Authors",
+                value: "\(stats.totalAuthors)",
+                icon: "person.2.fill",
+                color: .purple
+            )
+            statCard(
+                title: "Series",
+                value: "\(stats.totalSeries)",
+                icon: "books.vertical.fill",
+                color: .blue
+            )
+        }
+
+        // Stats Grid — Row 3
+        HStack(spacing: 16) {
+            statCard(
+                title: "Added Last 30 Days",
+                value: "\(stats.addedLast30Days)",
+                icon: "plus.circle.fill",
+                color: .green
+            )
+            statCard(
+                title: "Library Size",
+                value: formatBytes(stats.totalSize),
+                icon: "externaldrive.fill",
+                color: .orange
+            )
+        }
+
+        // Top Genres
+        if !stats.genresWithCount.isEmpty {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Top Genres")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+
+                let sorted = stats.genresWithCount.sorted { $0.count > $1.count }.prefix(8)
+                ForEach(Array(sorted)) { genre in
+                    HStack {
+                        Text(genre.genre)
+                            .foregroundStyle(.white.opacity(0.8))
+                        Spacer()
+                        Text("\(genre.count)")
+                            .foregroundStyle(.white.opacity(0.5))
+                            .font(.subheadline.monospacedDigit())
+                    }
+                    .padding(.vertical, 2)
+                }
+            }
+            .padding(16)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+        }
+
+        // Top Authors
+        if !stats.authorsWithCount.isEmpty {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Top Authors")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+
+                let sorted = stats.authorsWithCount.sorted { $0.count > $1.count }.prefix(8)
+                ForEach(Array(sorted)) { author in
+                    HStack {
+                        Text(author.name)
+                            .foregroundStyle(.white.opacity(0.8))
+                        Spacer()
+                        Text("\(author.count) books")
+                            .foregroundStyle(.white.opacity(0.5))
+                            .font(.subheadline)
+                    }
+                    .padding(.vertical, 2)
+                }
+            }
+            .padding(16)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+        }
+
+        // Longest Items
+        if !stats.longestItems.isEmpty {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Longest Books")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+
+                ForEach(stats.longestItems.prefix(5)) { item in
+                    HStack {
+                        Text(item.title)
+                            .foregroundStyle(.white.opacity(0.8))
+                            .lineLimit(1)
+                        Spacer()
+                        Text(formatDuration(item.duration ?? 0))
+                            .foregroundStyle(.white.opacity(0.5))
+                            .font(.subheadline.monospacedDigit())
+                    }
+                    .padding(.vertical, 2)
+                }
+            }
+            .padding(16)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+        }
+    }
+
+    // MARK: - Error View
+
+    @ViewBuilder
+    private func errorView(_ message: String) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 40))
+                .foregroundStyle(.orange)
+
+            Text(message)
+                .font(.body)
+                .foregroundStyle(.white.opacity(0.7))
+                .multilineTextAlignment(.center)
+
+            Button("Retry") {
+                Task { await loadStats() }
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.appPrimary)
+        }
+        .padding(32)
+    }
+
+    // MARK: - Loading Skeleton
+
+    @ViewBuilder
+    private var statsLoadingSkeleton: some View {
+        VStack(spacing: 16) {
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.white.opacity(0.05))
+                .frame(height: 100)
+                .overlay {
+                    ProgressView()
+                        .tint(.appPrimary)
+                }
+
+            HStack(spacing: 16) {
+                skeletonCard
+                skeletonCard
+            }
+
+            HStack(spacing: 16) {
+                skeletonCard
+                skeletonCard
+            }
+        }
+    }
+
+    private var skeletonCard: some View {
+        RoundedRectangle(cornerRadius: 16)
+            .fill(Color.white.opacity(0.05))
+            .frame(height: 100)
+    }
+
+    // MARK: - Helpers
 
     private func statCard(title: String, value: String, icon: String, color: Color) -> some View {
         VStack(spacing: 12) {
@@ -95,9 +285,40 @@ public struct StatsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
-    private func formatTotalTime(_ time: TimeInterval) -> String {
-        let hours = Int(time) / 3600
-        let minutes = Int(time) / 60 % 60
-        return "\(hours)h \(minutes)m"
+    private func loadStats() async {
+        guard let libraryId = appState.currentLibraryId else {
+            errorMessage = "No library selected"
+            isLoading = false
+            return
+        }
+
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            stats = try await AudiobookphileAPI.shared.getLibraryStats(libraryId: libraryId)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+
+        isLoading = false
+    }
+
+    private func formatDuration(_ seconds: TimeInterval) -> String {
+        let hours = Int(seconds) / 3600
+        let minutes = Int(seconds) / 60 % 60
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        }
+        return "\(minutes)m"
+    }
+
+    private func formatBytes(_ bytes: Int64) -> String {
+        let gb = Double(bytes) / (1024 * 1024 * 1024)
+        if gb >= 1 {
+            return String(format: "%.1f GB", gb)
+        }
+        let mb = Double(bytes) / (1024 * 1024)
+        return String(format: "%.0f MB", mb)
     }
 }
