@@ -285,4 +285,38 @@ public class AppState {
         components.queryItems = queryItems
         return components.url
     }
+
+    public func getAuthorImageURL(authorId: String, updatedAt: Date? = nil) -> URL? {
+        guard !serverURL.isEmpty else { return nil }
+
+        let isDirectSupabase = serverURL.contains(".supabase.co") || serverURL.contains("54321")
+        var base = serverURL
+        if isDirectSupabase && !serverURL.contains("/functions/v1") {
+            base = "\(serverURL)/functions/v1"
+        }
+
+        var adjustedPath = "/api/authors/\(authorId)/image"
+        if base.hasSuffix("/api") && adjustedPath.starts(with: "/api") {
+            adjustedPath = String(adjustedPath.dropFirst(4))
+        }
+
+        let endpoint = base.hasSuffix("/") ? "\(base)\(adjustedPath.dropFirst())" : "\(base)\(adjustedPath)"
+        guard var components = URLComponents(string: endpoint) else { return nil }
+
+        var queryItems = [URLQueryItem]()
+
+        if let updated = updatedAt {
+            queryItems.append(URLQueryItem(name: "ts", value: "\(Int(updated.timeIntervalSince1970))"))
+        } else {
+            queryItems.append(URLQueryItem(name: "ts", value: "1"))
+        }
+
+        let anonKey = EnvironmentConfig.supabaseAnonKey
+        if !anonKey.isEmpty {
+            queryItems.append(URLQueryItem(name: "apikey", value: anonKey))
+        }
+
+        components.queryItems = queryItems
+        return components.url
+    }
 }
