@@ -90,35 +90,25 @@ public class DownloadService: NSObject, URLSessionDownloadDelegate {
         }
 
         do {
-            print("[Download] Requesting playback session to retrieve direct track URLs for: \(book.title)")
-            let session = try await AudiobookphileAPI.shared.startPlaybackSession(libraryItemId: book.id)
-            let tracks = session.audioTracks
+            print("[Download] Requesting download manifest for: \(book.title)")
+            let manifest = try await AudiobookphileAPI.shared.getDownloadManifest(libraryItemId: book.id)
+            let tracks = manifest.tracks
             guard !tracks.isEmpty else {
                 print("[Download] Error: no audio tracks found for \(book.title)")
                 return
             }
 
-            Task {
-                try? await AudiobookphileAPI.shared.closePlaybackSession(
-                    sessionId: session.id,
-                    currentTime: 0,
-                    duration: session.duration
-                )
-            }
-
-            let trackPaths = tracks.map { $0.contentUrl }
-            let mediaSize = book.media.size ?? 0
-            let totalSize = mediaSize > 0 ? mediaSize : Int64(session.duration * 32000 / 8)
+            let trackPaths = tracks.map { $0.url }
 
             let download = Download(
                 libraryItemId: book.id,
-                title: book.title,
-                author: book.author ?? "Unknown Author",
+                title: manifest.title,
+                author: manifest.author,
                 progress: 0.0,
-                totalSize: totalSize,
+                totalSize: manifest.totalSize,
                 status: .pending,
                 audioTracks: trackPaths,
-                duration: session.duration
+                duration: manifest.duration
             )
 
             if let index = downloads.firstIndex(where: { $0.libraryItemId == book.id }) {
@@ -388,10 +378,25 @@ public class DownloadService: NSObject, URLSessionDownloadDelegate {
         downloadTask: URLSessionDownloadTask,
         didFinishDownloadingTo location: URL
     ) {
+        let fm = FileManager.default
+        let safeTempURL = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        do {
+            try fm.moveItem(at: location, to: safeTempURL)
+        } catch {
+            print("[Download] Failed to secure temp file: \(error)")
+            return
+        }
+
         Task { @MainActor in
-            guard let bookId = self.activeBookId else { return }
+            guard let bookId = self.activeBookId else {
+                try? fm.removeItem(at: safeTempURL)
+                return
+            }
             let trackPaths = self.trackPathsMap[bookId] ?? []
-            guard self.activeTrackIndex < trackPaths.count else { return }
+            guard self.activeTrackIndex < trackPaths.count else {
+                try? fm.removeItem(at: safeTempURL)
+                return
+            }
 
             let trackPath = trackPaths[self.activeTrackIndex]
             let bookDir = self.downloadsDirectory.appendingPathComponent(bookId)
@@ -406,7 +411,7 @@ public class DownloadService: NSObject, URLSessionDownloadDelegate {
                     try? self.fm.removeItem(at: destFile)
                 }
 
-                try self.fm.moveItem(at: location, to: destFile)
+                try self.fm.moveItem(at: safeTempURL, to: destFile)
                 print("[Download] Saved track \(self.activeTrackIndex) to \(destFile.path)")
 
                 let fileSize = (try? self.fm.attributesOfItem(atPath: destFile.path)[.size] as? Int64) ?? 0

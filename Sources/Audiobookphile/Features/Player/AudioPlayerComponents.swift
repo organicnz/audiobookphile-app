@@ -82,14 +82,14 @@ public struct BookmarksListView: View {
                 } else {
                     ForEach(viewModel.bookmarks) { bookmark in
                         Button {
-                            viewModel.seek(to: bookmark.time)
+                            viewModel.seek(to: bookmark.timePos)
                             dismiss()
                         } label: {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(bookmark.title)
+                                Text(bookmark.title ?? "Bookmark")
                                     .font(.headline)
                                     .foregroundStyle(.primary)
-                                Text(viewModel.formatTime(bookmark.time))
+                                Text(viewModel.formatTime(bookmark.timePos))
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }

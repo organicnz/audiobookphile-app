@@ -25,6 +25,9 @@ public class AppState {
     public var libraries: [Library] = []
     public var currentLibraryId: String?
 
+    // Global settings loaded from Supabase
+    public var settings = AppSettings()
+
     public var serverURL: String = ""
     public var token: String = ""
 
@@ -80,6 +83,13 @@ public class AppState {
             // Restore last-used library before fetching
             if let savedLibraryId = UserDefaults.standard.string(forKey: StorageKeys.lastLibraryId) {
                 self.currentLibraryId = savedLibraryId
+            }
+
+            // Fetch user preferences from Supabase
+            do {
+                self.settings = try await AudiobookphileAPI.shared.getPreferences()
+            } catch {
+                print("[AppState] Failed to fetch preferences on launch: \(error)")
             }
 
             // Await library fetch so currentLibraryId is set before
@@ -140,6 +150,12 @@ public class AppState {
         do {
             let fetched = try await AudiobookphileAPI.shared.getLibraries()
             self.libraries = fetched
+            
+            // Validate that currentLibraryId still exists in the fetched libraries
+            if let libId = self.currentLibraryId, !fetched.contains(where: { $0.id == libId }) {
+                self.currentLibraryId = nil
+            }
+            
             if self.currentLibraryId == nil {
                 self.currentLibraryId = fetched.first?.id
             }
@@ -188,6 +204,13 @@ public class AppState {
                 token: user.token
             )
 
+            // Fetch user preferences from Supabase
+            do {
+                self.settings = try await AudiobookphileAPI.shared.getPreferences()
+            } catch {
+                print("[AppState] Failed to fetch preferences on login: \(error)")
+            }
+
             // Fetch libraries immediately
             await fetchLibraries()
         } catch {
@@ -210,7 +233,19 @@ public class AppState {
         currentLibraryId = nil
         serverURL = ""
         token = ""
+        settings = AppSettings()
         UserDefaults.standard.removeObject(forKey: StorageKeys.lastLibraryId)
+    }
+
+    public func updateSettings(_ newSettings: AppSettings) {
+        self.settings = newSettings
+        Task {
+            do {
+                _ = try await AudiobookphileAPI.shared.updatePreferences(newSettings)
+            } catch {
+                print("[AppState] Failed to update preferences to server: \(error)")
+            }
+        }
     }
 
     public func getCoverURL(itemId: String, width: Int = 400, updatedAt: Date? = nil) -> URL? {

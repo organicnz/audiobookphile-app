@@ -305,14 +305,21 @@ public struct User: Identifiable, Codable, Sendable {
     public let isOldToken: Bool?
 }
 
-public struct Bookmark: Identifiable, Codable, Sendable {
+public struct Bookmark: Identifiable, Codable, Hashable, Sendable {
+    public let id: String
+    public let userId: String
     public let libraryItemId: String
-    public let title: String
-    public let time: TimeInterval
-    public let createdAt: Date
+    public let timePos: Double
+    public let title: String?
+    public let createdAt: Date?
 
-    public var id: String {
-        "\(libraryItemId)-\(time)"
+    public enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case libraryItemId = "library_item_id"
+        case timePos = "time_pos"
+        case title
+        case createdAt = "created_at"
     }
 }
 
@@ -400,12 +407,30 @@ public struct AppSettings: Codable, Sendable {
     public var autoResume: Bool = true
     public var hapticsEnabled: Bool = true
     public var lockOrientation: Bool = false
+    public var defaultPlaybackSpeed: Double = 1.0
 
     public init() {}
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        jumpForwardTime = try container.decodeIfPresent(Int.self, forKey: .jumpForwardTime) ?? 30
+        jumpBackwardsTime = try container.decodeIfPresent(Int.self, forKey: .jumpBackwardsTime) ?? 10
+        lockScreenControls = try container.decodeIfPresent(Bool.self, forKey: .lockScreenControls) ?? true
+        autoDownloadPodcasts = try container.decodeIfPresent(Bool.self, forKey: .autoDownloadPodcasts) ?? false
+        sleepTimerAutoStart = try container.decodeIfPresent(Bool.self, forKey: .sleepTimerAutoStart) ?? false
+        sleepTimerDefaultTime = try container.decodeIfPresent(Int.self, forKey: .sleepTimerDefaultTime) ?? 900
+        theme = try container.decodeIfPresent(AppTheme.self, forKey: .theme) ?? .system
+        bookCoverAspectRatio = try container.decodeIfPresent(BookCoverAspectRatio.self, forKey: .bookCoverAspectRatio) ?? .square
+        autoResume = try container.decodeIfPresent(Bool.self, forKey: .autoResume) ?? true
+        hapticsEnabled = try container.decodeIfPresent(Bool.self, forKey: .hapticsEnabled) ?? true
+        lockOrientation = try container.decodeIfPresent(Bool.self, forKey: .lockOrientation) ?? false
+        defaultPlaybackSpeed = try container.decodeIfPresent(Double.self, forKey: .defaultPlaybackSpeed) ?? 1.0
+    }
 
     public enum CodingKeys: String, CodingKey {
         case jumpForwardTime
         case jumpBackwardsTime
+        case defaultPlaybackSpeed
         case lockScreenControls
         case autoDownloadPodcasts
         case sleepTimerAutoStart
@@ -586,4 +611,41 @@ public struct PaginatedResponse<T: Codable & Sendable>: Codable, Sendable {
     public let total: Int
     public let limit: Int
     public let page: Int
+}
+
+// MARK: - Downloads
+
+public struct DownloadManifest: Codable, Sendable {
+    public let libraryItemId: String
+    public let title: String
+    public let author: String
+    public let duration: Double
+    public let totalSize: Int64
+    public let tracks: [DownloadManifestTrack]
+}
+
+public struct DownloadManifestTrack: Codable, Sendable {
+    public let index: Int
+    public let title: String
+    public let url: String
+    public let size: Int64
+    public let duration: Double
+    public let mimeType: String
+}
+
+public struct BookmarksResponse: Codable, Sendable {
+    public let bookmarks: [Bookmark]
+}
+
+
+public struct SearchHistoryItem: Codable, Identifiable, Hashable, Sendable {
+    public let id: String
+    public let query: String
+    public let createdAt: String
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case query
+        case createdAt = "created_at"
+    }
 }

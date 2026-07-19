@@ -21,8 +21,8 @@ public struct SearchView: View {
     @State var selectedBook: Book?
     @State var useSemanticSearch = false
 
-    // Recent searches (mock for now, would use UserDefaults)
-    @State var recentSearches = ["Project Hail Mary", "Sandman", "Dune"]
+    // Recent searches via API
+    @State var recentSearches: [SearchHistoryItem] = []
 
     public init() {}
 
@@ -81,7 +81,21 @@ public struct SearchView: View {
                 prompt: "Title, Author, or Series"
             )
             .onChange(of: query) { _, newValue in
-                performSearch(newValue)
+                if newValue.isEmpty {
+                    results = []
+                }
+            }
+            .onSubmit(of: .search) {
+                if !query.isEmpty {
+                    Task {
+                        _ = try? await AudiobookphileAPI.shared.addSearchHistory(query: query)
+                        await fetchRecentSearches()
+                    }
+                    performSearch(query)
+                }
+            }
+            .task {
+                await fetchRecentSearches()
             }
             .sheet(item: $selectedBook) { book in
                 BookDetailView(book: book)
@@ -130,8 +144,9 @@ public struct SearchView: View {
                 Spacer()
 
                 Button("Clear") {
-                    withAnimation {
-                        recentSearches.removeAll()
+                    Task {
+                        try? await AudiobookphileAPI.shared.clearSearchHistory()
+                        await fetchRecentSearches()
                     }
                 }
                 .font(.caption)
@@ -141,15 +156,15 @@ public struct SearchView: View {
 
             // List
             VStack(spacing: 0) {
-                ForEach(recentSearches, id: \.self) { term in
+                ForEach(recentSearches) { item in
                     Button {
-                        query = term
+                        query = item.query
                     } label: {
                         HStack(spacing: 16) {
                             Image(systemName: "clock")
                                 .foregroundStyle(.white.opacity(0.4))
 
-                            Text(term)
+                            Text(item.query)
                                 .foregroundStyle(.white.opacity(0.9))
 
                             Spacer()
@@ -161,8 +176,7 @@ public struct SearchView: View {
                         .padding(16)
                         .background(.white.opacity(0.05))
                     }
-
-                    if term != recentSearches.last {
+                    if item != recentSearches.last {
                         Divider()
                             .background(.white.opacity(0.1))
                             .padding(.leading, 48)
@@ -245,6 +259,17 @@ public struct SearchView: View {
                 print("Search failed: \(error)")
                 await MainActor.run { isSearching = false }
             }
+        }
+    }
+
+    private func fetchRecentSearches() async {
+        do {
+            let history = try await AudiobookphileAPI.shared.fetchSearchHistory()
+            withAnimation {
+                self.recentSearches = history
+            }
+        } catch {
+            print("Failed to fetch recent searches: \(error)")
         }
     }
 }

@@ -9,13 +9,11 @@ public class AudioPlayerViewModel {
     public var useTotalTrack = true
 
     public var jumpForwardTime: Int {
-        let val = UserDefaults.standard.integer(forKey: "jumpForwardTime")
-        return val == 0 ? 30 : val
+        return AppState.shared.settings.jumpForwardTime
     }
 
     public var jumpBackwardTime: Int {
-        let val = UserDefaults.standard.integer(forKey: "jumpBackwardTime")
-        return val == 0 ? 10 : val
+        return AppState.shared.settings.jumpBackwardsTime
     }
 
     public let session: PlaybackSession
@@ -131,7 +129,7 @@ public class AudioPlayerViewModel {
     }
 
     public var bookmarks: [Bookmark] {
-        AudioPlayerService.shared.getBookmarks(for: session.libraryItemId)
+        AudioPlayerService.shared.bookmarks
     }
 
     public var hasBookmarks: Bool {

@@ -56,20 +56,6 @@ public struct SettingsView: View {
                     .padding(.horizontal, 16)
                     .padding(.top, 16)
                 }
-                .onChange(of: viewModel.autoSleepTimer) { _, newValue in
-                    UserDefaults.standard.set(newValue, forKey: "autoSleepTimer")
-                    viewModel.syncPreferences()
-                }
-                .onChange(of: viewModel.autoResume) { _, newValue in
-                    UserDefaults.standard.set(newValue, forKey: "autoResume")
-                    viewModel.syncPreferences()
-                }
-                .onChange(of: viewModel.hapticsEnabled) { _, newValue in
-                    UserDefaults.standard.set(newValue, forKey: "hapticsEnabled")
-                }
-                .onChange(of: viewModel.lockOrientation) { _, newValue in
-                    UserDefaults.standard.set(newValue, forKey: "lockOrientation")
-                }
             }
             .navigationTitle("Settings")
             #if os(iOS) || SKIP
@@ -293,121 +279,114 @@ public struct SettingsView: View {
 @MainActor
 public class SettingsViewModel {
     public var currentUser: User?
-    public var jumpForwardTime = 30
-    public var jumpBackwardTime = 10
-    public var defaultPlaybackSpeed = 1.0
-    public var autoSleepTimer = false
-    public var autoResume = true
-    public var streamingPolicy: StreamingPolicy = .always
-    public var downloadPolicy: DownloadPolicy = .wifiOnly
-    public var hapticsEnabled = true
-    public var lockOrientation = false
-    public var selectedTheme = "System"
+    
     public var serverURL = ""
 
+    // Bindings to AppState
+    public var jumpForwardTime: Int {
+        get { AppState.shared.settings.jumpForwardTime }
+        set { 
+            var s = AppState.shared.settings
+            s.jumpForwardTime = newValue
+            AppState.shared.updateSettings(s)
+        }
+    }
+
+    public var jumpBackwardTime: Int {
+        get { AppState.shared.settings.jumpBackwardsTime }
+        set { 
+            var s = AppState.shared.settings
+            s.jumpBackwardsTime = newValue
+            AppState.shared.updateSettings(s)
+        }
+    }
+
+    public var defaultPlaybackSpeed: Double {
+        get { AppState.shared.settings.defaultPlaybackSpeed }
+        set { 
+            var s = AppState.shared.settings
+            s.defaultPlaybackSpeed = newValue
+            AppState.shared.updateSettings(s)
+        }
+    }
+
+    public var autoSleepTimer: Bool {
+        get { AppState.shared.settings.sleepTimerAutoStart }
+        set { 
+            var s = AppState.shared.settings
+            s.sleepTimerAutoStart = newValue
+            AppState.shared.updateSettings(s)
+        }
+    }
+
+    public var autoResume: Bool {
+        get { AppState.shared.settings.autoResume }
+        set { 
+            var s = AppState.shared.settings
+            s.autoResume = newValue
+            AppState.shared.updateSettings(s)
+        }
+    }
+
+    public var hapticsEnabled: Bool {
+        get { AppState.shared.settings.hapticsEnabled }
+        set { 
+            var s = AppState.shared.settings
+            s.hapticsEnabled = newValue
+            AppState.shared.updateSettings(s)
+        }
+    }
+
+    public var lockOrientation: Bool {
+        get { AppState.shared.settings.lockOrientation }
+        set { 
+            var s = AppState.shared.settings
+            s.lockOrientation = newValue
+            AppState.shared.updateSettings(s)
+        }
+    }
+
+    public var selectedTheme: String {
+        get { 
+            switch AppState.shared.settings.theme {
+            case .dark: return "Dark"
+            case .light: return "Light"
+            case .system: return "System"
+            }
+        }
+        set { 
+            var s = AppState.shared.settings
+            switch newValue {
+            case "Dark": s.theme = .dark
+            case "Light": s.theme = .light
+            default: s.theme = .system
+            }
+            AppState.shared.updateSettings(s)
+        }
+    }
+
+    public var streamingPolicy: StreamingPolicy = .always
+    public var downloadPolicy: DownloadPolicy = .wifiOnly
+
     public init() {
-        loadSettings()
         currentUser = AppState.shared.currentUser
-    }
-
-    public func loadSettings() {
-        let defaults = UserDefaults.standard
-        jumpForwardTime = defaults.integer(forKey: "jumpForwardTime")
-        if jumpForwardTime == 0 { jumpForwardTime = 30 }
-
-        jumpBackwardTime = defaults.integer(forKey: "jumpBackwardTime")
-        if jumpBackwardTime == 0 { jumpBackwardTime = 10 }
-
-        defaultPlaybackSpeed = defaults.double(forKey: "defaultPlaybackSpeed")
-        if defaultPlaybackSpeed == 0 { defaultPlaybackSpeed = 1.0 }
-
-        autoSleepTimer = defaults.bool(forKey: "autoSleepTimer")
-        autoResume = defaults.bool(forKey: "autoResume")
-        hapticsEnabled = defaults.bool(forKey: "hapticsEnabled")
-        lockOrientation = defaults.bool(forKey: "lockOrientation")
-        selectedTheme = defaults.string(forKey: "selectedTheme") ?? "System"
-        serverURL = defaults.string(forKey: "serverURL") ?? ""
-
-        Task {
-            do {
-                let settings = try await AudiobookphileAPI.shared.getPreferences()
-
-                let defaults = UserDefaults.standard
-                self.jumpForwardTime = settings.jumpForwardTime
-                defaults.set(settings.jumpForwardTime, forKey: "jumpForwardTime")
-
-                self.jumpBackwardTime = settings.jumpBackwardsTime
-                defaults.set(settings.jumpBackwardsTime, forKey: "jumpBackwardTime")
-
-                let themeString: String
-                switch settings.theme {
-                case .dark: themeString = "Dark"
-                case .light: themeString = "Light"
-                case .system: themeString = "System"
-                }
-                self.selectedTheme = themeString
-                defaults.set(themeString, forKey: "selectedTheme")
-
-                self.autoResume = settings.autoResume
-                defaults.set(settings.autoResume, forKey: "autoResume")
-
-                self.hapticsEnabled = settings.hapticsEnabled
-                defaults.set(settings.hapticsEnabled, forKey: "hapticsEnabled")
-
-                self.lockOrientation = settings.lockOrientation
-                defaults.set(settings.lockOrientation, forKey: "lockOrientation")
-
-            } catch {
-                print("Failed to sync preferences from server: \(error)")
-            }
-        }
-    }
-
-    public func syncPreferences() {
-        Task {
-            var settings = AppSettings()
-            settings.jumpForwardTime = self.jumpForwardTime
-            settings.jumpBackwardsTime = self.jumpBackwardTime
-
-            switch self.selectedTheme {
-            case "Dark": settings.theme = .dark
-            case "Light": settings.theme = .light
-            default: settings.theme = .system
-            }
-
-            settings.autoResume = self.autoResume
-            settings.hapticsEnabled = self.hapticsEnabled
-            settings.lockOrientation = self.lockOrientation
-
-            do {
-                _ = try await AudiobookphileAPI.shared.updatePreferences(settings)
-            } catch {
-                print("Failed to update preferences to server: \(error)")
-            }
-        }
+        serverURL = AppState.shared.serverURL
     }
 
     public func saveJumpForwardTime(_ val: Int) {
-        jumpForwardTime = val
-        UserDefaults.standard.set(val, forKey: "jumpForwardTime")
-        syncPreferences()
+        self.jumpForwardTime = val
     }
 
     public func saveJumpBackwardTime(_ val: Int) {
-        jumpBackwardTime = val
-        UserDefaults.standard.set(val, forKey: "jumpBackwardTime")
-        syncPreferences()
+        self.jumpBackwardTime = val
     }
 
     public func saveDefaultPlaybackSpeed(_ val: Double) {
-        defaultPlaybackSpeed = val
-        UserDefaults.standard.set(val, forKey: "defaultPlaybackSpeed")
+        self.defaultPlaybackSpeed = val
     }
 
     public func saveTheme(_ val: String) {
-        selectedTheme = val
-        UserDefaults.standard.set(val, forKey: "selectedTheme")
-        syncPreferences()
+        self.selectedTheme = val
     }
 
     public func logout() {

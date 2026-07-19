@@ -408,6 +408,51 @@ public actor AudiobookphileAPI {
         return SearchResponse(results: searchResults)
     }
 
+    // MARK: - Bookmarks
+
+    public func fetchBookmarks(libraryItemId: String) async throws -> [Bookmark] {
+        guard let url = URL(string: endpointUrlString(for: "/api/me/bookmarks?libraryItemId=\(libraryItemId)")) else {
+            throw APIError.invalidResponse
+        }
+        let request = URLRequest(url: url)
+        let response = try await executeRequest(request, responseType: BookmarksResponse.self)
+        return response.bookmarks
+    }
+
+    public struct BookmarkCreateRequest: Codable {
+        let library_item_id: String
+        let time_pos: Double
+        let title: String?
+    }
+
+    public struct SingleBookmarkResponse: Codable {
+        let bookmark: Bookmark
+    }
+
+    public func createBookmark(libraryItemId: String, timePos: Double, title: String? = nil) async throws -> Bookmark {
+        guard let url = URL(string: endpointUrlString(for: "/api/me/bookmarks")) else {
+            throw APIError.invalidResponse
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let payload = BookmarkCreateRequest(library_item_id: libraryItemId, time_pos: timePos, title: title)
+        request.httpBody = try JSONEncoder().encode(payload)
+
+        let response = try await executeRequest(request, responseType: SingleBookmarkResponse.self)
+        return response.bookmark
+    }
+
+    public func deleteBookmark(bookmarkId: String) async throws {
+        guard let url = URL(string: endpointUrlString(for: "/api/me/bookmarks/\(bookmarkId)")) else {
+            throw APIError.invalidResponse
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        _ = try await executeRequest(request, responseType: EmptyResponse.self)
+    }
+
     // MARK: - Library Items
 
     /// Get single library item
@@ -422,6 +467,17 @@ public actor AudiobookphileAPI {
     // MARK: - Playback
 
     /// Start a playback session
+    public func getDownloadManifest(libraryItemId: String) async throws -> DownloadManifest {
+        guard let url = URL(string: endpointUrlString(for: "/api/items/\(libraryItemId)/download")) else {
+            throw APIError.invalidResponse
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        return try await executeRequest(request, responseType: DownloadManifest.self)
+    }
+
     public func startPlaybackSession(libraryItemId: String, episodeId: String? = nil) async throws -> PlaybackSession {
         var path = "/api/items/\(libraryItemId)/play"
         if let episodeId = episodeId {
@@ -724,6 +780,40 @@ public actor AudiobookphileAPI {
         let request = URLRequest(url: url)
         let _: EmptyResponse = try await executeRequest(request, responseType: EmptyResponse.self)
     }
+
+    // MARK: - Search History
+
+    public func fetchSearchHistory() async throws -> [SearchHistoryItem] {
+        guard let url = URL(string: endpointUrlString(for: "/api/me/search/history")) else {
+            throw APIError.invalidResponse
+        }
+        let request = URLRequest(url: url)
+        let response = try await executeRequest(request, responseType: [SearchHistoryItem].self)
+        return response
+    }
+
+    public func addSearchHistory(query: String) async throws -> SearchHistoryItem {
+        guard let url = URL(string: endpointUrlString(for: "/api/me/search/history")) else {
+            throw APIError.invalidResponse
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body = ["query": query]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        return try await executeRequest(request, responseType: SearchHistoryItem.self)
+    }
+
+    public func clearSearchHistory() async throws {
+        guard let url = URL(string: endpointUrlString(for: "/api/me/search/history")) else {
+            throw APIError.invalidResponse
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        _ = try await executeRequest(request, responseType: EmptyResponse.self)
+    }
 }
 
 // MARK: - Response Models
@@ -934,4 +1024,5 @@ public final class KeychainManager: Sendable {
         case saveFailed
         case loadFailed
     }
+
 }

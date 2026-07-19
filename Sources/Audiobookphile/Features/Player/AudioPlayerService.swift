@@ -31,6 +31,7 @@ public class AudioPlayerService {
     public var playbackRate: Float = 1.0
     public var isBuffering = false
     public var sleepTimerRemaining: TimeInterval?
+    public var bookmarks: [Bookmark] = []
     private var sleepTimer: Timer?
 
     private var currentTrackIndex = 0
@@ -156,6 +157,17 @@ public class AudioPlayerService {
         self.session = session
         self.duration = session.duration
         self.currentTime = session.currentTime
+        self.isPlaying = true
+        self.bookmarks = []
+
+        Task {
+            do {
+                self.bookmarks = try await AudiobookphileAPI.shared.fetchBookmarks(libraryItemId: session.libraryItemId)
+            } catch {
+                self.logger.error("Failed to fetch bookmarks: \(error)")
+            }
+        }
+
         self.playbackRate = session.playbackRate
         self.lastSyncedTime = session.currentTime
 
@@ -286,8 +298,7 @@ public class AudioPlayerService {
         if seconds != 30 {
             interval = seconds
         } else {
-            let saved = UserDefaults.standard.integer(forKey: "jumpForwardTime")
-            interval = TimeInterval(saved == 0 ? 30 : saved)
+            interval = TimeInterval(AppState.shared.settings.jumpForwardTime)
         }
         seek(to: currentTime + interval)
     }
@@ -297,8 +308,7 @@ public class AudioPlayerService {
         if seconds != 10 {
             interval = seconds
         } else {
-            let saved = UserDefaults.standard.integer(forKey: "jumpBackwardTime")
-            interval = TimeInterval(saved == 0 ? 10 : saved)
+            interval = TimeInterval(AppState.shared.settings.jumpBackwardsTime)
         }
         seek(to: currentTime - interval)
     }
@@ -612,7 +622,10 @@ public class AudioPlayerService {
 
     // MARK: - Progress Syncing
 
-    private let offlineProgressQueueKey = "abp_offlineProgressQueue"
+    private var offlineProgressQueueURL: URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return paths[0].appendingPathComponent("abp_offlineProgressQueue.json")
+    }
     private var isFlushingQueue = false
 
     private func queueOfflineProgress(item: ProgressSyncQueueItem) {
@@ -635,8 +648,9 @@ public class AudioPlayerService {
         } else {
             queue.append(item)
         }
+        
         if let data = try? JSONEncoder().encode(queue) {
-            UserDefaults.standard.set(data, forKey: offlineProgressQueueKey)
+            try? data.write(to: offlineProgressQueueURL, options: .atomic)
         }
         logger.info("Queued offline progress for session \(item.sessionId)")
     }
@@ -645,12 +659,12 @@ public class AudioPlayerService {
         var queue = getOfflineProgressQueue()
         queue.removeAll { $0.sessionId == sessionId && $0.dateAdded == dateAdded }
         if let data = try? JSONEncoder().encode(queue) {
-            UserDefaults.standard.set(data, forKey: offlineProgressQueueKey)
+            try? data.write(to: offlineProgressQueueURL, options: .atomic)
         }
     }
 
     private func getOfflineProgressQueue() -> [ProgressSyncQueueItem] {
-        if let data = UserDefaults.standard.data(forKey: offlineProgressQueueKey),
+        if let data = try? Data(contentsOf: offlineProgressQueueURL),
            let queue = try? JSONDecoder().decode([ProgressSyncQueueItem].self, from: data) {
             return queue
         }
@@ -682,7 +696,7 @@ public class AudioPlayerService {
                     }
                 }
                 if let data = try? JSONEncoder().encode(currentQueue) {
-                    UserDefaults.standard.set(data, forKey: offlineProgressQueueKey)
+                    try? data.write(to: offlineProgressQueueURL, options: .atomic)
                 }
             }
         } catch {
@@ -782,39 +796,47 @@ public class AudioPlayerService {
 
     // MARK: - Bookmarks
 
-    private let bookmarksKeyPrefix = "abp_bookmarks_"
-
-    public func getBookmarks(for libraryItemId: String) -> [Bookmark] {
-        guard let data = UserDefaults.standard.data(forKey: bookmarksKeyPrefix + libraryItemId),
-              let bookmarks = try? JSONDecoder().decode([Bookmark].self, from: data) else {
-            return []
-        }
-        return bookmarks.sorted(by: { $0.time < $1.time })
-    }
-
     public func addBookmark(title: String) {
         guard let session = session else { return }
-        let newBookmark = Bookmark(
-            libraryItemId: session.libraryItemId,
-            title: title.isEmpty ? "Bookmark at \(formatTime(currentTime))" : title,
-            time: currentTime,
-            createdAt: Date()
-        )
+        
+        let bookmarkTitle = title.isEmpty ? "Bookmark at \(formatTime(currentTime))" : title
+        let timePos = currentTime
 
-        var currentBookmarks = getBookmarks(for: session.libraryItemId)
-        currentBookmarks.append(newBookmark)
+        // Optimistically update UI
+        let tempBookmark = Bookmark(id: UUID().uuidString, userId: AppState.shared.currentUser?.id ?? "", libraryItemId: session.libraryItemId, timePos: timePos, title: bookmarkTitle, createdAt: Date())
+        self.bookmarks.append(tempBookmark)
+        self.bookmarks.sort(by: { $0.timePos < $1.timePos })
 
-        if let data = try? JSONEncoder().encode(currentBookmarks) {
-            UserDefaults.standard.set(data, forKey: bookmarksKeyPrefix + session.libraryItemId)
+        Task {
+            do {
+                let savedBookmark = try await AudiobookphileAPI.shared.createBookmark(libraryItemId: session.libraryItemId, timePos: timePos, title: bookmarkTitle)
+                if let index = self.bookmarks.firstIndex(where: { $0.id == tempBookmark.id }) {
+                    self.bookmarks[index] = savedBookmark
+                } else {
+                    self.bookmarks.append(savedBookmark)
+                    self.bookmarks.sort(by: { $0.timePos < $1.timePos })
+                }
+            } catch {
+                self.logger.error("Failed to save bookmark: \(error)")
+                // Revert optimistic update
+                self.bookmarks.removeAll(where: { $0.id == tempBookmark.id })
+            }
         }
     }
 
     public func deleteBookmark(_ bookmark: Bookmark) {
-        var currentBookmarks = getBookmarks(for: bookmark.libraryItemId)
-        currentBookmarks.removeAll { $0.id == bookmark.id }
+        // Optimistically update UI
+        self.bookmarks.removeAll { $0.id == bookmark.id }
 
-        if let data = try? JSONEncoder().encode(currentBookmarks) {
-            UserDefaults.standard.set(data, forKey: bookmarksKeyPrefix + bookmark.libraryItemId)
+        Task {
+            do {
+                try await AudiobookphileAPI.shared.deleteBookmark(bookmarkId: bookmark.id)
+            } catch {
+                self.logger.error("Failed to delete bookmark: \(error)")
+                // Revert optimistic update
+                self.bookmarks.append(bookmark)
+                self.bookmarks.sort(by: { $0.timePos < $1.timePos })
+            }
         }
     }
 
