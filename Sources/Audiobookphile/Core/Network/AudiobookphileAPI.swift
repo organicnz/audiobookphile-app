@@ -777,8 +777,35 @@ public actor AudiobookphileAPI {
         guard let url = URL(string: endpointUrlString(for: "/api/libraries/\(libraryId)/matchall")) else {
             throw APIError.invalidResponse
         }
-        let request = URLRequest(url: url)
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
         let _: EmptyResponse = try await executeRequest(request, responseType: EmptyResponse.self)
+    }
+
+    public func getUserStats() async throws -> UserStatsData {
+        guard let url = URL(string: endpointUrlString(for: "/api/me/stats")) else {
+            throw APIError.invalidResponse
+        }
+        let request = URLRequest(url: url)
+        return try await executeRequest(request, responseType: UserStatsData.self)
+    }
+
+    public func getCurrentUserProfile() async throws -> User {
+        guard let url = URL(string: endpointUrlString(for: "/api/me")) else {
+            throw APIError.invalidResponse
+        }
+        let request = URLRequest(url: url)
+        let res: LoginResponse = try await executeRequest(request, responseType: LoginResponse.self)
+        return res.user
+    }
+
+    public func getSimilarItems(itemId: String) async throws -> [Book] {
+        guard let url = URL(string: endpointUrlString(for: "/api/items/\(itemId)/similar")) else {
+            throw APIError.invalidResponse
+        }
+        let request = URLRequest(url: url)
+        let res: SimilarItemsResponse = try await executeRequest(request, responseType: SimilarItemsResponse.self)
+        return res.similarItems
     }
 
     // MARK: - Search History

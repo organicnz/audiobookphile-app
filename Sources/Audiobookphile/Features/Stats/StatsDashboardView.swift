@@ -14,6 +14,7 @@ public struct StatsDashboardView: View {
     @Environment(AppState.self) private var appState
 
     @State private var stats: LibraryStats?
+    @State private var userStats: UserStatsData?
     @State private var isLoading = true
     @State private var errorMessage: String?
 
@@ -35,8 +36,13 @@ public struct StatsDashboardView: View {
                         loadingView
                     } else if let error = errorMessage {
                         errorView(error)
-                    } else if let stats = stats {
-                        dashboardContent(stats)
+                    } else {
+                        if let userStats = userStats {
+                            userStatsContent(userStats)
+                        }
+                        if let stats = stats {
+                            dashboardContent(stats)
+                        }
                     }
 
                     Spacer(minLength: 40)
@@ -58,8 +64,16 @@ public struct StatsDashboardView: View {
 
     @ViewBuilder
     private func dashboardContent(_ stats: LibraryStats) -> some View {
-        // Quick Overview Bar
-        HStack(spacing: 0) {
+        VStack(spacing: 24) {
+            Text("Library Overview")
+                .font(.title2)
+                .bold()
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+
+            // Quick Overview Bar
+            HStack(spacing: 0) {
             overviewStat(label: "Books", value: "\(stats.totalBooks)", icon: "book.fill")
             Divider().frame(height: 40).background(.white.opacity(0.2))
             overviewStat(label: "Authors", value: "\(stats.totalAuthors)", icon: "person.fill")
@@ -203,6 +217,112 @@ public struct StatsDashboardView: View {
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .padding(.horizontal)
         }
+        }
+    }
+
+    // MARK: - Personal Stats Content
+
+    @ViewBuilder
+    private func userStatsContent(_ userStats: UserStatsData) -> some View {
+        VStack(spacing: 24) {
+            Text("My Listening")
+                .font(.title2)
+                .bold()
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+
+            // Listening History
+            if !userStats.recentSessions.isEmpty {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Recent Sessions")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+
+                    ForEach(userStats.recentSessions.prefix(5)) { session in
+                        HStack(spacing: 12) {
+                            Image(systemName: "headphones")
+                                .foregroundStyle(Color.appPrimary)
+                                .frame(width: 24)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(session.displayTitle ?? "Unknown Title")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.white)
+                                    .lineLimit(1)
+                                Text(session.displayAuthor ?? "Unknown Author")
+                                    .font(.caption)
+                                    .foregroundStyle(.white.opacity(0.6))
+                            }
+
+                            Spacer()
+
+                            VStack(alignment: .trailing, spacing: 2) {
+                                Text(formatDuration(session.timeListening ?? 0))
+                                    .font(.subheadline.monospacedDigit())
+                                    .foregroundStyle(.white.opacity(0.9))
+                                Text(session.sessionDate ?? "")
+                                    .font(.caption2)
+                                    .foregroundStyle(.white.opacity(0.5))
+                            }
+                        }
+                        .padding(.vertical, 8)
+                        
+                        if session.id != userStats.recentSessions.prefix(5).last?.id {
+                            Divider().background(.white.opacity(0.1))
+                        }
+                    }
+                }
+                .padding()
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .padding(.horizontal)
+            }
+            
+            // Progress
+            if !userStats.mediaProgress.isEmpty {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("In Progress")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+
+                    ForEach(userStats.mediaProgress.filter { !($0.isFinished ?? false) }.prefix(3)) { progress in
+                        HStack(spacing: 12) {
+                            Image(systemName: "book.closed")
+                                .foregroundStyle(Color.appPrimary)
+                                .frame(width: 24)
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(progress.title ?? "Unknown Title")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.white)
+                                    .lineLimit(1)
+                                
+                                let current = progress.progress ?? 0
+                                let total = progress.duration ?? 1
+                                let percent = (current / total) * 100
+                                
+                                ProgressView(value: current, total: total)
+                                    .tint(.appPrimary)
+                                
+                                Text("\(Int(percent))% completed")
+                                    .font(.caption2)
+                                    .foregroundStyle(.white.opacity(0.5))
+                            }
+                        }
+                        .padding(.vertical, 8)
+                        
+                        if progress.id != userStats.mediaProgress.filter({ !($0.isFinished ?? false) }).prefix(3).last?.id {
+                            Divider().background(.white.opacity(0.1))
+                        }
+                    }
+                }
+                .padding()
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .padding(.horizontal)
+            }
+        }
     }
 
     // MARK: - Overview Stat
@@ -273,7 +393,12 @@ public struct StatsDashboardView: View {
         errorMessage = nil
 
         do {
-            stats = try await AudiobookphileAPI.shared.getLibraryStats(libraryId: libraryId)
+            async let fetchLibraryStats = AudiobookphileAPI.shared.getLibraryStats(libraryId: libraryId)
+            async let fetchUserStats = AudiobookphileAPI.shared.getUserStats()
+            
+            let (libraryStats, userStats) = try await (fetchLibraryStats, fetchUserStats)
+            self.stats = libraryStats
+            self.userStats = userStats
         } catch {
             errorMessage = error.localizedDescription
         }

@@ -19,6 +19,7 @@ public struct BookDetailView: View {
     @State private var isStartingPlayback = false
     @State var isDescriptionExpanded = false
     @State var colorLoader = DynamicColorLoader()
+    @State private var similarBooks: [Book] = []
     var downloadService = DownloadService.shared
 
     public init(book: Book) {
@@ -182,6 +183,11 @@ public struct BookDetailView: View {
             // Chapters List
             if !detailed.chapters.isEmpty {
                 chaptersSection(detailed)
+            }
+
+            // Similar Books
+            if !similarBooks.isEmpty {
+                similarBooksSection
             }
         }
     }
@@ -467,6 +473,11 @@ public struct BookDetailView: View {
             if let coverUrl = appState.getCoverURL(itemId: detailed.id, width: 600, updatedAt: detailed.updatedAt) {
                 await colorLoader.loadColor(from: coverUrl)
             }
+            // Fetch Similar Books in parallel or sequentially
+            let similar = try? await AudiobookphileAPI.shared.getSimilarItems(itemId: book.id)
+            if let similar {
+                self.similarBooks = similar
+            }
         } catch {
             print("[BookDetailView] Error fetching detailed metadata: \(error)")
             playbackError = error.localizedDescription
@@ -524,5 +535,29 @@ public struct BookDetailView: View {
     private func cleanHTML(_ html: String) -> String {
         // Strip basic HTML tag patterns for cleaner text display
         html.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+    }
+
+    // MARK: - Similar Books Section
+
+    private var similarBooksSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Similar Books")
+                .font(.title3)
+                .bold()
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(similarBooks) { similarBook in
+                        NavigationLink(destination: BookDetailView(book: similarBook)) {
+                            BookCard(book: similarBook) {}
+                                .frame(width: 140)
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.vertical, 8)
     }
 }

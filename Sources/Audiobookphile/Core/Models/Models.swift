@@ -249,6 +249,62 @@ public struct AudioTrack: Identifiable, Codable, Sendable {
     }
 }
 
+// MARK: - API Key
+public struct ApiKey: Codable, Hashable, Sendable {
+    public let id: String
+    public let key: String
+    public let createdAt: Date?
+}
+
+// MARK: - User Stats
+public struct MediaProgressRow: Codable, Hashable, Sendable, Identifiable {
+    public let id: String
+    public let libraryItemId: String?
+    public let duration: TimeInterval?
+    public let progress: TimeInterval?
+    public let isFinished: Bool?
+    public let finishedAt: Date?
+    public let lastUpdate: Date?
+    public let startedAt: Date?
+    public let title: String?
+
+    public enum CodingKeys: String, CodingKey {
+        case id, duration, progress, title
+        case libraryItemId = "library_item_id"
+        case isFinished = "is_finished"
+        case finishedAt = "finished_at"
+        case lastUpdate = "last_update"
+        case startedAt = "started_at"
+    }
+}
+
+public struct PlaybackSessionRow: Codable, Hashable, Sendable, Identifiable {
+    public let id: String
+    public let displayTitle: String?
+    public let displayAuthor: String?
+    public let timeListening: TimeInterval?
+    public let sessionDate: String?
+    public let updatedAt: Date?
+
+    public enum CodingKeys: String, CodingKey {
+        case id
+        case displayTitle = "display_title"
+        case displayAuthor = "display_author"
+        case timeListening = "time_listening"
+        case sessionDate = "session_date"
+        case updatedAt = "updated_at"
+    }
+}
+
+public struct UserStatsData: Codable, Hashable, Sendable {
+    public let mediaProgress: [MediaProgressRow]
+    public let recentSessions: [PlaybackSessionRow]
+}
+
+public struct SimilarItemsResponse: Codable, Sendable {
+    public let similarItems: [Book]
+}
+
 // MARK: - Library
 public struct Library: Identifiable, Codable, Sendable {
     public let id: String
