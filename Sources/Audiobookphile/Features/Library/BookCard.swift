@@ -60,7 +60,7 @@ public struct BookCard: View {
         ZStack(alignment: .topTrailing) {
             SmartAsyncImage(url: coverURL) { image in
                 ZStack {
-                    // Background blur layer
+                    // Background blur layer (Audiobookphile best practice for off-ratio covers)
                     image
                         .resizable()
                         .aspectRatio(contentMode: .fill)
@@ -89,31 +89,28 @@ public struct BookCard: View {
             }
             .padding(8)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .strokeBorder(
                     LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.35),
-                            Color.white.opacity(0.08)
-                        ],
+                        colors: [.white.opacity(0.3), .white.opacity(0.05)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
-                    lineWidth: 0.5
+                    lineWidth: 1
                 )
         )
         .shadow(
-            color: coverColor.opacity(0.35),
-            radius: 12,
+            color: (coverColor == .gray ? Color.appPrimary : coverColor).opacity(0.35),
+            radius: 14,
             x: 0,
-            y: 6
+            y: 8
         )
     }
 
     private var placeholderCover: some View {
-        RoundedRectangle(cornerRadius: 12)
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
             .fill(.ultraThinMaterial)
             .overlay {
                 Image(systemName: "book.fill")
@@ -126,24 +123,30 @@ public struct BookCard: View {
         Image(systemName: "arrow.down.circle.fill")
             .font(.title3)
             .foregroundStyle(.white)
+            .padding(4)
             .background {
                 Circle()
-                    .fill(.green)
-                    .padding(-4)
+                    .fill(
+                        LinearGradient(colors: [.green, .teal], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    )
             }
-            .shadow(radius: 4)
+            .background(.ultraThinMaterial, in: Circle())
+            .shadow(color: .green.opacity(0.5), radius: 6, x: 0, y: 2)
     }
 
     private var missingBadge: some View {
         Image(systemName: "exclamationmark.triangle.fill")
             .font(.title3)
             .foregroundStyle(.white)
+            .padding(4)
             .background {
                 Circle()
-                    .fill(.red)
-                    .padding(-4)
+                    .fill(
+                        LinearGradient(colors: [.red, .orange], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    )
             }
-            .shadow(radius: 4)
+            .background(.ultraThinMaterial, in: Circle())
+            .shadow(color: .red.opacity(0.5), radius: 6, x: 0, y: 2)
     }
 
     // MARK: - Progress Bar
@@ -153,25 +156,26 @@ public struct BookCard: View {
             ZStack(alignment: .leading) {
                 // Background
                 Capsule()
-                    .fill(.white.opacity(0.2))
-                    .frame(height: 3)
+                    .fill(.white.opacity(0.15))
+                    .frame(height: 4)
 
                 // Progress
                 Capsule()
                     .fill(
                         LinearGradient(
-                            colors: [.blue, .purple],
+                            colors: [Color.cyan, Color.purple],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
                     )
                     .frame(
                         width: geometry.size.width * progress,
-                        height: 3
+                        height: 4
                     )
+                    .shadow(color: Color.cyan.opacity(0.5), radius: 4)
             }
         }
-        .frame(height: 3)
+        .frame(height: 4)
     }
 
     // MARK: - Helpers

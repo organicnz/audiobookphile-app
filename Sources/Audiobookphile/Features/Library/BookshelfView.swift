@@ -430,7 +430,19 @@ public struct ContinueListeningCard: View {
                     fallbackCover
                 }
             }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [.white.opacity(0.35), .white.opacity(0.05)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            )
+            .shadow(color: Color.cyan.opacity(0.3), radius: 10, x: 0, y: 6)
 
             // Title & Progress with strict height
             VStack(alignment: .leading, spacing: 4) {
@@ -444,13 +456,15 @@ public struct ContinueListeningCard: View {
                 if let progress = book.userMediaProgress {
                     HStack {
                         Text("\(Int(progress.progress * 100))%")
-                            .font(.caption)
+                            .font(.caption.bold())
                             .foregroundStyle(.cyan)
 
                         Spacer()
 
                         Image(systemName: "play.circle.fill")
+                            .font(.body)
                             .foregroundStyle(.cyan)
+                            .shadow(color: .cyan.opacity(0.6), radius: 4)
                     }
                 } else {
                     Spacer(minLength: 0)
@@ -460,7 +474,7 @@ public struct ContinueListeningCard: View {
             .frame(height: 56, alignment: .topLeading)
         }
         .frame(width: 120)
-        .contentShape(Rectangle())
+        .liquidPressable()
         }
         .buttonStyle(.plain)
     }

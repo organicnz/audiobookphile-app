@@ -444,7 +444,7 @@ public struct BookDetailView: View {
 
     private func chaptersSection(_ detailed: Book) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Chapters")
+            Text("Chapters (\(detailed.chapters.count))")
                 .font(.headline)
                 .foregroundStyle(.white)
                 .padding(.horizontal, 4)
@@ -467,11 +467,16 @@ public struct BookDetailView: View {
                                 .font(.caption.monospaced())
                                 .foregroundStyle(.secondary)
                         }
-                        .padding(.vertical, 10)
-                        .padding(.horizontal, 12)
-                        .background(.white.opacity(0.05))
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 14)
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .strokeBorder(.white.opacity(0.15), lineWidth: 1)
+                        )
                     }
+                    .liquidPressable()
                 }
             }
         }

@@ -32,15 +32,18 @@ public struct MiniPlayerView: View {
                     .aspectRatio(contentMode: .fill)
             }
             .frame(width: 44, height: 44)
-            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(audioPlayer.session?.displayTitle ?? "Sample Book Title")
                     .font(.subheadline.bold())
                     .foregroundStyle(.white)
+                    .lineLimit(1)
                 Text(audioPlayer.session?.displayAuthor ?? "Sample Author")
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.6))
+                    .foregroundStyle(.white.opacity(0.65))
+                    .lineLimit(1)
             }
 
             Spacer()
@@ -54,12 +57,13 @@ public struct MiniPlayerView: View {
                     .applyPlayPauseSymbolEffect(isPlaying: audioPlayer.isPlaying)
             }
             .applySensoryFeedback(trigger: audioPlayer.isPlaying)
-            .padding(.trailing, 8)
+            .padding(.trailing, 4)
 
             Button {
                 onClose()
             } label: {
                 Image(systemName: "xmark")
+                    .font(.subheadline.bold())
                     .foregroundStyle(.white.opacity(0.6))
                     .padding(8)
             }
@@ -67,27 +71,42 @@ public struct MiniPlayerView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
 
-        // Progress Bar
+        // Glowing Progress Bar
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
                 Rectangle()
-                    .fill(Color.white.opacity(0.1))
+                    .fill(Color.white.opacity(0.12))
 
                 Rectangle()
-                    .fill(Color.appPrimary)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.appPrimary, Color.cyan],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
                     .frame(width: max(0, min(geometry.size.width, geometry.size.width * CGFloat(audioPlayer.duration > 0 ? audioPlayer.currentTime / audioPlayer.duration : 0))))
+                    .shadow(color: Color.appPrimary.opacity(0.6), radius: 4)
             }
         }
         .frame(height: 3)
         }
         .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .shadow(color: .black.opacity(0.35), radius: 16, x: 0, y: 8)
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [.white.opacity(0.35), .white.opacity(0.05)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
         )
-        .padding(.horizontal)
+        .padding(.horizontal, 12)
+        .liquidPressable()
         .onTapGesture {
             onTap()
         }

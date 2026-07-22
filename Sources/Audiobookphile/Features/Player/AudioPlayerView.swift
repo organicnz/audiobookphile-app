@@ -227,13 +227,26 @@ public struct AudioPlayerView: View {
                     placeholderCover
                 }
             }
-            .frame(width: geometry.size.width * 0.7)
+            .frame(width: geometry.size.width * 0.72)
             .frame(maxWidth: .infinity)
-            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [.white.opacity(0.4), .white.opacity(0.08)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            )
+            .scaleEffect(viewModel.isPlaying ? 1.02 : 0.96)
+            .animation(.spring(response: 0.5, dampingFraction: 0.7), value: viewModel.isPlaying)
             .shadow(
-                color: colorLoader.backgroundColor.opacity(0.5),
-                radius: 30,
-                y: 15
+                color: colorLoader.backgroundColor.opacity(0.55),
+                radius: 35,
+                y: 18
             )
         }
         .frame(height: 300)
@@ -247,7 +260,7 @@ public struct AudioPlayerView: View {
 
             Color.black.opacity(0.15)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 
     private var titleSection: some View {

@@ -40,7 +40,7 @@ struct GlassButton: View {
             .padding(.vertical, size.verticalPadding)
             .frame(maxWidth: size.isFullWidth ? .infinity : nil)
             .background {
-                RoundedRectangle(cornerRadius: size.cornerRadius)
+                RoundedRectangle(cornerRadius: size.cornerRadius, style: .continuous)
                     .fill(
                         LinearGradient(
                             colors: isDisabled ? [.gray, .gray.opacity(0.8)] : colors,
@@ -49,7 +49,7 @@ struct GlassButton: View {
                         )
                     )
                     .overlay {
-                        RoundedRectangle(cornerRadius: size.cornerRadius)
+                        RoundedRectangle(cornerRadius: size.cornerRadius, style: .continuous)
                             .fill(.ultraThinMaterial)
                             .opacity(0.3)
                     }
@@ -60,8 +60,8 @@ struct GlassButton: View {
                     )
             }
         }
-        .scaleEffect(isPressed ? 0.97 : 1.0)
-        .animation(.easeInOut(duration: 0.15), value: isPressed)
+        .scaleEffect(isPressed ? 0.95 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.65), value: isPressed)
         .disabled(isDisabled || isLoading)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(title))
