@@ -144,22 +144,22 @@ public struct BookDetailView: View {
             // Title & Authors
             VStack(spacing: 6) {
                 Text(detailed.title)
-                    .font(.title2)
+                    .font(.system(.title2, design: .rounded))
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.white)
 
-                if let author = detailed.author {
+                if let author = detailed.author, !author.isEmpty, author != "Unknown Author" {
                     Text("by \(author)")
-                        .font(.headline)
+                        .font(.system(.headline, design: .rounded))
                         .foregroundStyle(Color.appPrimary)
                         .multilineTextAlignment(.center)
                 }
 
                 if let narrator = detailed.media.metadata.narratorName {
                     Text("Narrated by \(narrator)")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .font(.system(.subheadline, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.65))
                         .multilineTextAlignment(.center)
                 }
             }
@@ -200,9 +200,23 @@ public struct BookDetailView: View {
         } placeholder: {
             placeholderCover
         }
-        .frame(height: 240)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: .black.opacity(0.5), radius: 20, y: 10)
+        .frame(height: 260)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.4),
+                            Color.white.opacity(0.1)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 0.5
+                )
+        )
+        .shadow(color: colorLoader.backgroundColor.opacity(0.55), radius: 24, x: 0, y: 12)
     }
 
     private var placeholderCover: some View {

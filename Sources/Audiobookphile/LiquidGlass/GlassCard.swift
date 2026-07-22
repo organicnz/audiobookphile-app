@@ -39,15 +39,16 @@ struct GlassCard<Content: View>: View {
         content
             .padding(padding)
             .background {
-                RoundedRectangle(cornerRadius: cornerRadius)
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .fill(material)
                     .overlay {
-                        RoundedRectangle(cornerRadius: cornerRadius)
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                             .strokeBorder(
                                 LinearGradient(
                                     colors: [
                                         Color.white.opacity(borderOpacity),
-                                        Color.white.opacity(borderOpacity * 0.5)
+                                        Color.white.opacity(borderOpacity * 0.4),
+                                        Color.white.opacity(0.0)
                                     ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -56,7 +57,7 @@ struct GlassCard<Content: View>: View {
                             )
                     }
                     .shadow(
-                        color: Color.black.opacity(0.1),
+                        color: Color.black.opacity(0.15),
                         radius: shadowRadius,
                         y: shadowY
                     )

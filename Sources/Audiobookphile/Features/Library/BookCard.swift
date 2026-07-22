@@ -30,17 +30,17 @@ public struct BookCard: View {
             coverImage
 
             // Book info
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(book.title)
-                    .font(.subheadline)
+                    .font(.system(.subheadline, design: .rounded))
                     .fontWeight(.semibold)
                     .lineLimit(2)
                     .foregroundStyle(.white)
 
-                if let author = book.author {
+                if let author = book.author, !author.isEmpty, author != "Unknown Author" {
                     Text(author)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.system(.caption, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.65))
                         .lineLimit(1)
                 }
 
@@ -60,7 +60,7 @@ public struct BookCard: View {
         ZStack(alignment: .topTrailing) {
             SmartAsyncImage(url: coverURL) { image in
                 ZStack {
-                    // Background blur layer (Audiobookphile best practice for off-ratio covers)
+                    // Background blur layer
                     image
                         .resizable()
                         .aspectRatio(contentMode: .fill)
@@ -89,11 +89,26 @@ public struct BookCard: View {
             }
             .padding(8)
         }
-        .cornerRadius(12)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.35),
+                            Color.white.opacity(0.08)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 0.5
+                )
+        )
         .shadow(
-            color: coverColor.opacity(0.4),
-            radius: 15,
-            y: 8
+            color: coverColor.opacity(0.35),
+            radius: 12,
+            x: 0,
+            y: 6
         )
     }
 

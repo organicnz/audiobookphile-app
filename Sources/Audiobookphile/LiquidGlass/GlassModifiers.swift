@@ -16,15 +16,16 @@ struct GlassBackgroundModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .background {
-                RoundedRectangle(cornerRadius: cornerRadius)
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .fill(material)
                     .overlay {
-                        RoundedRectangle(cornerRadius: cornerRadius)
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                             .strokeBorder(
                                 LinearGradient(
                                     colors: [
                                         Color.white.opacity(borderOpacity),
-                                        Color.white.opacity(borderOpacity * 0.5)
+                                        Color.white.opacity(borderOpacity * 0.4),
+                                        Color.white.opacity(0.0)
                                     ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -167,7 +168,7 @@ extension View {
     }
 }
 
-// MARK: - Glass Shadow
+// MARK: - Glass Shadow & Ambient Glow
 extension View {
     /// Apply a glass-style shadow
     func glassShadow(
@@ -183,6 +184,54 @@ extension View {
             x: x,
             y: y
         )
+    }
+
+    /// Apply an ambient colored glow shadow behind elements
+    func ambientGlow(
+        color: Color = Color.cyan,
+        radius: CGFloat = 20,
+        opacity: Double = 0.35,
+        y: CGFloat = 8
+    ) -> some View {
+        self.shadow(
+            color: color.opacity(opacity),
+            radius: radius,
+            x: 0,
+            y: y
+        )
+    }
+}
+
+// MARK: - Liquid Pressable Touch Feedback
+struct LiquidPressableModifier: ViewModifier {
+    @State private var isPressed = false
+
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(isPressed ? 0.96 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.65), value: isPressed)
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        if !isPressed {
+                            isPressed = true
+                            #if os(iOS) && !SKIP
+                            let generator = UIImpactFeedbackGenerator(style: .light)
+                            generator.impactOccurred()
+                            #endif
+                        }
+                    }
+                    .onEnded { _ in
+                        isPressed = false
+                    }
+            )
+    }
+}
+
+extension View {
+    /// Apply tactile spring press scale effect with sensory feedback
+    func liquidPressable() -> some View {
+        self.modifier(LiquidPressableModifier())
     }
 }
 
