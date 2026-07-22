@@ -165,11 +165,6 @@ public struct AudioPlayerView: View {
 
             // Playback controls
             VStack(spacing: 24) {
-                if viewModel.useTotalTrack {
-                    totalTrackView
-                        .padding(.horizontal, 24)
-                }
-
                 quickActionsBar
                     .padding(.horizontal, 24)
 
@@ -390,7 +385,7 @@ public struct AudioPlayerView: View {
             .foregroundStyle(coverIsLight ? .black : .white)
 
             GeometryReader { geometry in
-                let currentVisualProgress = isDraggingSeeker ? (viewModel.duration > 0 ? draggedTime / viewModel.duration : 0) : viewModel.progress
+                let currentVisualProgress = isDraggingSeeker ? (viewModel.duration > 0 ? draggedTime / viewModel.duration : 0) : (viewModel.useTotalTrack ? viewModel.totalProgress : viewModel.progress)
                 ZStack(alignment: .leading) {
                     Capsule()
                         .fill(.white.opacity(0.3))
