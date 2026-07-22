@@ -419,7 +419,7 @@ public struct ContinueListeningCard: View {
                         SmartAsyncImage(url: url) { image in
                             image
                                 .resizable()
-                                .aspectRatio(contentMode: .fit)
+                                .aspectRatio(contentMode: .fill)
                         } placeholder: {
                             Color.clear
                         }

@@ -59,24 +59,14 @@ public struct BookCard: View {
     private var coverImage: some View {
         ZStack(alignment: .topTrailing) {
             SmartAsyncImage(url: coverURL) { image in
-                ZStack {
-                    // Background blur layer (Audiobookphile best practice for off-ratio covers)
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .blur(radius: 15)
-                        .overlay(Color.black.opacity(0.4))
-
-                    // Actual cover fitted
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                }
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
             } placeholder: {
                 placeholderCover
             }
             .frame(minWidth: 0, maxWidth: .infinity)
-            .aspectRatio(aspectRatio, contentMode: .fit)
+            .aspectRatio(1.0, contentMode: .fill)
             .clipped()
 
             // Badges
