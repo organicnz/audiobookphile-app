@@ -280,35 +280,6 @@ public struct AudioPlayerView: View {
         }
     }
 
-    private var totalTrackView: some View {
-        VStack(spacing: 4) {
-            HStack {
-                Text(viewModel.currentTimePretty)
-                    .font(.system(.caption, design: .monospaced))
-                Spacer()
-                Text(viewModel.totalTimeRemainingPretty)
-                    .font(.system(.caption, design: .monospaced))
-            }
-            .foregroundStyle((coverIsLight ? Color.black : .white).opacity(0.7))
-
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(.white.opacity(0.2))
-                        .frame(height: 2)
-
-                    Capsule()
-                        .fill(Color.appPrimary)
-                        .frame(
-                            width: geometry.size.width * CGFloat(viewModel.totalProgress),
-                            height: 2
-                        )
-                }
-            }
-            .frame(height: 2)
-        }
-    }
-
     private var quickActionsBar: some View {
         HStack(spacing: 0) {
             Menu {
