@@ -106,9 +106,16 @@ public struct SearchView: View {
     // MARK: - Views
 
     private var resultsGrid: some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 16)], spacing: 24) {
+        LazyVGrid(
+            columns: [
+                GridItem(.flexible(), spacing: 16),
+                GridItem(.flexible(), spacing: 16),
+                GridItem(.flexible(), spacing: 16)
+            ],
+            spacing: 24
+        ) {
             ForEach(results) { book in
-                BookCard(book: book) {
+                BookCard(book: book, aspectRatio: 1.0) {
                     selectedBook = book
                 }
             }

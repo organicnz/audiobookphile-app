@@ -66,7 +66,7 @@ public struct BookCard: View {
                 placeholderCover
             }
             .frame(minWidth: 0, maxWidth: .infinity)
-            .aspectRatio(1.0, contentMode: .fill)
+            .aspectRatio(aspectRatio, contentMode: .fill)
             .clipped()
 
             // Badges
@@ -79,6 +79,7 @@ public struct BookCard: View {
             }
             .padding(8)
         }
+        .aspectRatio(aspectRatio, contentMode: .fit)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -102,6 +103,7 @@ public struct BookCard: View {
     private var placeholderCover: some View {
         RoundedRectangle(cornerRadius: 14, style: .continuous)
             .fill(.ultraThinMaterial)
+            .aspectRatio(aspectRatio, contentMode: .fill)
             .overlay {
                 Image(systemName: "book.fill")
                     .font(.largeTitle)

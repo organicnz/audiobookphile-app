@@ -524,12 +524,8 @@ public class BookshelfViewModel {
     public var totalBooks: Int { books.count }
     public var inProgressCount: Int { continueListening.count }
     public var coverAspectRatio: CGFloat {
-        if let settings = currentLibrary?.settings, let ratioInt = settings.coverAspectRatio {
-            // Audiobookphile constants: 0 = STANDARD (1:1.6), 1 = SQUARE (1:1)
-            return ratioInt == 1 ? 1.0 : (1.0 / 1.6)
-        }
-        // Fallback to standard book ratio
-        return 1.0 / 1.6
+        // Enforce exact 1:1 square ratio for all audiobooks across all libraries
+        return 1.0
     }
 
     public var totalDurationFormatted: String {
