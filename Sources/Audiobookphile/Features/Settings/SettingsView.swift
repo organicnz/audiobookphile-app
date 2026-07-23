@@ -144,7 +144,7 @@ public struct SettingsView: View {
                 }
 
                 NavigationLink {
-                    StatsDashboardView()
+                    StatsView()
                 } label: {
                     HStack {
                         Image(systemName: "chart.bar.xaxis")
