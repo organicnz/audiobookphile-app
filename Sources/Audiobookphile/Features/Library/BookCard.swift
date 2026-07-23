@@ -42,11 +42,20 @@ public struct BookCard: View {
                         .font(.system(.caption, design: .rounded))
                         .foregroundStyle(.white.opacity(0.65))
                         .lineLimit(1)
+                } else {
+                    Text(" ")
+                        .font(.system(.caption, design: .rounded))
+                        .hidden()
                 }
+
+                Spacer(minLength: 0)
 
                 // Progress indicator
                 if let progress = book.userMediaProgress {
                     progressBar(progress: progress.progress)
+                } else {
+                    Color.clear
+                        .frame(height: 4)
                 }
             }
             .frame(height: 68, alignment: .topLeading)
@@ -58,16 +67,18 @@ public struct BookCard: View {
 
     private var coverImage: some View {
         ZStack(alignment: .topTrailing) {
-            SmartAsyncImage(url: coverURL) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } placeholder: {
-                placeholderCover
-            }
-            .frame(minWidth: 0, maxWidth: .infinity)
-            .aspectRatio(aspectRatio, contentMode: .fill)
-            .clipped()
+            Color.clear
+                .aspectRatio(aspectRatio, contentMode: .fill)
+                .overlay {
+                    SmartAsyncImage(url: coverURL) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        placeholderCover
+                    }
+                }
+                .clipped()
 
             // Badges
             Group {
@@ -101,14 +112,13 @@ public struct BookCard: View {
     }
 
     private var placeholderCover: some View {
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
-            .fill(.ultraThinMaterial)
-            .aspectRatio(aspectRatio, contentMode: .fill)
-            .overlay {
-                Image(systemName: "book.fill")
-                    .font(.largeTitle)
-                    .foregroundStyle(.secondary)
-            }
+        ZStack {
+            Color.white.opacity(0.08)
+
+            Image(systemName: "book.fill")
+                .font(.largeTitle)
+                .foregroundStyle(.white.opacity(0.4))
+        }
     }
 
     private var downloadBadge: some View {
@@ -214,15 +224,19 @@ public struct GlassBookCard: View {
     public var body: some View {
         HStack(spacing: 16) {
             // Small cover
-            SmartAsyncImage(url: coverURL) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } placeholder: {
-                Color.gray.opacity(0.3)
-            }
-            .frame(width: 60, height: 60)
-            .cornerRadius(8)
+            Color.clear
+                .frame(width: 60, height: 60)
+                .overlay {
+                    SmartAsyncImage(url: coverURL) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Color.white.opacity(0.1)
+                    }
+                }
+                .clipped()
+                .cornerRadius(8)
 
             // Info
             VStack(alignment: .leading, spacing: 6) {

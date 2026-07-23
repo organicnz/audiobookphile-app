@@ -214,22 +214,25 @@ public struct AudioPlayerView: View {
 
     private var coverArtSection: some View {
         GeometryReader { geometry in
-            Group {
-                if let url = coverURL {
-                    SmartAsyncImage(url: url) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                    } placeholder: {
+            let cardSide = min(geometry.size.width * 0.76, geometry.size.height * 0.9)
+            Color.clear
+                .frame(width: cardSide, height: cardSide)
+                .overlay {
+                    if let url = coverURL {
+                        SmartAsyncImage(url: url) { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        } placeholder: {
+                            placeholderCover
+                        }
+                    } else {
                         placeholderCover
                     }
-                } else {
-                    placeholderCover
                 }
-            }
-            .frame(width: geometry.size.width * 0.72)
-            .frame(maxWidth: .infinity)
-            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .clipped()
+                .frame(maxWidth: .infinity)
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
                     .strokeBorder(

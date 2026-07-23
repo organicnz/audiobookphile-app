@@ -399,38 +399,37 @@ public struct ContinueListeningCard: View {
         }) {
             VStack(alignment: .leading, spacing: 8) {
             // Cover image
-            Group {
-                if let url = coverURL {
-                    ZStack {
-                        // Blurred background
-                        SmartAsyncImage(url: url) { image in
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                        } placeholder: {
-                            fallbackCover
-                        }
-                        .blur(radius: 15)
-                        .overlay(Color.black.opacity(0.4))
-                        .frame(width: 120, height: 120)
-                        .clipped()
+            Color.clear
+                .frame(width: 120, height: 120)
+                .overlay {
+                    if let url = coverURL {
+                        ZStack {
+                            // Blurred background
+                            SmartAsyncImage(url: url) { image in
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            } placeholder: {
+                                fallbackCover
+                            }
+                            .blur(radius: 15)
+                            .overlay(Color.black.opacity(0.4))
 
-                        // Fit image
-                        SmartAsyncImage(url: url) { image in
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                        } placeholder: {
-                            Color.clear
+                            // Fit image
+                            SmartAsyncImage(url: url) { image in
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            } placeholder: {
+                                Color.clear
+                            }
                         }
-                        .frame(width: 120, height: 120)
-                        .clipped()
+                    } else {
+                        fallbackCover
                     }
-                } else {
-                    fallbackCover
                 }
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .clipped()
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .strokeBorder(

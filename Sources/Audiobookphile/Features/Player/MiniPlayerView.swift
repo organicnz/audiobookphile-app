@@ -22,18 +22,22 @@ public struct MiniPlayerView: View {
     public var body: some View {
         VStack(spacing: 0) {
         HStack {
-            SmartAsyncImage(url: coverURL) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } placeholder: {
-                Image("BookPlaceholder", bundle: .module)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            }
-            .frame(width: 44, height: 44)
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
+            Color.clear
+                .frame(width: 44, height: 44)
+                .overlay {
+                    SmartAsyncImage(url: coverURL) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Image("BookPlaceholder", bundle: .module)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    }
+                }
+                .clipped()
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(audioPlayer.session?.displayTitle ?? "Sample Book Title")

@@ -193,30 +193,34 @@ public struct BookDetailView: View {
     }
 
     private func coverArtSection(_ detailed: Book) -> some View {
-        SmartAsyncImage(url: appState.getCoverURL(itemId: detailed.id, width: 600, updatedAt: detailed.updatedAt)) { image in
-            image
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-        } placeholder: {
-            placeholderCover
-        }
-        .frame(height: 260)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.4),
-                            Color.white.opacity(0.1)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 0.5
-                )
-        )
-        .shadow(color: colorLoader.backgroundColor.opacity(0.55), radius: 24, x: 0, y: 12)
+        Color.clear
+            .frame(width: 260, height: 260)
+            .overlay {
+                SmartAsyncImage(url: appState.getCoverURL(itemId: detailed.id, width: 600, updatedAt: detailed.updatedAt)) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    placeholderCover
+                }
+            }
+            .clipped()
+            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.4),
+                                Color.white.opacity(0.1)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 0.5
+                    )
+            )
+            .shadow(color: colorLoader.backgroundColor.opacity(0.55), radius: 24, x: 0, y: 12)
     }
 
     private var placeholderCover: some View {
@@ -227,8 +231,7 @@ public struct BookDetailView: View {
 
             Color.black.opacity(0.15)
         }
-        .frame(width: 160, height: 240)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .frame(width: 260, height: 260)
     }
 
     private func actionButtonsSection(_ detailed: Book) -> some View {
