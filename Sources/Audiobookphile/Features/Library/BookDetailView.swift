@@ -17,6 +17,7 @@ public struct BookDetailView: View {
     @State private var playbackError: String?
     @State private var showPlaybackError = false
     @State private var isStartingPlayback = false
+    @State private var showRemoveDownloadConfirmation = false
     @State var isDescriptionExpanded = false
     @State var colorLoader = DynamicColorLoader()
     @State private var similarBooks: [Book] = []
@@ -54,6 +55,20 @@ public struct BookDetailView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text(playbackError ?? "Unknown error")
+        }
+        .confirmationDialog(
+            "Remove Download",
+            isPresented: $showRemoveDownloadConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Remove Downloaded File", role: .destructive) {
+                if let detailed = detailedBook {
+                    try? downloadService.deleteDownload(bookId: detailed.id)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Are you sure you want to remove this downloaded audiobook from your device?")
         }
         .task {
             await fetchDetails()
@@ -316,7 +331,7 @@ public struct BookDetailView: View {
                         #if os(iOS) && !SKIP
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                         #endif
-                        try? downloadService.deleteDownload(bookId: detailed.id)
+                        showRemoveDownloadConfirmation = true
                     } label: {
                         CircularDownloadProgressBadge(status: .completed)
                             .padding(.horizontal, 14)
