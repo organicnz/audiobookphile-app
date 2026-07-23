@@ -211,41 +211,33 @@ public struct BookshelfView: View {
             }
             .padding(.horizontal)
 
-            // Virtualized grid (optimized for 1000+ books)
+            // Virtualized grid (adaptive columns for iPhone / iPad / Mac)
             LazyVGrid(
                 columns: [
-                    GridItem(.flexible(), spacing: 16),
-                    GridItem(.flexible(), spacing: 16),
-                    GridItem(.flexible(), spacing: 16)
+                    GridItem(.adaptive(minimum: 105, maximum: 160), spacing: 16)
                 ],
                 spacing: 24
             ) {
-                ForEach(viewModel.filteredBooks) { book in
-                    BookCard(
-                        book: book,
-                        aspectRatio: viewModel.coverAspectRatio
-                    ) {
-                        selectedBookForDetails = book
+                if viewModel.isLoading && viewModel.filteredBooks.isEmpty {
+                    ForEach(0..<6, id: \.self) { _ in
+                        BookCardSkeleton()
                     }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        selectedBookForDetails = book
+                } else {
+                    ForEach(viewModel.filteredBooks) { book in
+                        BookCard(
+                            book: book,
+                            aspectRatio: viewModel.coverAspectRatio
+                        ) {
+                            selectedBookForDetails = book
+                        }
+                        .applyBookshelfScrollTransition()
                     }
-                    .applyBookshelfScrollTransition()
                 }
             }
             .padding(.horizontal)
 
-            // Loading indicator
-            if viewModel.isLoading {
-                HStack {
-                    Spacer()
-                    ProgressView()
-                        .tint(.white)
-                    Spacer()
-                }
-                .padding()
-            } else if let errorMessage = viewModel.errorMessage {
+            // Connection error state
+            if let errorMessage = viewModel.errorMessage {
                 VStack(spacing: 12) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.largeTitle)

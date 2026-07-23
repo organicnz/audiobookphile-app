@@ -25,42 +25,46 @@ public struct BookCard: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Cover image with glass shadow
-            coverImage
+        Button(action: onTap) {
+            VStack(alignment: .leading, spacing: 12) {
+                // Cover image with glass shadow
+                coverImage
 
-            // Book info
-            VStack(alignment: .leading, spacing: 3) {
-                Text(book.title)
-                    .font(.system(.subheadline, design: .rounded))
-                    .fontWeight(.semibold)
-                    .lineLimit(2)
-                    .foregroundStyle(.white)
+                // Book info
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(book.title)
+                        .font(.system(.subheadline, design: .rounded))
+                        .fontWeight(.semibold)
+                        .lineLimit(2)
+                        .foregroundStyle(.white)
+                        .multilineTextAlignment(.leading)
 
-                if let author = book.author, !author.isEmpty, author != "Unknown Author" {
-                    Text(author)
-                        .font(.system(.caption, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.65))
-                        .lineLimit(1)
-                } else {
-                    Text(" ")
-                        .font(.system(.caption, design: .rounded))
-                        .hidden()
+                    if let author = book.author, !author.isEmpty, author != "Unknown Author" {
+                        Text(author)
+                            .font(.system(.caption, design: .rounded))
+                            .foregroundStyle(.white.opacity(0.65))
+                            .lineLimit(1)
+                    } else {
+                        Text(" ")
+                            .font(.system(.caption, design: .rounded))
+                            .hidden()
+                    }
+
+                    Spacer(minLength: 0)
+
+                    // Progress indicator
+                    if let progress = book.userMediaProgress {
+                        progressBar(progress: progress.progress)
+                    } else {
+                        Color.clear
+                            .frame(height: 4)
+                    }
                 }
-
-                Spacer(minLength: 0)
-
-                // Progress indicator
-                if let progress = book.userMediaProgress {
-                    progressBar(progress: progress.progress)
-                } else {
-                    Color.clear
-                        .frame(height: 4)
-                }
+                .frame(height: 68, alignment: .topLeading)
             }
-            .frame(height: 68, alignment: .topLeading)
+            .contentShape(Rectangle())
         }
-        .contentShape(Rectangle())
+        .buttonStyle(.liquid)
     }
 
     // MARK: - Cover Image
@@ -305,5 +309,30 @@ public struct GlassBookCard: View {
             return URL(string: path)
         }
         return appState.getCoverURL(itemId: book.id, updatedAt: book.updatedAt)
+    }
+}
+
+// MARK: - Book Card Skeleton Loader
+public struct BookCardSkeleton: View {
+    public init() {}
+
+    public var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.white.opacity(0.08))
+                .aspectRatio(1.0, contentMode: .fit)
+
+            VStack(alignment: .leading, spacing: 6) {
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(Color.white.opacity(0.12))
+                    .frame(height: 14)
+
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(Color.white.opacity(0.08))
+                    .frame(width: 80, height: 10)
+            }
+            .frame(height: 68, alignment: .topLeading)
+        }
+        .shimmer()
     }
 }
