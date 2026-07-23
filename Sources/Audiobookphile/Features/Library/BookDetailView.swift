@@ -304,16 +304,11 @@ public struct BookDetailView: View {
                         #endif
                         downloadService.cancelDownload(bookId: detailed.id)
                     } label: {
-                        HStack(spacing: 8) {
-                            CircularDownloadProgressBadge(progress: download.progress, status: .downloading)
-                            Text("Downloading (\(Int(download.progress * 100))%)")
-                                .font(.caption.bold())
-                                .foregroundStyle(Color.cyan)
-                        }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
-                        .background(.white.opacity(0.1))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        CircularDownloadProgressBadge(progress: download.progress, status: .downloading)
+                            .frame(width: 32, height: 32)
+                            .padding(8)
+                            .background(.white.opacity(0.1))
+                            .clipShape(Circle())
                     }
 
                 case .completed:
