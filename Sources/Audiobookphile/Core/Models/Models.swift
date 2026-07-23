@@ -71,6 +71,32 @@ public struct Book: Identifiable, Codable, Hashable, Sendable {
     }
 }
 
+extension Book {
+    public init(id: String, title: String, author: String?, duration: TimeInterval? = nil) {
+        self.id = id
+        self.libraryId = nil
+        self.folderId = nil
+        self.path = nil
+        self.relPath = nil
+        self.isMissing = false
+        self.libraryFiles = nil
+        self.media = BookMedia(
+            libraryFiles: nil,
+            chapters: nil,
+            duration: duration,
+            size: nil,
+            metadata: BookMetadata(title: title, authorName: author),
+            coverPath: nil,
+            tags: nil,
+            audioFiles: nil,
+            ebookFile: nil
+        )
+        self.userMediaProgress = nil
+        self.addedAt = nil
+        self.updatedAt = nil
+    }
+}
+
 // MARK: - Book Media
 public struct BookMedia: Codable, Hashable, Sendable {
     public let libraryFiles: [LibraryFile]?
@@ -111,6 +137,25 @@ public struct BookMetadata: Codable, Hashable, Sendable {
         case authorName, narratorName, seriesName
         case genres, publishedYear, publishedDate, publisher
         case description, isbn, asin, language, explicit
+    }
+}
+
+extension BookMetadata {
+    public init(title: String, authorName: String?) {
+        self.title = title
+        self.subtitle = nil
+        self.authorName = authorName
+        self.narratorName = nil
+        self.seriesName = nil
+        self.genres = []
+        self.publishedYear = nil
+        self.publishedDate = nil
+        self.publisher = nil
+        self.description = nil
+        self.isbn = nil
+        self.asin = nil
+        self.language = nil
+        self.explicit = false
     }
 }
 

@@ -538,18 +538,32 @@ public struct DownloadsView: View {
         }
     }
 
+    private var pendingDownloads: [Download] {
+        downloadService.downloads.filter { $0.status != .completed }
+    }
+
+    private var completedDownloads: [Download] {
+        downloadService.downloads.filter { $0.status == .completed }
+    }
+
+    @ViewBuilder
+    private func pendingDownloadRow(_ download: Download) -> some View {
+        let isDownloading = download.status == .downloading
+        let isPaused = download.status == .paused
+        if isDownloading || isPaused {
+            ActiveDownloadRow(download: download)
+        } else {
+            QueueRow(download: download)
+        }
+    }
+
     private var downloadsList: some View {
         List {
             // Active Downloads
-            let pendingDownloads = downloadService.downloads.filter { $0.status != .completed }
             if !pendingDownloads.isEmpty {
                 Section {
                     ForEach(pendingDownloads) { download in
-                        if download.status == .downloading || download.status == .paused {
-                            ActiveDownloadRow(download: download)
-                        } else {
-                            QueueRow(download: download)
-                        }
+                        pendingDownloadRow(download)
                     }
                 } header: {
                     Text("Downloading")
@@ -560,10 +574,20 @@ public struct DownloadsView: View {
 
             // Completed Downloads
             Section {
-                ForEach(downloadService.downloads.filter { $0.status == .completed }) { download in
+                ForEach(completedDownloads) { download in
                     DownloadedBookRow(download: download)
+                        .contentShape(Rectangle())
                         .onTapGesture {
-                            print("Selected \(download.title)")
+                            #if os(iOS) && !SKIP
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            #endif
+                            let book = Book(
+                                id: download.libraryItemId,
+                                title: download.title,
+                                author: download.author,
+                                duration: download.duration
+                            )
+                            selectedBook = book
                         }
                 }
                 .onDelete { indexSet in
