@@ -12,6 +12,7 @@ import Observation
 public struct SettingsView: View {
     @State var viewModel = SettingsViewModel()
     @Environment(\.dismiss) var dismiss
+    @Environment(AppState.self) private var appState
 
     public init() {}
 
@@ -72,6 +73,9 @@ public struct SettingsView: View {
                     .foregroundStyle(Color.appPrimary)
                 }
             }
+            .task {
+                await viewModel.loadStats(libraryId: appState.currentLibraryId)
+            }
         }
     }
 
@@ -113,33 +117,72 @@ public struct SettingsView: View {
 
     private var statsSection: some View {
         SettingsSection(title: "Statistics & Insights") {
-            NavigationLink {
-                StatsDashboardView()
-            } label: {
-                HStack {
-                    Image(systemName: "chart.bar.xaxis")
-                        .foregroundStyle(Color.appPrimary)
-                        .frame(width: 28)
+            VStack(spacing: 12) {
+                if let lStats = viewModel.libraryStats {
+                    HStack(spacing: 0) {
+                        statCell(label: "Books", value: "\(lStats.totalBooks)", icon: "book.fill")
+                        Divider().frame(height: 32).background(.white.opacity(0.15))
+                        statCell(label: "Authors", value: "\(lStats.totalAuthors)", icon: "person.fill")
+                        Divider().frame(height: 32).background(.white.opacity(0.15))
+                        statCell(label: "Series", value: "\(lStats.totalSeries)", icon: "books.vertical.fill")
+                        Divider().frame(height: 32).background(.white.opacity(0.15))
+                        statCell(label: "Hours", value: "\(Int(lStats.totalDuration / 3600))h", icon: "clock.fill")
+                    }
+                    .padding(.vertical, 8)
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Listening & Library Stats")
-                            .foregroundStyle(.white)
-                            .font(.body)
-
-                        Text("View listening habits, genres & breakdown")
+                    Divider().background(.white.opacity(0.1))
+                } else if viewModel.isLoadingStats {
+                    HStack(spacing: 8) {
+                        ProgressView().tint(.appPrimary)
+                        Text("Loading stats…")
                             .font(.caption)
                             .foregroundStyle(.white.opacity(0.6))
                     }
+                    .padding(8)
 
-                    Spacer()
-
-                    Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.4))
+                    Divider().background(.white.opacity(0.1))
                 }
-                .padding(12)
+
+                NavigationLink {
+                    StatsDashboardView()
+                } label: {
+                    HStack {
+                        Image(systemName: "chart.bar.xaxis")
+                            .foregroundStyle(Color.appPrimary)
+                            .frame(width: 24)
+
+                        Text("Full Stats & Listening Analytics")
+                            .foregroundStyle(.white)
+                            .font(.subheadline.weight(.semibold))
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.4))
+                    }
+                    .padding(.vertical, 4)
+                }
             }
+            .padding(12)
         }
+    }
+
+    private func statCell(label: String, value: String, icon: String) -> some View {
+        VStack(spacing: 4) {
+            HStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.caption2)
+                    .foregroundStyle(Color.appPrimary)
+                Text(value)
+                    .font(.callout.bold())
+                    .foregroundStyle(.white)
+            }
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(.white.opacity(0.6))
+        }
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Playback Section
@@ -404,9 +447,23 @@ public class SettingsViewModel {
     public var streamingPolicy: StreamingPolicy = .always
     public var downloadPolicy: DownloadPolicy = .wifiOnly
 
-    public init() {
-        currentUser = AppState.shared.currentUser
-        serverURL = AppState.shared.serverURL
+    public var libraryStats: LibraryStats?
+    public var userStats: UserStatsData?
+    public var isLoadingStats: Bool = false
+
+    public func loadStats(libraryId: String?) async {
+        guard let libraryId = libraryId else { return }
+        isLoadingStats = true
+        do {
+            async let fetchLibraryStats = AudiobookphileAPI.shared.getLibraryStats(libraryId: libraryId)
+            async let fetchUserStats = AudiobookphileAPI.shared.getUserStats()
+            let (lStats, uStats) = try await (fetchLibraryStats, fetchUserStats)
+            self.libraryStats = lStats
+            self.userStats = uStats
+        } catch {
+            print("[SettingsViewModel] Error loading backend stats: \(error)")
+        }
+        isLoadingStats = false
     }
 
     public func saveJumpForwardTime(_ val: Int) {
