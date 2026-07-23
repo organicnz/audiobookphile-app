@@ -473,6 +473,8 @@ public struct AppSettings: Codable, Sendable {
     public var highResAudioEnabled: Bool = true
     public var deEsserEnabled: Bool = false
     public var lowCutFilterEnabled: Bool = true
+    public var binauralReverbEnabled: Bool = false
+    public var binauralReverbPresetRaw: Int = 0
 
     public init() {}
 
@@ -497,6 +499,8 @@ public struct AppSettings: Codable, Sendable {
         highResAudioEnabled = try container.decodeIfPresent(Bool.self, forKey: .highResAudioEnabled) ?? true
         deEsserEnabled = try container.decodeIfPresent(Bool.self, forKey: .deEsserEnabled) ?? false
         lowCutFilterEnabled = try container.decodeIfPresent(Bool.self, forKey: .lowCutFilterEnabled) ?? true
+        binauralReverbEnabled = try container.decodeIfPresent(Bool.self, forKey: .binauralReverbEnabled) ?? false
+        binauralReverbPresetRaw = try container.decodeIfPresent(Int.self, forKey: .binauralReverbPresetRaw) ?? 0
     }
 
     public enum CodingKeys: String, CodingKey {
@@ -519,6 +523,8 @@ public struct AppSettings: Codable, Sendable {
         case highResAudioEnabled
         case deEsserEnabled
         case lowCutFilterEnabled
+        case binauralReverbEnabled
+        case binauralReverbPresetRaw
     }
 }
 

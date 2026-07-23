@@ -550,6 +550,10 @@ public class AudioPlayerService {
         #endif
     }
 
+    #if !SKIP && !os(Android)
+    private var reverbUnit: AVAudioUnitReverb?
+    #endif
+
     public func applyAudioDSP() {
         #if !SKIP && !os(Android)
         if eqUnit == nil {
@@ -563,7 +567,20 @@ public class AudioPlayerService {
         eq.bands[2].bypass = !settings.deEsserEnabled
         eq.bands[3].bypass = !settings.volumeLevelerEnabled
 
-        logger.info("Live Audio DSP Filter state updated: lowCut=\(!eq.bands[0].bypass), vocalBoost=\(!eq.bands[1].bypass), deEsser=\(!eq.bands[2].bypass), leveler=\(!eq.bands[3].bypass)")
+        if reverbUnit == nil {
+            let reverb = AVAudioUnitReverb()
+            reverb.loadFactoryPreset(.smallRoom)
+            reverb.wetDryMix = 0.0
+            self.reverbUnit = reverb
+        }
+        if let reverb = reverbUnit {
+            let presets: [AVAudioUnitReverbPreset] = [.smallRoom, .mediumRoom, .mediumHall]
+            let preset = presets[min(max(0, settings.binauralReverbPresetRaw), presets.count - 1)]
+            reverb.loadFactoryPreset(preset)
+            reverb.wetDryMix = settings.binauralReverbEnabled ? 18.0 : 0.0
+        }
+
+        logger.info("Live Audio DSP Filter state updated: lowCut=\(!eq.bands[0].bypass), vocalBoost=\(!eq.bands[1].bypass), deEsser=\(!eq.bands[2].bypass), leveler=\(!eq.bands[3].bypass), reverb=\(settings.binauralReverbEnabled)")
         #endif
     }
 
