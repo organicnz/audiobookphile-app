@@ -58,8 +58,35 @@ public actor AudiobookphileAPI {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
-            let timestamp = try container.decode(Double.self)
-            return Date(timeIntervalSince1970: timestamp / 1000.0)
+            if container.decodeNil() {
+                return Date(timeIntervalSince1970: 0)
+            }
+            if let timestamp = try? container.decode(Double.self) {
+                if timestamp > 100_000_000_000 {
+                    return Date(timeIntervalSince1970: timestamp / 1000.0)
+                } else {
+                    return Date(timeIntervalSince1970: timestamp)
+                }
+            }
+            if let dateString = try? container.decode(String.self) {
+                if let doubleVal = Double(dateString) {
+                    if doubleVal > 100_000_000_000 {
+                        return Date(timeIntervalSince1970: doubleVal / 1000.0)
+                    } else {
+                        return Date(timeIntervalSince1970: doubleVal)
+                    }
+                }
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                if let date = formatter.date(from: dateString) {
+                    return date
+                }
+                formatter.formatOptions = [.withInternetDateTime]
+                if let date = formatter.date(from: dateString) {
+                    return date
+                }
+            }
+            return Date(timeIntervalSince1970: 0)
         }
         return decoder
     }
@@ -331,17 +358,20 @@ public actor AudiobookphileAPI {
     }
 
     /// Get library items (books)
-    public func getLibraryItems(libraryId: String, limit: Int = 0, page: Int = 0, sort: String = "addedAt", desc: Bool = true) async throws -> LibraryItemsResponse {
+    public func getLibraryItems(libraryId: String, limit: Int = 100, page: Int = 0, sort: String = "addedAt", desc: Bool = true) async throws -> LibraryItemsResponse {
         guard var components = URLComponents(string: endpointUrlString(for: "/api/libraries/\(libraryId)/items")) else {
             throw APIError.invalidResponse
         }
-        components.queryItems = [
-            URLQueryItem(name: "limit", value: "\(limit)"),
+        var queryItems = [
             URLQueryItem(name: "page", value: "\(page)"),
             URLQueryItem(name: "sort", value: sort),
             URLQueryItem(name: "desc", value: desc ? "1" : "0"),
             URLQueryItem(name: "include", value: "progress")
         ]
+        if limit > 0 {
+            queryItems.append(URLQueryItem(name: "limit", value: "\(limit)"))
+        }
+        components.queryItems = queryItems
 
         guard let url = components.url else {
             throw APIError.invalidResponse
@@ -867,6 +897,25 @@ public struct LibraryItemsResponse: Codable, Sendable {
     public let total: Int
     public let limit: Int
     public let page: Int
+
+    enum CodingKeys: String, CodingKey {
+        case results, total, limit, page
+    }
+
+    public init(results: [Book], total: Int, limit: Int, page: Int) {
+        self.results = results
+        self.total = total
+        self.limit = limit
+        self.page = page
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        results = (try container.decodeIfPresent([Book].self, forKey: .results)) ?? []
+        total = (try container.decodeIfPresent(Int.self, forKey: .total)) ?? results.count
+        limit = (try container.decodeIfPresent(Int.self, forKey: .limit)) ?? 0
+        page = (try container.decodeIfPresent(Int.self, forKey: .page)) ?? 0
+    }
 }
 
 public struct SearchResponse: Codable, Sendable {

@@ -138,6 +138,41 @@ public struct BookMetadata: Codable, Hashable, Sendable {
         case genres, publishedYear, publishedDate, publisher
         case description, isbn, asin, language, explicit
     }
+
+    public init(title: String, subtitle: String? = nil, authorName: String? = nil, narratorName: String? = nil, seriesName: String? = nil, genres: [String] = [], publishedYear: String? = nil, publishedDate: String? = nil, publisher: String? = nil, description: String? = nil, isbn: String? = nil, asin: String? = nil, language: String? = nil, explicit: Bool = false) {
+        self.title = title
+        self.subtitle = subtitle
+        self.authorName = authorName
+        self.narratorName = narratorName
+        self.seriesName = seriesName
+        self.genres = genres
+        self.publishedYear = publishedYear
+        self.publishedDate = publishedDate
+        self.publisher = publisher
+        self.description = description
+        self.isbn = isbn
+        self.asin = asin
+        self.language = language
+        self.explicit = explicit
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        title = (try container.decodeIfPresent(String.self, forKey: .title)) ?? "Unknown Title"
+        subtitle = try container.decodeIfPresent(String.self, forKey: .subtitle)
+        authorName = try container.decodeIfPresent(String.self, forKey: .authorName)
+        narratorName = try container.decodeIfPresent(String.self, forKey: .narratorName)
+        seriesName = try container.decodeIfPresent(String.self, forKey: .seriesName)
+        genres = (try container.decodeIfPresent([String].self, forKey: .genres)) ?? []
+        publishedYear = try container.decodeIfPresent(String.self, forKey: .publishedYear)
+        publishedDate = try container.decodeIfPresent(String.self, forKey: .publishedDate)
+        publisher = try container.decodeIfPresent(String.self, forKey: .publisher)
+        description = try container.decodeIfPresent(String.self, forKey: .description)
+        isbn = try container.decodeIfPresent(String.self, forKey: .isbn)
+        asin = try container.decodeIfPresent(String.self, forKey: .asin)
+        language = try container.decodeIfPresent(String.self, forKey: .language)
+        explicit = (try container.decodeIfPresent(Bool.self, forKey: .explicit)) ?? false
+    }
 }
 
 extension BookMetadata {
