@@ -203,28 +203,31 @@ extension View {
 }
 
 // MARK: - Liquid Pressable Touch Feedback
-struct LiquidPressableModifier: ViewModifier {
-    @State private var isPressed = false
+public struct LiquidButtonStyle: ButtonStyle {
+    public init() {}
 
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .animation(.spring(response: 0.25, dampingFraction: 0.65), value: configuration.isPressed)
+            .onChange(of: configuration.isPressed) { _, isPressed in
+                if isPressed {
+                    #if os(iOS) && !SKIP
+                    let generator = UIImpactFeedbackGenerator(style: .light)
+                    generator.impactOccurred()
+                    #endif
+                }
+            }
+    }
+}
+
+extension ButtonStyle where Self == LiquidButtonStyle {
+    public static var liquid: LiquidButtonStyle { LiquidButtonStyle() }
+}
+
+struct LiquidPressableModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .scaleEffect(isPressed ? 0.96 : 1.0)
-            .animation(.spring(response: 0.3, dampingFraction: 0.65), value: isPressed)
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in
-                        if !isPressed {
-                            isPressed = true
-                            #if os(iOS) && !SKIP
-                            let generator = UIImpactFeedbackGenerator(style: .light)
-                            generator.impactOccurred()
-                            #endif
-                        }
-                    }
-                    .onEnded { _ in
-                        isPressed = false
-                    }
-            )
     }
 }
 

@@ -177,7 +177,7 @@ public struct BookshelfView: View {
                 .padding(.horizontal)
 
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
+                LazyHStack(spacing: 16) {
                     ForEach(viewModel.continueListening) { book in
                         ContinueListeningCard(book: book) {
                             selectedBookForDetails = book
@@ -391,91 +391,87 @@ public struct ContinueListeningCard: View {
 
     public var body: some View {
         Button(action: {
-            #if os(iOS) && !SKIP
-            let generator = UIImpactFeedbackGenerator(style: .light)
-            generator.impactOccurred()
-            #endif
             onTap()
         }) {
             VStack(alignment: .leading, spacing: 8) {
-            // Cover image
-            Color.clear
-                .frame(width: 120, height: 120)
-                .overlay {
-                    if let url = coverURL {
-                        ZStack {
-                            // Blurred background
-                            SmartAsyncImage(url: url) { image in
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                            } placeholder: {
-                                fallbackCover
-                            }
-                            .blur(radius: 15)
-                            .overlay(Color.black.opacity(0.4))
+                // Cover image
+                Color.clear
+                    .frame(width: 120, height: 120)
+                    .overlay {
+                        if let url = coverURL {
+                            ZStack {
+                                // Blurred background
+                                SmartAsyncImage(url: url) { image in
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                } placeholder: {
+                                    fallbackCover
+                                }
+                                .blur(radius: 15)
+                                .overlay(Color.black.opacity(0.4))
 
-                            // Fit image
-                            SmartAsyncImage(url: url) { image in
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                            } placeholder: {
-                                Color.clear
+                                // Fit image
+                                SmartAsyncImage(url: url) { image in
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                } placeholder: {
+                                    Color.clear
+                                }
                             }
+                        } else {
+                            fallbackCover
+                        }
+                    }
+                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [.white.opacity(0.35), .white.opacity(0.05)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
+                    .shadow(color: Color.cyan.opacity(0.3), radius: 10, x: 0, y: 6)
+
+                // Title & Progress with strict height
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(book.title)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .lineLimit(2)
+                        .foregroundStyle(.white)
+                        .multilineTextAlignment(.leading)
+
+                    if let progress = book.userMediaProgress {
+                        HStack {
+                            Text("\(Int(progress.progress * 100))%")
+                                .font(.caption.bold())
+                                .foregroundStyle(.cyan)
+
+                            Spacer()
+
+                            Image(systemName: "play.circle.fill")
+                                .font(.body)
+                                .foregroundStyle(.cyan)
+                                .shadow(color: .cyan.opacity(0.6), radius: 4)
                         }
                     } else {
-                        fallbackCover
+                        Spacer(minLength: 0)
+                            .frame(height: 16)
                     }
                 }
-                .clipped()
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: [.white.opacity(0.35), .white.opacity(0.05)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
-            )
-            .shadow(color: Color.cyan.opacity(0.3), radius: 10, x: 0, y: 6)
-
-            // Title & Progress with strict height
-            VStack(alignment: .leading, spacing: 4) {
-                Text(book.title)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .lineLimit(2)
-                    .foregroundStyle(.white)
-                    .multilineTextAlignment(.leading)
-
-                if let progress = book.userMediaProgress {
-                    HStack {
-                        Text("\(Int(progress.progress * 100))%")
-                            .font(.caption.bold())
-                            .foregroundStyle(.cyan)
-
-                        Spacer()
-
-                        Image(systemName: "play.circle.fill")
-                            .font(.body)
-                            .foregroundStyle(.cyan)
-                            .shadow(color: .cyan.opacity(0.6), radius: 4)
-                    }
-                } else {
-                    Spacer(minLength: 0)
-                        .frame(height: 16)
-                }
+                .frame(height: 56, alignment: .topLeading)
             }
-            .frame(height: 56, alignment: .topLeading)
+            .frame(width: 120)
+            .contentShape(Rectangle())
         }
-        .frame(width: 120)
-        .liquidPressable()
-        }
-        .buttonStyle(.plain)
+        .buttonStyle(.liquid)
     }
 
     private var fallbackCover: some View {
