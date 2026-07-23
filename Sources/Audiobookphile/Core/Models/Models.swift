@@ -465,6 +465,15 @@ public struct AppSettings: Codable, Sendable {
     public var lockOrientation: Bool = false
     public var defaultPlaybackSpeed: Double = 1.0
 
+    // Audio & Hardware Accessibility Settings
+    public var spokenAudioModeEnabled: Bool = true
+    public var vocalBoostEnabled: Bool = false
+    public var volumeLevelerEnabled: Bool = false
+    public var monoAudioEnabled: Bool = false
+    public var highResAudioEnabled: Bool = true
+    public var deEsserEnabled: Bool = false
+    public var lowCutFilterEnabled: Bool = true
+
     public init() {}
 
     public init(from decoder: Decoder) throws {
@@ -481,6 +490,13 @@ public struct AppSettings: Codable, Sendable {
         hapticsEnabled = try container.decodeIfPresent(Bool.self, forKey: .hapticsEnabled) ?? true
         lockOrientation = try container.decodeIfPresent(Bool.self, forKey: .lockOrientation) ?? false
         defaultPlaybackSpeed = try container.decodeIfPresent(Double.self, forKey: .defaultPlaybackSpeed) ?? 1.0
+        spokenAudioModeEnabled = try container.decodeIfPresent(Bool.self, forKey: .spokenAudioModeEnabled) ?? true
+        vocalBoostEnabled = try container.decodeIfPresent(Bool.self, forKey: .vocalBoostEnabled) ?? false
+        volumeLevelerEnabled = try container.decodeIfPresent(Bool.self, forKey: .volumeLevelerEnabled) ?? false
+        monoAudioEnabled = try container.decodeIfPresent(Bool.self, forKey: .monoAudioEnabled) ?? false
+        highResAudioEnabled = try container.decodeIfPresent(Bool.self, forKey: .highResAudioEnabled) ?? true
+        deEsserEnabled = try container.decodeIfPresent(Bool.self, forKey: .deEsserEnabled) ?? false
+        lowCutFilterEnabled = try container.decodeIfPresent(Bool.self, forKey: .lowCutFilterEnabled) ?? true
     }
 
     public enum CodingKeys: String, CodingKey {
@@ -496,6 +512,13 @@ public struct AppSettings: Codable, Sendable {
         case autoResume
         case hapticsEnabled
         case lockOrientation
+        case spokenAudioModeEnabled
+        case vocalBoostEnabled
+        case volumeLevelerEnabled
+        case monoAudioEnabled
+        case highResAudioEnabled
+        case deEsserEnabled
+        case lowCutFilterEnabled
     }
 }
 

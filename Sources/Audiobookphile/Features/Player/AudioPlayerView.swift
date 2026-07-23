@@ -26,6 +26,7 @@ public struct AudioPlayerView: View {
     @State var isUiLocked = false
     @State var showBookmarksList = false
     @State var showAddBookmark = false
+    @State var showAudioAccessibilitySheet = false
     @State var newBookmarkTitle = ""
     @State var isAnimatingBackground = false
 
@@ -96,6 +97,9 @@ public struct AudioPlayerView: View {
                 }
             )
         }
+        .sheet(isPresented: $showAudioAccessibilitySheet) {
+            AudioAccessibilityQuickSheet()
+        }
         .task {
             if let url = coverURL {
                 await colorLoader.loadColor(from: url)
@@ -155,7 +159,11 @@ public struct AudioPlayerView: View {
 
             // Cover art
             coverArtSection
-                .padding(.vertical, 40)
+                .padding(.vertical, 20)
+
+            // Hardware vDSP Audio Spectrum Visualizer
+            VDSPAudioVisualizer(isPlaying: viewModel.isPlaying, color: coverIsLight ? .black : Color.appPrimary)
+                .padding(.bottom, 12)
 
             // Title and author
             titleSection
@@ -349,6 +357,16 @@ public struct AudioPlayerView: View {
             Spacer()
 
             GlassIconButton(
+                icon: "waveform.path.badge.plus",
+                fill: false,
+                color: coverIsLight ? .black : .white,
+                action: { showAudioAccessibilitySheet = true }
+            )
+            .accessibilityLabel("Audio & Hardware Accessibility")
+
+            Spacer()
+
+            GlassIconButton(
                 icon: "list.bullet",
                 fill: false,
                 color: coverIsLight ? .black : .white,
@@ -500,5 +518,113 @@ public struct AudioPlayerView: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(viewModel.isPlaying ? "Pause" : "Play"))
         .accessibilityAddTraits(.isButton)
+    }
+}
+
+// MARK: - Audio Accessibility Quick Sheet
+
+public struct AudioAccessibilityQuickSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var settings = AppState.shared.settings
+
+    public init() {}
+
+    public var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.appBackground.ignoresSafeArea()
+
+                VStack(spacing: 16) {
+                    List {
+                        Section(header: Text("Spoken Audio & Speech Clarity").foregroundStyle(.white.opacity(0.7))) {
+                            Toggle("Spoken Audio Optimization", isOn: Binding(
+                                get: { settings.spokenAudioModeEnabled },
+                                set: { newValue in
+                                    settings.spokenAudioModeEnabled = newValue
+                                    AppState.shared.updateSettings(settings)
+                                    #if os(iOS)
+                                    AudioPlayerService.shared.reconfigureAudioSession()
+                                    #endif
+                                }
+                            ))
+
+                            Toggle("Vocal Clarity Boost", isOn: Binding(
+                                get: { settings.vocalBoostEnabled },
+                                set: { newValue in
+                                    settings.vocalBoostEnabled = newValue
+                                    AppState.shared.updateSettings(settings)
+                                    AudioPlayerService.shared.applyAudioDSP()
+                                }
+                            ))
+
+                            Toggle("Smart Volume Leveler", isOn: Binding(
+                                get: { settings.volumeLevelerEnabled },
+                                set: { newValue in
+                                    settings.volumeLevelerEnabled = newValue
+                                    AppState.shared.updateSettings(settings)
+                                    AudioPlayerService.shared.applyAudioDSP()
+                                }
+                            ))
+
+                            Toggle("Mono Audio Mix", isOn: Binding(
+                                get: { settings.monoAudioEnabled },
+                                set: { newValue in
+                                    settings.monoAudioEnabled = newValue
+                                    AppState.shared.updateSettings(settings)
+                                }
+                            ))
+                        }
+                        .listRowBackground(Color.white.opacity(0.08))
+
+                        Section(header: Text("Audiophile DSP & Fidelity").foregroundStyle(.white.opacity(0.7))) {
+                            Toggle("High-Res 48kHz Output", isOn: Binding(
+                                get: { settings.highResAudioEnabled },
+                                set: { newValue in
+                                    settings.highResAudioEnabled = newValue
+                                    AppState.shared.updateSettings(settings)
+                                    #if os(iOS)
+                                    AudioPlayerService.shared.reconfigureAudioSession()
+                                    #endif
+                                    AudioPlayerService.shared.applyAudioDSP()
+                                }
+                            ))
+
+                            Toggle("Low-Cut Rumble Filter (80Hz)", isOn: Binding(
+                                get: { settings.lowCutFilterEnabled },
+                                set: { newValue in
+                                    settings.lowCutFilterEnabled = newValue
+                                    AppState.shared.updateSettings(settings)
+                                    AudioPlayerService.shared.applyAudioDSP()
+                                }
+                            ))
+
+                            Toggle("De-Esser Sibilance Reducer", isOn: Binding(
+                                get: { settings.deEsserEnabled },
+                                set: { newValue in
+                                    settings.deEsserEnabled = newValue
+                                    AppState.shared.updateSettings(settings)
+                                    AudioPlayerService.shared.applyAudioDSP()
+                                }
+                            ))
+                        }
+                        .listRowBackground(Color.white.opacity(0.08))
+                    }
+                    .scrollContentBackground(.hidden)
+                }
+            }
+            .navigationTitle("Audio Accessibility")
+            #if os(iOS) || SKIP
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .foregroundStyle(Color.appPrimary)
+                }
+            }
+        }
+        .presentationDetents([.medium])
     }
 }

@@ -43,6 +43,9 @@ public struct SettingsView: View {
                         // Playback settings
                         playbackSection
 
+                        // Audio & Hardware Accessibility
+                        audioAccessibilitySection
+
                         // Network settings
                         networkSection
 
@@ -252,6 +255,56 @@ public struct SettingsView: View {
         }
     }
 
+    // MARK: - Audio & Hardware Accessibility Section
+
+    private var audioAccessibilitySection: some View {
+        SettingsSection(title: "Audio & Hardware Accessibility") {
+            SettingsToggleRow(
+                icon: "waveform.path.badge.plus",
+                title: "Spoken Audio Optimization",
+                isOn: $viewModel.spokenAudioModeEnabled
+            )
+
+            SettingsToggleRow(
+                icon: "waveform.and.mic",
+                title: "Vocal Clarity Boost",
+                isOn: $viewModel.vocalBoostEnabled
+            )
+
+            SettingsToggleRow(
+                icon: "slider.horizontal.3",
+                title: "Smart Volume Leveler",
+                isOn: $viewModel.volumeLevelerEnabled
+            )
+
+            SettingsToggleRow(
+                icon: "speaker.wave.1.fill",
+                title: "Mono Audio Mix",
+                isOn: $viewModel.monoAudioEnabled
+            )
+
+            Divider().background(.white.opacity(0.2))
+
+            SettingsToggleRow(
+                icon: "hifispeaker.fill",
+                title: "High-Res 48kHz Output",
+                isOn: $viewModel.highResAudioEnabled
+            )
+
+            SettingsToggleRow(
+                icon: "line.3.horizontal.decrease.circle",
+                title: "Low-Cut Rumble Filter (80Hz)",
+                isOn: $viewModel.lowCutFilterEnabled
+            )
+
+            SettingsToggleRow(
+                icon: "sparkles",
+                title: "De-Esser Sibilance Reducer",
+                isOn: $viewModel.deEsserEnabled
+            )
+        }
+    }
+
     // MARK: - Network Section
 
     private var networkSection: some View {
@@ -422,6 +475,80 @@ public class SettingsViewModel {
             var s = AppState.shared.settings
             s.lockOrientation = newValue
             AppState.shared.updateSettings(s)
+        }
+    }
+
+    public var spokenAudioModeEnabled: Bool {
+        get { AppState.shared.settings.spokenAudioModeEnabled }
+        set { 
+            var s = AppState.shared.settings
+            s.spokenAudioModeEnabled = newValue
+            AppState.shared.updateSettings(s)
+            #if os(iOS)
+            AudioPlayerService.shared.reconfigureAudioSession()
+            #endif
+        }
+    }
+
+    public var vocalBoostEnabled: Bool {
+        get { AppState.shared.settings.vocalBoostEnabled }
+        set { 
+            var s = AppState.shared.settings
+            s.vocalBoostEnabled = newValue
+            AppState.shared.updateSettings(s)
+            AudioPlayerService.shared.applyAudioDSP()
+        }
+    }
+
+    public var volumeLevelerEnabled: Bool {
+        get { AppState.shared.settings.volumeLevelerEnabled }
+        set { 
+            var s = AppState.shared.settings
+            s.volumeLevelerEnabled = newValue
+            AppState.shared.updateSettings(s)
+            AudioPlayerService.shared.applyAudioDSP()
+        }
+    }
+
+    public var monoAudioEnabled: Bool {
+        get { AppState.shared.settings.monoAudioEnabled }
+        set { 
+            var s = AppState.shared.settings
+            s.monoAudioEnabled = newValue
+            AppState.shared.updateSettings(s)
+        }
+    }
+
+    public var highResAudioEnabled: Bool {
+        get { AppState.shared.settings.highResAudioEnabled }
+        set { 
+            var s = AppState.shared.settings
+            s.highResAudioEnabled = newValue
+            AppState.shared.updateSettings(s)
+            #if os(iOS)
+            AudioPlayerService.shared.reconfigureAudioSession()
+            #endif
+            AudioPlayerService.shared.applyAudioDSP()
+        }
+    }
+
+    public var lowCutFilterEnabled: Bool {
+        get { AppState.shared.settings.lowCutFilterEnabled }
+        set { 
+            var s = AppState.shared.settings
+            s.lowCutFilterEnabled = newValue
+            AppState.shared.updateSettings(s)
+            AudioPlayerService.shared.applyAudioDSP()
+        }
+    }
+
+    public var deEsserEnabled: Bool {
+        get { AppState.shared.settings.deEsserEnabled }
+        set { 
+            var s = AppState.shared.settings
+            s.deEsserEnabled = newValue
+            AppState.shared.updateSettings(s)
+            AudioPlayerService.shared.applyAudioDSP()
         }
     }
 

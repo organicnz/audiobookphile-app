@@ -40,6 +40,7 @@ public class AudioPlayerService {
     private var player: AVPlayer?
     private var timeObserverToken: Any?
     private var playerItemObserverToken: Any?
+    private var eqUnit: AVAudioUnitEQ?
     #endif
 
     private var progressSyncTimer: Timer?
@@ -211,6 +212,12 @@ public class AudioPlayerService {
 
         isPlaying = true
 
+        #if os(iOS)
+        if UIAccessibility.isVoiceOverRunning {
+            UIAccessibility.post(notification: .announcement, argument: "Playing")
+        }
+        #endif
+
         #if !SKIP && !os(Android)
         updateNowPlaying(rate: playbackRate)
         #endif
@@ -224,6 +231,12 @@ public class AudioPlayerService {
         #endif
 
         isPlaying = false
+
+        #if os(iOS)
+        if UIAccessibility.isVoiceOverRunning {
+            UIAccessibility.post(notification: .announcement, argument: "Paused")
+        }
+        #endif
 
         #if !SKIP && !os(Android)
         updateNowPlaying(rate: 0)
@@ -436,24 +449,35 @@ public class AudioPlayerService {
 
     // MARK: - iOS Specific Player Setup
 
-    #if os(iOS)
-    private func setupAudioSession() {
+    // MARK: - Native Audio Setup & DSP
+
+    public func reconfigureAudioSession() {
         #if os(iOS)
         do {
             let audioSession = AVAudioSession.sharedInstance()
+            let mode: AVAudioSession.Mode = AppState.shared.settings.spokenAudioModeEnabled ? .spokenAudio : .default
             try audioSession.setCategory(
                 .playback,
-                mode: .spokenAudio,
+                mode: mode,
                 options: [.allowBluetooth, .allowBluetoothA2DP, .allowAirPlay, .defaultToSpeaker]
             )
-            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
-            logger.info("Audio session configured for hardware spoken audio & accessibility clarity.")
 
-            setupAudioObservers()
+            if AppState.shared.settings.highResAudioEnabled {
+                try? audioSession.setPreferredSampleRate(48000.0)
+                try? audioSession.setPreferredIOBufferDuration(0.005)
+            }
+
+            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+            logger.info("AVAudioSession configured: mode=\(mode == .spokenAudio ? "spokenAudio" : "default"), highRes=\(AppState.shared.settings.highResAudioEnabled).")
         } catch {
             logger.error("Failed to configure AVAudioSession: \(error)")
         }
         #endif
+    }
+
+    private func setupAudioSession() {
+        reconfigureAudioSession()
+        setupAudioObservers()
     }
 
     private func setupAudioObservers() {
@@ -464,10 +488,10 @@ public class AudioPlayerService {
             object: AVAudioSession.sharedInstance(),
             queue: .main
         ) { [weak self] notification in
+            let reasonValue = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt
             Task { @MainActor in
-                guard let self = self else { return }
-                guard let userInfo = notification.userInfo,
-                      let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
+                guard let self = self,
+                      let reasonValue = reasonValue,
                       let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
                     return
                 }
@@ -485,10 +509,11 @@ public class AudioPlayerService {
             object: AVAudioSession.sharedInstance(),
             queue: .main
         ) { [weak self] notification in
+            let typeValue = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt
+            let optionsValue = notification.userInfo?[AVAudioSessionInterruptionOptionKey] as? UInt
             Task { @MainActor in
-                guard let self = self else { return }
-                guard let userInfo = notification.userInfo,
-                      let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+                guard let self = self,
+                      let typeValue = typeValue,
                       let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
                     return
                 }
@@ -498,7 +523,7 @@ public class AudioPlayerService {
                     self.logger.info("Audio interruption began (e.g. incoming call). Pausing playback.")
                     self.pause()
                 case .ended:
-                    if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt {
+                    if let optionsValue = optionsValue {
                         let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
                         if options.contains(.shouldResume) {
                             self.logger.info("Audio interruption ended with shouldResume. Resuming playback.")
@@ -510,7 +535,73 @@ public class AudioPlayerService {
                 }
             }
         }
+
+        // System Mono Audio Accessibility Observer
+        NotificationCenter.default.addObserver(
+            forName: UIAccessibility.monoAudioStatusDidChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                let isMono = UIAccessibility.isMonoAudioEnabled
+                self?.logger.info("System Mono Audio status changed: \(isMono)")
+            }
+        }
         #endif
+    }
+
+    public func applyAudioDSP() {
+        #if !SKIP && !os(Android)
+        if eqUnit == nil {
+            setupAudioEngineDSP()
+        }
+
+        guard let eq = eqUnit else { return }
+        let settings = AppState.shared.settings
+        eq.bands[0].bypass = !settings.lowCutFilterEnabled
+        eq.bands[1].bypass = !settings.vocalBoostEnabled
+        eq.bands[2].bypass = !settings.deEsserEnabled
+        eq.bands[3].bypass = !settings.volumeLevelerEnabled
+
+        logger.info("Live Audio DSP Filter state updated: lowCut=\(!eq.bands[0].bypass), vocalBoost=\(!eq.bands[1].bypass), deEsser=\(!eq.bands[2].bypass), leveler=\(!eq.bands[3].bypass)")
+        #endif
+    }
+
+    #if !SKIP && !os(Android)
+    private func setupAudioEngineDSP() {
+        let eq = AVAudioUnitEQ(numberOfBands: 4)
+
+        // Band 0: Low-Cut Highpass Filter at 80Hz (removes HVAC & mic thumps)
+        let b0 = eq.bands[0]
+        b0.filterType = .highPass
+        b0.frequency = 80.0
+        b0.bypass = !AppState.shared.settings.lowCutFilterEnabled
+
+        // Band 1: Vocal Formant Boost at 2.5kHz (+3.5 dB boost)
+        let b1 = eq.bands[1]
+        b1.filterType = .parametric
+        b1.frequency = 2500.0
+        b1.bandwidth = 1.0
+        b1.gain = 3.5
+        b1.bypass = !AppState.shared.settings.vocalBoostEnabled
+
+        // Band 2: De-Esser Notch Filter at 6.5kHz (-3.0 dB)
+        let b2 = eq.bands[2]
+        b2.filterType = .parametric
+        b2.frequency = 6500.0
+        b2.bandwidth = 0.8
+        b2.gain = -3.0
+        b2.bypass = !AppState.shared.settings.deEsserEnabled
+
+        // Band 3: Dynamic Volume Leveler High-Shelf Contour at 10kHz (+2.0 dB air clarity)
+        let b3 = eq.bands[3]
+        b3.filterType = .highShelf
+        b3.frequency = 10000.0
+        b3.gain = 2.0
+        b3.bypass = !AppState.shared.settings.volumeLevelerEnabled
+
+        self.eqUnit = eq
+        logger.info("Initialized 4-Band Audiophile Parametric EQ DSP Graph.")
     }
     #endif
 
@@ -538,7 +629,16 @@ public class AudioPlayerService {
             playerItemObserverToken = nil
         }
 
-        let playerItem = AVPlayerItem(url: url)
+        let asset = AVURLAsset(url: url, options: [AVURLAssetPreferPreciseDurationAndTimingKey: true])
+        let playerItem = AVPlayerItem(asset: asset)
+        playerItem.preferredForwardBufferDuration = 30.0
+        #if os(iOS)
+        playerItem.audioTimePitchAlgorithm = .spectral
+        if #available(iOS 15.0, *) {
+            playerItem.allowedAudioSpatializationFormats = [.monoAndStereo, .multichannel]
+        }
+        #endif
+
         if player == nil {
             player = AVPlayer(playerItem: playerItem)
             setupRemoteCommandCenter()
