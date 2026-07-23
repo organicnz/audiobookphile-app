@@ -75,26 +75,12 @@ public struct BookCard: View {
                 .aspectRatio(aspectRatio, contentMode: .fill)
                 .overlay {
                     if let url = coverURL {
-                        ZStack {
-                            // Glass blurred backdrop to fill container
-                            SmartAsyncImage(url: url) { image in
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                            } placeholder: {
-                                placeholderCover
-                            }
-                            .blur(radius: 15)
-                            .overlay(Color.black.opacity(0.4))
-
-                            // Fit image to show full uncropped cover
-                            SmartAsyncImage(url: url) { image in
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                            } placeholder: {
-                                Color.clear
-                            }
+                        SmartAsyncImage(url: url) { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        } placeholder: {
+                            placeholderCover
                         }
                     } else {
                         placeholderCover

@@ -215,36 +215,21 @@ public struct AudioPlayerView: View {
     private var coverArtSection: some View {
         GeometryReader { geometry in
             let cardSide = min(geometry.size.width * 0.76, geometry.size.height * 0.9)
-            Color.clear
-                .frame(width: cardSide, height: cardSide)
-                .overlay {
-                    if let url = coverURL {
-                        ZStack {
-                            // Glass blurred backdrop to fill container
-                            SmartAsyncImage(url: url) { image in
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                            } placeholder: {
-                                placeholderCover
-                            }
-                            .blur(radius: 20)
-                            .overlay(Color.black.opacity(0.4))
-
-                            // Fit image to show full uncropped cover
-                            SmartAsyncImage(url: url) { image in
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                            } placeholder: {
-                                Color.clear
-                            }
-                        }
-                    } else {
+            ZStack {
+                if let url = coverURL {
+                    SmartAsyncImage(url: url) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
                         placeholderCover
                     }
+                } else {
+                    placeholderCover
                 }
-                .clipped()
+            }
+            .frame(width: cardSide, height: cardSide)
+            .clipped()
                 .frame(maxWidth: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             .overlay(
