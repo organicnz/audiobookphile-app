@@ -297,78 +297,92 @@ public struct BookDetailView: View {
                 switch download.status {
                 case .pending:
                     Button {
+                        #if os(iOS) && !SKIP
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        #endif
                         downloadService.cancelDownload(bookId: detailed.id)
                     } label: {
-                        HStack(spacing: 6) {
-                            ProgressView()
-                                .tint(.orange)
+                        HStack(spacing: 8) {
+                            CircularDownloadProgressBadge(status: .pending)
                             Text("Pending...")
                                 .font(.caption.bold())
                                 .foregroundStyle(.orange)
                         }
-                        .padding()
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
                         .background(.white.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
 
                 case .downloading:
                     Button {
+                        #if os(iOS) && !SKIP
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        #endif
                         downloadService.cancelDownload(bookId: detailed.id)
                     } label: {
-                        HStack(spacing: 6) {
-                            ProgressView(value: download.progress)
-                                .progressViewStyle(.circular)
-                                .tint(.appPrimary)
-                            Text("\(Int(download.progress * 100))%")
+                        HStack(spacing: 8) {
+                            CircularDownloadProgressBadge(progress: download.progress, status: .downloading)
+                            Text("Downloading (\(Int(download.progress * 100))%)")
                                 .font(.caption.bold())
-                                .foregroundStyle(Color.appPrimary)
+                                .foregroundStyle(Color.cyan)
                         }
-                        .padding()
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
                         .background(.white.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
 
                 case .completed:
                     Button {
+                        #if os(iOS) && !SKIP
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        #endif
                         try? downloadService.deleteDownload(bookId: detailed.id)
                     } label: {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.title3)
-                            .foregroundStyle(.green)
-                            .padding()
+                        CircularDownloadProgressBadge(status: .completed)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
                             .background(.white.opacity(0.1))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
 
                 case .failed:
                     Button {
+                        #if os(iOS) && !SKIP
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        #endif
                         Task {
                             await downloadService.downloadBook(detailed)
                         }
                     } label: {
-                        Image(systemName: "exclamationmark.circle.fill")
-                            .font(.title3)
-                            .foregroundStyle(.red)
-                            .padding()
+                        CircularDownloadProgressBadge(status: .failed)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
                             .background(.white.opacity(0.1))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                 case .paused:
                     Button {
+                        #if os(iOS) && !SKIP
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        #endif
                         Task {
                             await downloadService.downloadBook(detailed)
                         }
                     } label: {
-                        Image(systemName: "play.circle.fill")
-                            .font(.title3)
-                            .foregroundStyle(.yellow)
-                            .padding()
+                        CircularDownloadProgressBadge(status: .paused)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
                             .background(.white.opacity(0.1))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                 }
             } else {
                 Button {
+                    #if os(iOS) && !SKIP
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    #endif
                     Task {
                         await downloadService.downloadBook(detailed)
                     }
@@ -376,7 +390,8 @@ public struct BookDetailView: View {
                     Image(systemName: "arrow.down.circle")
                         .font(.title3)
                         .foregroundStyle(.white)
-                        .padding()
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
                         .background(.white.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }

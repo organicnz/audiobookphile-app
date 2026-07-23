@@ -104,8 +104,10 @@ public struct BookCard: View {
 
             // Badges
             Group {
-                if isDownloaded {
-                    downloadBadge
+                if let activeDownload = downloadService.downloads.first(where: { $0.libraryItemId == book.id }) {
+                    CircularDownloadProgressBadge(progress: activeDownload.progress, status: activeDownload.status)
+                } else if isDownloaded {
+                    CircularDownloadProgressBadge(status: .completed)
                 } else if book.isMissing == true {
                     missingBadge
                 }
@@ -334,5 +336,114 @@ public struct BookCardSkeleton: View {
             .frame(height: 68, alignment: .topLeading)
         }
         .shimmer()
+    }
+}
+
+// MARK: - Circular Download Progress Badge Component
+public struct CircularDownloadProgressBadge: View {
+    public let progress: Double
+    public let status: DownloadStatus?
+
+    public init(progress: Double = 0, status: DownloadStatus? = nil) {
+        self.progress = progress
+        self.status = status
+    }
+
+    public var body: some View {
+        ZStack {
+            if let status = status {
+                switch status {
+                case .pending:
+                    ZStack {
+                        Circle()
+                            .stroke(Color.orange.opacity(0.3), lineWidth: 2.5)
+                        Circle()
+                            .trim(from: 0, to: 0.3)
+                            .stroke(Color.orange, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+                            .rotationEffect(.degrees(-90))
+                            .applyConnectPulseEffect(isAnimating: true)
+                        Image(systemName: "arrow.down")
+                            .font(.system(size: 8, weight: .bold))
+                            .foregroundStyle(.orange)
+                    }
+                    .frame(width: 24, height: 24)
+                    .padding(3)
+                    .background(.ultraThinMaterial, in: Circle())
+                    .shadow(color: .orange.opacity(0.5), radius: 6, x: 0, y: 2)
+
+                case .downloading:
+                    ZStack {
+                        // Background track
+                        Circle()
+                            .stroke(Color.white.opacity(0.2), lineWidth: 2.5)
+
+                        // Animated progress fill
+                        Circle()
+                            .trim(from: 0, to: max(0.05, CGFloat(progress)))
+                            .stroke(
+                                LinearGradient(colors: [.cyan, .teal], startPoint: .topLeading, endPoint: .bottomTrailing),
+                                style: StrokeStyle(lineWidth: 2.5, lineCap: .round)
+                            )
+                            .rotationEffect(.degrees(-90))
+                            .animation(.spring(response: 0.35, dampingFraction: 0.8), value: progress)
+
+                        // Percentage label
+                        Text("\(Int(progress * 100))")
+                            .font(.system(size: 7, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+                    }
+                    .frame(width: 26, height: 26)
+                    .padding(3)
+                    .background(.ultraThinMaterial, in: Circle())
+                    .shadow(color: .cyan.opacity(0.6), radius: 8, x: 0, y: 2)
+
+                case .paused:
+                    ZStack {
+                        Circle()
+                            .stroke(Color.yellow.opacity(0.4), lineWidth: 2.5)
+                        Image(systemName: "pause.fill")
+                            .font(.system(size: 8, weight: .bold))
+                            .foregroundStyle(.yellow)
+                    }
+                    .frame(width: 24, height: 24)
+                    .padding(3)
+                    .background(.ultraThinMaterial, in: Circle())
+                    .shadow(color: .yellow.opacity(0.5), radius: 6, x: 0, y: 2)
+
+                case .completed:
+                    completedBadge
+
+                case .failed:
+                    ZStack {
+                        Circle()
+                            .fill(Color.red)
+                        Image(systemName: "exclamationmark")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+                    .frame(width: 24, height: 24)
+                    .padding(3)
+                    .background(.ultraThinMaterial, in: Circle())
+                    .shadow(color: .red.opacity(0.5), radius: 6, x: 0, y: 2)
+                }
+            } else {
+                completedBadge
+            }
+        }
+    }
+
+    private var completedBadge: some View {
+        Image(systemName: "checkmark.circle.fill")
+            .font(.system(size: 18, weight: .bold))
+            .foregroundStyle(.white)
+            .padding(3)
+            .background {
+                Circle()
+                    .fill(
+                        LinearGradient(colors: [.green, .teal], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    )
+            }
+            .background(.ultraThinMaterial, in: Circle())
+            .shadow(color: .green.opacity(0.5), radius: 6, x: 0, y: 2)
     }
 }
