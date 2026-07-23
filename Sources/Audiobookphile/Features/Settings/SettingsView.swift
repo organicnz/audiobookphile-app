@@ -302,6 +302,12 @@ public struct SettingsView: View {
                 title: "De-Esser Sibilance Reducer",
                 isOn: $viewModel.deEsserEnabled
             )
+
+            SettingsToggleRow(
+                icon: "waveform.path.badge.plus",
+                title: "3D Binaural Studio Acoustics",
+                isOn: $viewModel.binauralReverbEnabled
+            )
         }
     }
 
@@ -547,6 +553,16 @@ public class SettingsViewModel {
         set { 
             var s = AppState.shared.settings
             s.deEsserEnabled = newValue
+            AppState.shared.updateSettings(s)
+            AudioPlayerService.shared.applyAudioDSP()
+        }
+    }
+
+    public var binauralReverbEnabled: Bool {
+        get { AppState.shared.settings.binauralReverbEnabled }
+        set {
+            var s = AppState.shared.settings
+            s.binauralReverbEnabled = newValue
             AppState.shared.updateSettings(s)
             AudioPlayerService.shared.applyAudioDSP()
         }
