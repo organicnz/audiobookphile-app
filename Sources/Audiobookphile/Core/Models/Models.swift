@@ -525,9 +525,47 @@ public struct APIErrorResponse: Codable, Sendable {
     public struct ErrorDetail: Codable, Sendable {
         public let message: String
         public let code: String?
+
+        public init(message: String, code: String? = nil) {
+            self.message = message
+            self.code = code
+        }
     }
     public let error: ErrorDetail?
-    public let success: Bool
+    public let message: String?
+    public let success: Bool?
+
+    public var parsedMessage: String? {
+        if let detailMsg = error?.message, !detailMsg.isEmpty {
+            return detailMsg
+        }
+        if let directMsg = message, !directMsg.isEmpty {
+            return directMsg
+        }
+        return nil
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case error
+        case message
+        case success
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.success = try container.decodeIfPresent(Bool.self, forKey: .success)
+
+        if let detail = try? container.decodeIfPresent(ErrorDetail.self, forKey: .error) {
+            self.error = detail
+            self.message = nil
+        } else if let errorString = try? container.decodeIfPresent(String.self, forKey: .error) {
+            self.error = ErrorDetail(message: errorString)
+            self.message = nil
+        } else {
+            self.error = nil
+            self.message = try container.decodeIfPresent(String.self, forKey: .message)
+        }
+    }
 }
 
 public struct ProgressSyncQueueItem: Codable, Sendable {

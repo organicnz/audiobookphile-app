@@ -109,11 +109,11 @@ public actor AudiobookphileAPI {
         }
 
         guard (200...299).contains(httpResponse.statusCode) else {
-            if let errorResponse = try? JSONDecoder().decode(APIErrorResponse.self, from: data), let errorDetail = errorResponse.error {
+            if let errorResponse = try? JSONDecoder().decode(APIErrorResponse.self, from: data), let msg = errorResponse.parsedMessage {
                 if httpResponse.statusCode == 401 {
                     throw APIError.authenticationFailed
                 }
-                throw APIError.serverError(statusCode: httpResponse.statusCode, message: errorDetail.message, code: errorDetail.code)
+                throw APIError.serverError(statusCode: httpResponse.statusCode, message: msg, code: errorResponse.error?.code)
             }
             if httpResponse.statusCode == 401 {
                 throw APIError.authenticationFailed
@@ -265,8 +265,8 @@ public actor AudiobookphileAPI {
             }
 
             guard (200...299).contains(httpResponse.statusCode) else {
-                if let errorResponse = try? JSONDecoder().decode(APIErrorResponse.self, from: data), let errorDetail = errorResponse.error {
-                    throw APIError.serverError(statusCode: httpResponse.statusCode, message: errorDetail.message, code: errorDetail.code)
+                if let errorResponse = try? JSONDecoder().decode(APIErrorResponse.self, from: data), let msg = errorResponse.parsedMessage {
+                    throw APIError.serverError(statusCode: httpResponse.statusCode, message: msg, code: errorResponse.error?.code)
                 }
                 throw APIError.serverError(statusCode: httpResponse.statusCode, message: "Unknown server error", code: nil)
             }
