@@ -17,7 +17,8 @@ public class LiveLibraryService: LibraryServiceProtocol {
         guard let libId = libraryId else {
             return []
         }
-        let response = try await AudiobookphileAPI.shared.getLibraryItems(libraryId: libId, limit: 100)
+        // Limit 0 tells the Edge Function to return all library books without pagination truncation
+        let response = try await AudiobookphileAPI.shared.getLibraryItems(libraryId: libId, limit: 0)
         return response.results
     }
 

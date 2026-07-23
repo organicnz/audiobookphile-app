@@ -528,8 +528,19 @@ public class BookshelfViewModel {
         self.customService = service
     }
 
+    private static var memoryCache: [String: [Book]] = [:]
+
     public func loadLibrary(libraryId: String?, isAuthenticated: Bool) async {
-        isLoading = true
+        let cacheKey = libraryId ?? "default"
+
+        // Instantly populate from memory cache if available for smooth navigation
+        if let cached = Self.memoryCache[cacheKey], !cached.isEmpty {
+            self.books = cached
+            self.filteredBooks = cached
+        } else {
+            isLoading = true
+        }
+
         errorMessage = nil
 
         let service = customService ?? (isAuthenticated ? LiveLibraryService() : MockLibraryService())
@@ -543,14 +554,15 @@ public class BookshelfViewModel {
             let fetched = try await service.fetchLibraryItems(libraryId: libraryId)
             self.books = fetched
             self.filteredBooks = fetched
+            Self.memoryCache[cacheKey] = fetched
 
-            // Continue Listening is now server-driven (filtered by is_finished,
-            // hide_from_continue_listening, sorted by last_update) instead of
-            // derived client-side from the first 50 items.
+            // Continue Listening is server-driven
             self.continueListening = try await service.fetchContinueListening(libraryId: libraryId)
         } catch {
             print("[BookshelfViewModel] Failed to load library items: \(error)")
-            self.errorMessage = error.localizedDescription
+            if books.isEmpty {
+                self.errorMessage = error.localizedDescription
+            }
         }
 
         isLoading = false
