@@ -193,15 +193,30 @@ public struct BookDetailView: View {
     }
 
     private func coverArtSection(_ detailed: Book) -> some View {
-        Color.clear
+        let coverURL = appState.getCoverURL(itemId: detailed.id, width: 600, updatedAt: detailed.updatedAt)
+        return Color.clear
             .frame(width: 260, height: 260)
             .overlay {
-                SmartAsyncImage(url: appState.getCoverURL(itemId: detailed.id, width: 600, updatedAt: detailed.updatedAt)) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    placeholderCover
+                ZStack {
+                    // Glass blurred backdrop to fill container
+                    SmartAsyncImage(url: coverURL) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        placeholderCover
+                    }
+                    .blur(radius: 20)
+                    .overlay(Color.black.opacity(0.4))
+
+                    // Fit image to show full uncropped cover
+                    SmartAsyncImage(url: coverURL) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                    } placeholder: {
+                        Color.clear
+                    }
                 }
             }
             .clipped()
