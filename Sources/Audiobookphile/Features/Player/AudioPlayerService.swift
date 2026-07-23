@@ -438,14 +438,79 @@ public class AudioPlayerService {
 
     #if os(iOS)
     private func setupAudioSession() {
+        #if os(iOS)
         do {
             let audioSession = AVAudioSession.sharedInstance()
-            try audioSession.setCategory(.playback, mode: .default, options: [])
-            try audioSession.setActive(true)
-            logger.info("Audio session category configured successfully.")
+            try audioSession.setCategory(
+                .playback,
+                mode: .spokenAudio,
+                options: [.allowBluetooth, .allowBluetoothA2DP, .allowAirPlay, .defaultToSpeaker]
+            )
+            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+            logger.info("Audio session configured for hardware spoken audio & accessibility clarity.")
+
+            setupAudioObservers()
         } catch {
-            logger.error("Failed to configure AVAudioSession category: \(error)")
+            logger.error("Failed to configure AVAudioSession: \(error)")
         }
+        #endif
+    }
+
+    private func setupAudioObservers() {
+        #if os(iOS)
+        // Auto-pause when headphones / AirPods disconnect (route change)
+        NotificationCenter.default.addObserver(
+            forName: AVAudioSession.routeChangeNotification,
+            object: AVAudioSession.sharedInstance(),
+            queue: .main
+        ) { [weak self] notification in
+            Task { @MainActor in
+                guard let self = self else { return }
+                guard let userInfo = notification.userInfo,
+                      let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
+                      let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
+                    return
+                }
+
+                if reason == .oldDeviceUnavailable {
+                    self.logger.info("Hardware audio route lost (e.g. AirPods disconnected). Pausing playback.")
+                    self.pause()
+                }
+            }
+        }
+
+        // Handle phone call and Siri audio interruptions
+        NotificationCenter.default.addObserver(
+            forName: AVAudioSession.interruptionNotification,
+            object: AVAudioSession.sharedInstance(),
+            queue: .main
+        ) { [weak self] notification in
+            Task { @MainActor in
+                guard let self = self else { return }
+                guard let userInfo = notification.userInfo,
+                      let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+                      let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
+                    return
+                }
+
+                switch type {
+                case .began:
+                    self.logger.info("Audio interruption began (e.g. incoming call). Pausing playback.")
+                    self.pause()
+                case .ended:
+                    if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt {
+                        let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+                        if options.contains(.shouldResume) {
+                            self.logger.info("Audio interruption ended with shouldResume. Resuming playback.")
+                            self.play()
+                        }
+                    }
+                @unknown default:
+                    break
+                }
+            }
+        }
+        #endif
     }
     #endif
 
