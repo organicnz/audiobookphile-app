@@ -235,23 +235,37 @@ public class DownloadService: NSObject, URLSessionDownloadDelegate {
             await AppState.shared.refreshSessionIfNeeded()
             let token = AppState.shared.token
 
-            let fullPath: String
+            let url: URL
             if trackPath.hasPrefix("http") {
-                fullPath = trackPath
+                guard let validURL = URL(string: trackPath) else {
+                    print("[Download] Error: Invalid presigned URL: \(trackPath)")
+                    self.handleActiveDownloadFailed(error: APIError.invalidResponse)
+                    return
+                }
+                url = validURL
             } else {
-                fullPath = baseURL + (trackPath.hasPrefix("/") ? "" : "/") + trackPath
+                let fullPath = baseURL + (trackPath.hasPrefix("/") ? "" : "/") + trackPath
+                guard var components = URLComponents(string: fullPath) else {
+                    print("[Download] Error: Invalid track URL components for path: \(fullPath)")
+                    self.handleActiveDownloadFailed(error: APIError.invalidResponse)
+                    return
+                }
+                var queryItems = components.queryItems ?? []
+                if !token.isEmpty && !queryItems.contains(where: { $0.name == "token" }) {
+                    queryItems.append(URLQueryItem(name: "token", value: token))
+                }
+                components.queryItems = queryItems
+                guard let validURL = components.url else {
+                    self.handleActiveDownloadFailed(error: APIError.invalidResponse)
+                    return
+                }
+                url = validURL
             }
 
-            guard var components = URLComponents(string: fullPath) else { return }
-            var queryItems = components.queryItems ?? []
-            if !queryItems.contains(where: { $0.name == "token" }) {
-                queryItems.append(URLQueryItem(name: "token", value: token))
-            }
-            components.queryItems = queryItems
-
-            guard let url = components.url else { return }
             var request = URLRequest(url: url)
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            if !trackPath.hasPrefix("http") && !token.isEmpty {
+                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            }
 
             let fileURL = downloadsDirectory.appendingPathComponent("\(bookId)_resume.dat")
             if let resumeData = try? Data(contentsOf: fileURL) {
