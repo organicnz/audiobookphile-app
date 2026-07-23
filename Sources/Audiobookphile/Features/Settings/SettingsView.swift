@@ -36,6 +36,9 @@ public struct SettingsView: View {
                             userSection(user)
                         }
 
+                        // Statistics & Insights
+                        statsSection
+
                         // Playback settings
                         playbackSection
 
@@ -102,6 +105,39 @@ public struct SettingsView: View {
                 }
 
                 Spacer()
+            }
+        }
+    }
+
+    // MARK: - Stats Section
+
+    private var statsSection: some View {
+        SettingsSection(title: "Statistics & Insights") {
+            NavigationLink {
+                StatsDashboardView()
+            } label: {
+                HStack {
+                    Image(systemName: "chart.bar.xaxis")
+                        .foregroundStyle(Color.appPrimary)
+                        .frame(width: 28)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Listening & Library Stats")
+                            .foregroundStyle(.white)
+                            .font(.body)
+
+                        Text("View listening habits, genres & breakdown")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.6))
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.4))
+                }
+                .padding(12)
             }
         }
     }
