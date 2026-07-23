@@ -91,6 +91,7 @@ public struct BookshelfView: View {
         .sheet(isPresented: $showStatsSheet) {
             StatsDashboardView()
         }
+        .applySensoryFeedback(trigger: selectedBookForDetails != nil)
     }
 
     // MARK: - Background Layer

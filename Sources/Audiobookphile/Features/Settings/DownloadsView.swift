@@ -637,6 +637,7 @@ public struct ActiveDownloadRow: View {
                     Image(systemName: "pause.circle.fill")
                         .foregroundStyle(.white.opacity(0.8))
                         .font(.title2)
+                        .applyConnectPulseEffect(isAnimating: download.status == .downloading)
                 }
             }
 
