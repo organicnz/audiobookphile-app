@@ -438,6 +438,46 @@ public actor AudiobookphileAPI {
         return SearchResponse(results: searchResults)
     }
 
+    public struct ChapterAIInsights: Codable, Sendable {
+        public let summary: String
+        public let keyTakeaways: [String]
+        public let mood: String?
+    }
+
+    private struct ChapterAIResponse: Codable, Sendable {
+        let insights: ChapterAIInsights?
+        let error: String?
+    }
+
+    /// Fetch AI insights & chapter summaries using Supabase Edge Function
+    public func fetchChapterAIInsights(title: String, author: String?, chapterTitle: String, chapterIndex: Int?) async throws -> ChapterAIInsights {
+        guard let url = URL(string: endpointUrlString(for: "/chapter-ai")) else {
+            throw APIError.invalidResponse
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        var body: [String: Any] = [
+            "title": title,
+            "chapterTitle": chapterTitle
+        ]
+        if let author = author, !author.isEmpty { body["author"] = author }
+        if let idx = chapterIndex { body["chapterIndex"] = idx }
+
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let response = try await executeRequest(request, responseType: ChapterAIResponse.self)
+        if let error = response.error {
+            throw APIError.serverError(statusCode: 500, message: error, code: nil)
+        }
+        guard let insights = response.insights else {
+            throw APIError.invalidResponse
+        }
+        return insights
+    }
+
     // MARK: - Bookmarks
 
     public func fetchBookmarks(libraryItemId: String) async throws -> [Bookmark] {
