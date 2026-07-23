@@ -17,7 +17,7 @@ public class LiveLibraryService: LibraryServiceProtocol {
         guard let libId = libraryId else {
             return []
         }
-        let response = try await AudiobookphileAPI.shared.getLibraryItems(libraryId: libId)
+        let response = try await AudiobookphileAPI.shared.getLibraryItems(libraryId: libId, limit: 0)
         return response.results
     }
 

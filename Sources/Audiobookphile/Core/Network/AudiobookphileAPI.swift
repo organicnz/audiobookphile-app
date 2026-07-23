@@ -331,7 +331,7 @@ public actor AudiobookphileAPI {
     }
 
     /// Get library items (books)
-    public func getLibraryItems(libraryId: String, limit: Int = 50, page: Int = 0, sort: String = "addedAt", desc: Bool = true) async throws -> LibraryItemsResponse {
+    public func getLibraryItems(libraryId: String, limit: Int = 0, page: Int = 0, sort: String = "addedAt", desc: Bool = true) async throws -> LibraryItemsResponse {
         guard var components = URLComponents(string: endpointUrlString(for: "/api/libraries/\(libraryId)/items")) else {
             throw APIError.invalidResponse
         }
