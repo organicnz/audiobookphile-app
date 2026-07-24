@@ -110,8 +110,18 @@ public class MockLibraryService: LibraryServiceProtocol {
     ]
 
     public func fetchPaginatedLibraryItems(libraryId: String?, page: Int = 0, limit: Int? = nil, sort: String = "addedAt", desc: Bool = true) async throws -> LibraryItemsResponse {
-        let books = try await fetchLibraryItems(libraryId: libraryId)
-        return LibraryItemsResponse(results: books, total: books.count, limit: limit ?? 50, page: page)
+        let allBooks = try await fetchLibraryItems(libraryId: libraryId)
+        let effectiveLimit = limit ?? 0
+        if effectiveLimit <= 0 {
+            return LibraryItemsResponse(results: allBooks, total: allBooks.count, limit: 0, page: 0)
+        }
+        let start = page * effectiveLimit
+        if start >= allBooks.count {
+            return LibraryItemsResponse(results: [], total: allBooks.count, limit: effectiveLimit, page: page)
+        }
+        let end = min(start + effectiveLimit, allBooks.count)
+        let pagedBooks = Array(allBooks[start..<end])
+        return LibraryItemsResponse(results: pagedBooks, total: allBooks.count, limit: effectiveLimit, page: page)
     }
 
     public func smartSortLibrary(libraryId: String?, criteria: String = "chronological reading order") async throws -> [String] {
@@ -125,9 +135,9 @@ public class MockLibraryService: LibraryServiceProtocol {
 
     public func fetchLibraryItems(libraryId: String?) async throws -> [Book] {
         // Simulate network delay
-        try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        try await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
 
-        return (0..<20).map { (idx: Int) -> Book in
+        return (0..<60).map { (idx: Int) -> Book in
             let titleIndex = idx % bookTitles.count
             let coverURL = mockCovers[titleIndex]
 
