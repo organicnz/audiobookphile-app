@@ -3,6 +3,9 @@ import Foundation
 @MainActor
 public protocol LibraryServiceProtocol {
     func fetchLibraryItems(libraryId: String?) async throws -> [Book]
+    func fetchPaginatedLibraryItems(libraryId: String?, page: Int, limit: Int?, sort: String, desc: Bool) async throws -> LibraryItemsResponse
+    func smartSortLibrary(libraryId: String?, criteria: String) async throws -> [String]
+    func deduplicateLibrary(libraryId: String?) async throws -> Int
     func fetchContinueListening(libraryId: String?) async throws -> [Book]
     func fetchLibraryStats(libraryId: String?) async throws -> LibraryStats
     func fetchAuthors(libraryId: String?, page: Int, sort: String) async throws -> AuthorsResponse
@@ -17,9 +20,29 @@ public class LiveLibraryService: LibraryServiceProtocol {
         guard let libId = libraryId else {
             return []
         }
-        // Limit 0 tells the Edge Function to return all library books without pagination truncation
         let response = try await AudiobookphileAPI.shared.getLibraryItems(libraryId: libId, limit: 0)
         return response.results
+    }
+
+    public func fetchPaginatedLibraryItems(libraryId: String?, page: Int = 0, limit: Int? = nil, sort: String = "addedAt", desc: Bool = true) async throws -> LibraryItemsResponse {
+        guard let libId = libraryId else {
+            throw APIError.invalidResponse
+        }
+        return try await AudiobookphileAPI.shared.getLibraryItems(libraryId: libId, limit: limit, page: page, sort: sort, desc: desc)
+    }
+
+    public func smartSortLibrary(libraryId: String?, criteria: String = "chronological reading order") async throws -> [String] {
+        guard let libId = libraryId else {
+            return []
+        }
+        return try await AudiobookphileAPI.shared.smartSortLibraryItems(libraryId: libId, criteria: criteria)
+    }
+
+    public func deduplicateLibrary(libraryId: String?) async throws -> Int {
+        guard let libId = libraryId else {
+            return 0
+        }
+        return try await AudiobookphileAPI.shared.deduplicateLibraryItems(libraryId: libId)
     }
 
     public func fetchContinueListening(libraryId: String?) async throws -> [Book] {
@@ -85,6 +108,20 @@ public class MockLibraryService: LibraryServiceProtocol {
         "George Orwell",
         "J.R.R. Tolkien"
     ]
+
+    public func fetchPaginatedLibraryItems(libraryId: String?, page: Int = 0, limit: Int? = nil, sort: String = "addedAt", desc: Bool = true) async throws -> LibraryItemsResponse {
+        let books = try await fetchLibraryItems(libraryId: libraryId)
+        return LibraryItemsResponse(results: books, total: books.count, limit: limit ?? 50, page: page)
+    }
+
+    public func smartSortLibrary(libraryId: String?, criteria: String = "chronological reading order") async throws -> [String] {
+        let books = try await fetchLibraryItems(libraryId: libraryId)
+        return books.map { $0.id }
+    }
+
+    public func deduplicateLibrary(libraryId: String?) async throws -> Int {
+        return 0
+    }
 
     public func fetchLibraryItems(libraryId: String?) async throws -> [Book] {
         // Simulate network delay

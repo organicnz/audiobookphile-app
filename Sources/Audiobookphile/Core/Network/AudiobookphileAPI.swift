@@ -264,39 +264,52 @@ public actor AudiobookphileAPI {
     private func executeRequest<T: Decodable>(_ request: URLRequest, responseType: T.Type, isRetry: Bool = false) async throws -> T {
         var authRequest = request
         authRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        authRequest.setValue("Audiobookphile/2026.1 (Apple)", forHTTPHeaderField: "User-Agent")
+        authRequest.setValue("2026.07.24", forHTTPHeaderField: "X-App-Version")
 
         let anonKey = EnvironmentConfig.supabaseAnonKey
         if !anonKey.isEmpty {
             authRequest.setValue(anonKey, forHTTPHeaderField: "apikey")
         }
 
-        do {
-            let (data, response) = try await session.data(for: authRequest)
+        var attempts = 0
+        let maxAttempts = isRetry ? 1 : 3
 
-            guard let httpResponse = response as? HTTPURLResponse else {
-                throw APIError.invalidResponse
-            }
+        while true {
+            attempts += 1
+            do {
+                let (data, response) = try await session.data(for: authRequest)
 
-            // Handle 401 or 403 (Supabase Edge Functions return 403 for expired JWTs) - try token refresh
-            if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
-                if isRetry {
-                    if httpResponse.statusCode == 401 {
-                        logout()
-                        throw APIError.sessionExpired
-                    } else {
-                        // If it's still 403 after a refresh, it's a genuine permission error, not an expired token.
-                        throw APIError.serverError(statusCode: 403, message: "Forbidden", code: nil)
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw APIError.invalidResponse
+                }
+
+                // Handle 401 or 403 - try token refresh
+                if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
+                    if isRetry {
+                        if httpResponse.statusCode == 401 {
+                            logout()
+                            throw APIError.sessionExpired
+                        } else {
+                            throw APIError.serverError(statusCode: 403, message: "Forbidden", code: nil)
+                        }
                     }
+                    return try await handleUnauthorized(originalRequest: request, responseType: responseType)
                 }
-                return try await handleUnauthorized(originalRequest: request, responseType: responseType)
-            }
 
-            guard (200...299).contains(httpResponse.statusCode) else {
-                if let errorResponse = try? JSONDecoder().decode(APIErrorResponse.self, from: data), let msg = errorResponse.parsedMessage {
-                    throw APIError.serverError(statusCode: httpResponse.statusCode, message: msg, code: errorResponse.error?.code)
+                // If 5xx server error, attempt retry with exponential backoff
+                if (500...599).contains(httpResponse.statusCode) && attempts < maxAttempts {
+                    let delayNano = UInt64(Double(attempts * 200) * 1_000_000)
+                    try? await Task.sleep(nanoseconds: delayNano)
+                    continue
                 }
-                throw APIError.serverError(statusCode: httpResponse.statusCode, message: "Unknown server error", code: nil)
-            }
+
+                guard (200...299).contains(httpResponse.statusCode) else {
+                    if let errorResponse = try? JSONDecoder().decode(APIErrorResponse.self, from: data), let msg = errorResponse.parsedMessage {
+                        throw APIError.serverError(statusCode: httpResponse.statusCode, message: msg, code: errorResponse.error?.code)
+                    }
+                    throw APIError.serverError(statusCode: httpResponse.statusCode, message: "Unknown server error", code: nil)
+                }
 
             let decoder = defaultDecoder
 
@@ -321,10 +334,16 @@ public actor AudiobookphileAPI {
                 throw error
             }
 
-        } catch let error as APIError {
-            throw error
-        } catch {
-            throw APIError.networkError(underlying: error)
+            } catch let error as APIError {
+                throw error
+            } catch {
+                if attempts < maxAttempts {
+                    let delayNano = UInt64(Double(attempts * 200) * 1_000_000)
+                    try? await Task.sleep(nanoseconds: delayNano)
+                    continue
+                }
+                throw APIError.networkError(underlying: error)
+            }
         }
     }
 
@@ -358,7 +377,7 @@ public actor AudiobookphileAPI {
     }
 
     /// Get library items (books)
-    public func getLibraryItems(libraryId: String, limit: Int = 100, page: Int = 0, sort: String = "addedAt", desc: Bool = true) async throws -> LibraryItemsResponse {
+    public func getLibraryItems(libraryId: String, limit: Int? = nil, page: Int = 0, sort: String = "addedAt", desc: Bool = true) async throws -> LibraryItemsResponse {
         guard var components = URLComponents(string: endpointUrlString(for: "/api/libraries/\(libraryId)/items")) else {
             throw APIError.invalidResponse
         }
@@ -368,7 +387,7 @@ public actor AudiobookphileAPI {
             URLQueryItem(name: "desc", value: desc ? "1" : "0"),
             URLQueryItem(name: "include", value: "progress")
         ]
-        if limit > 0 {
+        if let limit = limit {
             queryItems.append(URLQueryItem(name: "limit", value: "\(limit)"))
         }
         components.queryItems = queryItems
@@ -378,6 +397,40 @@ public actor AudiobookphileAPI {
         }
         let request = URLRequest(url: url)
         return try await executeRequest(request, responseType: LibraryItemsResponse.self)
+    }
+
+    /// Trigger Z.AI smart sorting for library items by criteria
+    public func smartSortLibraryItems(libraryId: String, criteria: String = "chronological reading order") async throws -> [String] {
+        guard let url = URL(string: endpointUrlString(for: "/api/libraries/\(libraryId)/smart-sort")) else {
+            throw APIError.invalidResponse
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["criteria": criteria])
+
+        struct SmartSortResponse: Decodable {
+            let sortedIds: [String]
+            let provider: String?
+        }
+        let res: SmartSortResponse = try await executeRequest(request, responseType: SmartSortResponse.self)
+        return res.sortedIds
+    }
+
+    /// Trigger backend deduplication for library items
+    public func deduplicateLibraryItems(libraryId: String) async throws -> Int {
+        guard let url = URL(string: endpointUrlString(for: "/api/libraries/\(libraryId)/deduplicate")) else {
+            throw APIError.invalidResponse
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+
+        struct DeduplicateResponse: Decodable {
+            let success: Bool
+            let removedCount: Int?
+        }
+        let res: DeduplicateResponse = try await executeRequest(request, responseType: DeduplicateResponse.self)
+        return res.removedCount ?? 0
     }
 
     /// Search library
@@ -404,6 +457,24 @@ public actor AudiobookphileAPI {
         }
         let request = URLRequest(url: url)
         return try await executeRequest(request, responseType: [PersonalizedShelf].self)
+    }
+
+    /// Batch fetch multiple library items by IDs in a single HTTP request
+    public func getBatchLibraryItems(itemIds: [String]) async throws -> [Book] {
+        guard let url = URL(string: endpointUrlString(for: "/api/items/batch")) else {
+            throw APIError.invalidResponse
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let body = ["itemIds": Array(itemIds.prefix(50))]
+        request.httpBody = try JSONEncoder().encode(body)
+
+        struct BatchResponse: Decodable {
+            let items: [Book]
+        }
+        let response: BatchResponse = try await executeRequest(request, responseType: BatchResponse.self)
+        return response.items
     }
 
     private struct SemanticEdgeResponse: Codable, Sendable {
