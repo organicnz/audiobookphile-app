@@ -265,6 +265,7 @@ public class AudioPlayerService {
         // Find the correct track for targetTime
         var targetTrackIndex = session.audioTracks.count > 0 ? session.audioTracks.count - 1 : 0
         var seekTimeWithinTrack = targetTime
+        var matched = false
 
         for (index, track) in session.audioTracks.enumerated() {
             let trackStart = track.startOffset
@@ -272,12 +273,14 @@ public class AudioPlayerService {
             if targetTime >= trackStart && targetTime < trackEnd {
                 targetTrackIndex = index
                 seekTimeWithinTrack = targetTime - trackStart
+                matched = true
                 logger.info("SEEK MATCHED TRACK \(index): start=\(trackStart), end=\(trackEnd), seekTimeWithinTrack=\(seekTimeWithinTrack)")
                 break
             }
         }
 
-        if targetTrackIndex == session.audioTracks.count - 1 && session.audioTracks.count > 0 {
+        if !matched && session.audioTracks.count > 0 {
+            targetTrackIndex = session.audioTracks.count - 1
             let trackStart = session.audioTracks[targetTrackIndex].startOffset
             seekTimeWithinTrack = max(0, targetTime - trackStart)
             logger.info("SEEK FALLBACK TO LAST TRACK \(targetTrackIndex): start=\(trackStart), seekTimeWithinTrack=\(seekTimeWithinTrack)")
@@ -739,7 +742,9 @@ public class AudioPlayerService {
         } else {
             logger.info("Reached the end of the last track.")
             pause()
-            seek(to: duration)
+            self.currentTime = duration
+            syncProgressImmediately()
+            syncWidgetState()
         }
     }
 
@@ -961,18 +966,24 @@ public class AudioPlayerService {
     // MARK: - URL Resolver
 
     private func getFullTrackURL(from trackPath: String, libraryItemId: String? = nil) -> URL? {
+        let trimmedPath = trackPath.trimmingCharacters(in: .whitespacesAndNewlines)
         if let bookId = libraryItemId,
-           let localURL = DownloadService.shared.getLocalTrackURL(bookId: bookId, trackPath: trackPath) {
+           let localURL = DownloadService.shared.getLocalTrackURL(bookId: bookId, trackPath: trimmedPath) {
             logger.info("Redirected streaming to local downloaded file: \(localURL)")
             return localURL
         }
 
         // Track URLs are pre-signed HTTP/HTTPS urls from the backend
-        if trackPath.hasPrefix("http") {
-            return URL(string: trackPath)
+        if trimmedPath.hasPrefix("http") {
+            if let url = URL(string: trimmedPath) {
+                return url
+            }
+            if let encodedString = trimmedPath.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+                return URL(string: encodedString)
+            }
         }
 
-        logger.error("Error: trackPath is not a valid HTTP URL or local path: \\(trackPath)")
+        logger.error("Error: trackPath is not a valid HTTP URL or local path: \(trackPath)")
         return nil
     }
 
