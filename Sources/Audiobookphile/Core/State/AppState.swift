@@ -18,6 +18,10 @@ public class AppState {
     public var isAuthenticated = false
     public var isLoading = true
     public var currentUser: User?
+    public var requires2FAChallenge = false
+    public var pending2FAUserId: String?
+    public var pending2FATempToken: String?
+    public var pending2FAServerURL: String?
     public var selectedLibraryId: String?
     public var selectedTab = 0
 
@@ -80,9 +84,31 @@ public class AppState {
                 refreshToken: credentials.refreshToken
             )
 
-            // Restore last-used library before fetching
-            if let savedLibraryId = UserDefaults.standard.string(forKey: StorageKeys.lastLibraryId) {
-                self.currentLibraryId = savedLibraryId
+            // Fetch user profile from Supabase API
+            do {
+                self.currentUser = try await AudiobookphileAPI.shared.getCurrentUserProfile()
+            } catch {
+                print("[AppState] Failed to fetch current user profile: \(error)")
+                self.currentUser = User(
+                    id: "local_user",
+                    username: "audiobookphile",
+                    email: nil,
+                    type: "admin",
+                    token: credentials.token,
+                    refreshToken: credentials.refreshToken,
+                    mediaProgress: [],
+                    seriesHideFromContinueListening: [],
+                    bookmarks: [],
+                    isActive: true,
+                    isLocked: false,
+                    lastSeen: nil,
+                    createdAt: Date(),
+                    permissions: UserPermissions(download: true, update: true, delete: true, upload: true, accessAllLibraries: true, accessAllTags: true, accessExplicitContent: true, createEreader: true, selectedTagsNotAccessible: nil),
+                    librariesAccessible: [],
+                    itemTagsAccessible: [],
+                    hasOpenIDLink: nil,
+                    isOldToken: nil
+                )
             }
 
             // Fetch user preferences from Supabase
@@ -186,11 +212,24 @@ public class AppState {
         isLoading = true
 
         do {
-            let user = try await AudiobookphileAPI.shared.login(
+            let loginResponse = try await AudiobookphileAPI.shared.login(
                 serverURL: serverURL,
                 username: username,
                 password: password
             )
+
+            if loginResponse.requires2FA == true, let userId = loginResponse.userId, let tempToken = loginResponse.tempToken {
+                self.pending2FAUserId = userId
+                self.pending2FATempToken = tempToken
+                self.pending2FAServerURL = serverURL
+                self.requires2FAChallenge = true
+                self.isLoading = false
+                return
+            }
+
+            guard let user = loginResponse.user else {
+                throw APIError.invalidResponse
+            }
 
             self.serverURL = serverURL
             self.token = user.token
@@ -220,6 +259,55 @@ public class AppState {
         }
 
         isLoading = false
+    }
+
+    public func verify2FAChallenge(code: String) async throws {
+        guard let userId = pending2FAUserId, let tempToken = pending2FATempToken, let serverURL = pending2FAServerURL else {
+            return
+        }
+        isLoading = true
+        do {
+            let loginResponse = try await AudiobookphileAPI.shared.verify2FALogin(
+                userId: userId,
+                tempToken: tempToken,
+                code: code
+            )
+            guard let user = loginResponse.user else {
+                throw APIError.invalidResponse
+            }
+            self.serverURL = serverURL
+            self.token = user.token
+            self.currentUser = user
+            self.isAuthenticated = true
+            self.requires2FAChallenge = false
+            self.pending2FAUserId = nil
+            self.pending2FATempToken = nil
+            self.pending2FAServerURL = nil
+
+            SocketService.shared.connect(
+                serverAddress: serverURL,
+                token: user.token
+            )
+
+            do {
+                self.settings = try await AudiobookphileAPI.shared.getPreferences()
+            } catch {
+                print("[AppState] Failed to fetch preferences after 2FA login: \(error)")
+            }
+
+            await fetchLibraries()
+        } catch {
+            isLoading = false
+            throw error
+        }
+        isLoading = false
+    }
+
+    public func cancel2FAChallenge() {
+        self.requires2FAChallenge = false
+        self.pending2FAUserId = nil
+        self.pending2FATempToken = nil
+        self.pending2FAServerURL = nil
     }
 
     public func logout() {

@@ -111,7 +111,7 @@ public actor AudiobookphileAPI {
     // MARK: - Authentication
 
     /// Authenticate with username and password
-    public func login(serverURL: String, username: String, password: String) async throws -> User {
+    public func login(serverURL: String, username: String, password: String) async throws -> LoginResponse {
         self.baseURL = serverURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
 
         guard let url = URL(string: endpointUrlString(for: "/login")) else {
@@ -151,9 +151,17 @@ public actor AudiobookphileAPI {
         let decoder = defaultDecoder
         let loginResponse = try decoder.decode(LoginResponse.self, from: data)
 
-        self.accessToken = loginResponse.user.token
-        self.refreshToken = loginResponse.user.refreshToken ?? ""
-        self.currentUser = loginResponse.user
+        if loginResponse.requires2FA == true {
+            return loginResponse
+        }
+
+        guard let user = loginResponse.user else {
+            throw APIError.invalidResponse
+        }
+
+        self.accessToken = user.token
+        self.refreshToken = user.refreshToken ?? ""
+        self.currentUser = user
         self.isAuthenticated = true
 
         // Save to Keychain/Secure preferences
@@ -163,7 +171,83 @@ public actor AudiobookphileAPI {
             refreshToken: refreshToken
         )
 
-        return loginResponse.user
+        return loginResponse
+    }
+
+    /// Complete 2FA challenge during login
+    public func verify2FALogin(userId: String, tempToken: String, code: String) async throws -> LoginResponse {
+        guard let url = URL(string: "\(baseURL)/api/auth/2fa/verify-login") else {
+            throw APIError.invalidResponse
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body: [String: String] = [
+            "userId": userId,
+            "tempToken": tempToken,
+            "code": code
+        ]
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (data, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        guard (200...299).contains(httpResponse.statusCode) else {
+            if let errorResponse = try? JSONDecoder().decode(APIErrorResponse.self, from: data), let msg = errorResponse.parsedMessage {
+                throw APIError.serverError(statusCode: httpResponse.statusCode, message: msg, code: nil)
+            }
+            throw APIError.serverError(statusCode: httpResponse.statusCode, message: "Invalid 2FA code", code: nil)
+        }
+
+        let loginResponse = try defaultDecoder.decode(LoginResponse.self, from: data)
+        guard let user = loginResponse.user else {
+            throw APIError.invalidResponse
+        }
+
+        self.accessToken = user.token
+        self.refreshToken = user.refreshToken ?? ""
+        self.currentUser = user
+        self.isAuthenticated = true
+
+        try KeychainManager.shared.saveCredentials(
+            serverURL: baseURL,
+            token: accessToken,
+            refreshToken: refreshToken
+        )
+
+        return loginResponse
+    }
+
+    /// Enroll in 2FA (generate secret and QR URI)
+    public func enroll2FA() async throws -> TwoFactorEnrollResponse {
+        return try await executeRequest(try createAuthRequest(path: "/api/auth/2fa/enroll", method: "POST"), responseType: TwoFactorEnrollResponse.self)
+    }
+
+    /// Verify code and activate 2FA
+    public func verify2FA(code: String) async throws -> TwoFactorActionResponse {
+        let body = try JSONEncoder().encode(["code": code])
+        return try await executeRequest(try createAuthRequest(path: "/api/auth/2fa/verify", method: "POST", body: body), responseType: TwoFactorActionResponse.self)
+    }
+
+    /// Disable 2FA
+    public func disable2FA(code: String) async throws -> TwoFactorActionResponse {
+        let body = try JSONEncoder().encode(["code": code])
+        return try await executeRequest(try createAuthRequest(path: "/api/auth/2fa/disable", method: "POST", body: body), responseType: TwoFactorActionResponse.self)
+    }
+
+    private func createAuthRequest(path: String, method: String, body: Data? = nil) throws -> URLRequest {
+        guard let url = URL(string: endpointUrlString(for: path)) else {
+            throw APIError.invalidResponse
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        if let body = body {
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = body
+        }
+        return request
     }
 
     public func logout() {
@@ -240,12 +324,15 @@ public actor AudiobookphileAPI {
         let decoder = defaultDecoder
         let refreshResponse = try decoder.decode(LoginResponse.self, from: data)
 
-        self.accessToken = refreshResponse.user.token
+        guard let user = refreshResponse.user else {
+            throw APIError.invalidResponse
+        }
+        self.accessToken = user.token
         // Preserve the existing refresh token if the backend returns nil.
         // The /authorize endpoint returns null when the JWT is still valid
         // and no rotation occurred — discarding it here was causing the iOS
         // client to lose its refresh token and force re-login next session.
-        if let newRefreshToken = refreshResponse.user.refreshToken, !newRefreshToken.isEmpty {
+        if let newRefreshToken = user.refreshToken, !newRefreshToken.isEmpty {
             self.refreshToken = newRefreshToken
         }
 
@@ -937,7 +1024,10 @@ public actor AudiobookphileAPI {
         }
         let request = URLRequest(url: url)
         let res: LoginResponse = try await executeRequest(request, responseType: LoginResponse.self)
-        return res.user
+        guard let user = res.user else {
+            throw APIError.invalidResponse
+        }
+        return user
     }
 
     public func getSimilarItems(itemId: String) async throws -> [Book] {
@@ -1008,7 +1098,22 @@ public actor AudiobookphileAPI {
 // MARK: - Response Models
 
 public struct LoginResponse: Codable, Sendable {
-    public let user: User
+    public let user: User?
+    public let requires2FA: Bool?
+    public let userId: String?
+    public let email: String?
+    public let tempToken: String?
+}
+
+public struct TwoFactorEnrollResponse: Codable, Sendable {
+    public let secret: String?
+    public let uri: String?
+    public let error: String?
+}
+
+public struct TwoFactorActionResponse: Codable, Sendable {
+    public let success: Bool?
+    public let error: String?
 }
 
 /// Placeholder response for endpoints that return JSON but we don't need to decode.

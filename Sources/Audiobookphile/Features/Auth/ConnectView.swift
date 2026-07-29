@@ -37,7 +37,8 @@ public struct ConnectView: View {
     public init() {}
 
     public var body: some View {
-        ZStack {
+        @Bindable var appState = appState
+        return ZStack {
             // Fluid Aura background
             FluidAuraBackground()
 
@@ -74,6 +75,9 @@ public struct ConnectView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(viewModel.errorMessage)
+        }
+        .sheet(isPresented: $appState.requires2FAChallenge) {
+            TwoFactorChallengeView()
         }
         .onAppear {
             withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {

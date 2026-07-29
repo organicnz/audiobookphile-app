@@ -35,6 +35,7 @@ public struct SettingsView: View {
                         // User section
                         if let user = viewModel.currentUser {
                             userSection(user)
+                            securitySection
                         }
 
                         // Statistics & Insights
@@ -117,6 +118,33 @@ public struct SettingsView: View {
                 }
 
                 Spacer()
+            }
+        }
+    }
+
+    // MARK: - Security Section
+
+    private var securitySection: some View {
+        SettingsSection(title: "Security & Authentication") {
+            NavigationLink {
+                TwoFactorSettingsView()
+            } label: {
+                HStack {
+                    Image(systemName: "shield.checkered")
+                        .foregroundStyle(Color.appPrimary)
+                        .frame(width: 24)
+
+                    Text("Two-Factor Authentication (2FA)")
+                        .foregroundStyle(.white)
+                        .font(.subheadline.weight(.semibold))
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.4))
+                }
+                .padding(.vertical, 8)
             }
         }
     }
