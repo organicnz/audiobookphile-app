@@ -982,6 +982,27 @@ public actor AudiobookphileAPI {
         request.httpMethod = "DELETE"
         _ = try await executeRequest(request, responseType: EmptyResponse.self)
     }
+
+    // MARK: - Admin: Invite User
+
+    /// Invite a new user by email (admin only).
+    /// Calls `POST /api/auth/invite` with the current access token.
+    public func inviteUser(email: String, username: String? = nil, userType: String = "user") async throws -> InviteUserResponse {
+        guard let url = URL(string: endpointUrlString(for: "/api/auth/invite")) else {
+            throw APIError.invalidResponse
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        var body: [String: String] = ["email": email, "userType": userType]
+        if let username, !username.isEmpty {
+            body["username"] = username
+        }
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        return try await executeRequest(request, responseType: InviteUserResponse.self)
+    }
 }
 
 // MARK: - Response Models
@@ -992,6 +1013,11 @@ public struct LoginResponse: Codable, Sendable {
 
 /// Placeholder response for endpoints that return JSON but we don't need to decode.
 public struct EmptyResponse: Codable, Sendable {}
+
+public struct InviteUserResponse: Codable, Sendable {
+    public let success: Bool?
+    public let error: String?
+}
 
 public struct BulkSyncResponse: Codable, Sendable {
     public let success: Bool?

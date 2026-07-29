@@ -1,0 +1,28 @@
+name: CI Mobile Verification (Skip & Swift)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Sources/**'
+      - 'Package.swift'
+      - '.github/workflows/ci-mobile.yml'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  verify-swift:
+    name: Verify Swift iOS Package
+    runs-on: macos-15
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
+
+      - name: Resolve Package Dependencies
+        run: swift package resolve
+
+      - name: Build & Typecheck Package
+        run: swift build

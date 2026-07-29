@@ -55,6 +55,11 @@ public struct SettingsView: View {
                         // About
                         aboutSection
 
+                        // Admin (visible only to admins)
+                        if let user = viewModel.currentUser, user.type == "admin" {
+                            adminSection
+                        }
+
                         // Logout
                         logoutButton
 
@@ -385,6 +390,35 @@ public struct SettingsView: View {
                 title: "Server",
                 value: viewModel.serverURL
             ) {}
+        }
+    }
+
+    // MARK: - Admin Section
+
+    private var adminSection: some View {
+        SettingsSection(title: "Administration") {
+            VStack(spacing: 0) {
+                NavigationLink {
+                    AdminInviteView()
+                } label: {
+                    HStack {
+                        Image(systemName: "person.badge.plus")
+                            .foregroundStyle(Color.appPrimary)
+                            .frame(width: 28)
+
+                        Text("Invite User by Email")
+                            .foregroundStyle(.white)
+                            .font(.subheadline.weight(.semibold))
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.4))
+                    }
+                    .padding(12)
+                }
+            }
         }
     }
 
