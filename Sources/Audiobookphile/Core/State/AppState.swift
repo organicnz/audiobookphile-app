@@ -22,6 +22,7 @@ public class AppState {
     public var pending2FAUserId: String?
     public var pending2FATempToken: String?
     public var pending2FAServerURL: String?
+    public var pending2FAMethods: TwoFactorMethodsMap?
     public var selectedLibraryId: String?
     public var selectedTab = 0
 
@@ -222,6 +223,7 @@ public class AppState {
                 self.pending2FAUserId = userId
                 self.pending2FATempToken = tempToken
                 self.pending2FAServerURL = serverURL
+                self.pending2FAMethods = loginResponse.methods
                 self.requires2FAChallenge = true
                 self.isLoading = false
                 return
@@ -261,7 +263,7 @@ public class AppState {
         isLoading = false
     }
 
-    public func verify2FAChallenge(code: String) async throws {
+    public func verify2FAChallenge(code: String, method: String? = nil) async throws {
         guard let userId = pending2FAUserId, let tempToken = pending2FATempToken, let serverURL = pending2FAServerURL else {
             return
         }
@@ -270,7 +272,8 @@ public class AppState {
             let loginResponse = try await AudiobookphileAPI.shared.verify2FALogin(
                 userId: userId,
                 tempToken: tempToken,
-                code: code
+                code: code,
+                method: method
             )
             guard let user = loginResponse.user else {
                 throw APIError.invalidResponse
@@ -283,6 +286,7 @@ public class AppState {
             self.pending2FAUserId = nil
             self.pending2FATempToken = nil
             self.pending2FAServerURL = nil
+            self.pending2FAMethods = nil
 
             SocketService.shared.connect(
                 serverAddress: serverURL,
@@ -308,6 +312,7 @@ public class AppState {
         self.pending2FAUserId = nil
         self.pending2FATempToken = nil
         self.pending2FAServerURL = nil
+        self.pending2FAMethods = nil
     }
 
     public func logout() {

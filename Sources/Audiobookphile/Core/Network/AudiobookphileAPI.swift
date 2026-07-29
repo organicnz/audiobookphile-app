@@ -175,7 +175,7 @@ public actor AudiobookphileAPI {
     }
 
     /// Complete 2FA challenge during login
-    public func verify2FALogin(userId: String, tempToken: String, code: String) async throws -> LoginResponse {
+    public func verify2FALogin(userId: String, tempToken: String, code: String, method: String? = nil) async throws -> LoginResponse {
         guard let url = URL(string: "\(baseURL)/api/auth/2fa/verify-login") else {
             throw APIError.invalidResponse
         }
@@ -183,11 +183,14 @@ public actor AudiobookphileAPI {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let body: [String: String] = [
+        var body: [String: String] = [
             "userId": userId,
             "tempToken": tempToken,
             "code": code
         ]
+        if let method = method {
+            body["method"] = method
+        }
         request.httpBody = try JSONEncoder().encode(body)
 
         let (data, response) = try await session.data(for: request)
@@ -235,6 +238,18 @@ public actor AudiobookphileAPI {
     public func disable2FA(code: String) async throws -> TwoFactorActionResponse {
         let body = try JSONEncoder().encode(["code": code])
         return try await executeRequest(try createAuthRequest(path: "/api/auth/2fa/disable", method: "POST", body: body), responseType: TwoFactorActionResponse.self)
+    }
+
+    /// Enroll PIN Code 2FA
+    public func enroll2FAPin(pinCode: String) async throws -> TwoFactorActionResponse {
+        let body = try JSONEncoder().encode(["pinCode": pinCode])
+        return try await executeRequest(try createAuthRequest(path: "/api/auth/2fa/enroll-pin", method: "POST", body: body), responseType: TwoFactorActionResponse.self)
+    }
+
+    /// Enroll Biometric 2FA
+    public func enroll2FABiometric(deviceId: String) async throws -> TwoFactorActionResponse {
+        let body = try JSONEncoder().encode(["deviceId": deviceId])
+        return try await executeRequest(try createAuthRequest(path: "/api/auth/2fa/enroll-biometric", method: "POST", body: body), responseType: TwoFactorActionResponse.self)
     }
 
     private func createAuthRequest(path: String, method: String, body: Data? = nil) throws -> URLRequest {
@@ -1097,12 +1112,19 @@ public actor AudiobookphileAPI {
 
 // MARK: - Response Models
 
+public struct TwoFactorMethodsMap: Codable, Sendable {
+    public let totp: Bool?
+    public let pin: Bool?
+    public let biometric: Bool?
+}
+
 public struct LoginResponse: Codable, Sendable {
     public let user: User?
     public let requires2FA: Bool?
     public let userId: String?
     public let email: String?
     public let tempToken: String?
+    public let methods: TwoFactorMethodsMap?
 }
 
 public struct TwoFactorEnrollResponse: Codable, Sendable {
