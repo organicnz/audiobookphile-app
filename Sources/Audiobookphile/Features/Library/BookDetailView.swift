@@ -212,11 +212,22 @@ public struct BookDetailView: View {
         return SmartAsyncImage(url: coverURL) { image in
             image
                 .resizable()
-                .aspectRatio(contentMode: .fill)
+                .aspectRatio(contentMode: .fit)
         } placeholder: {
             placeholderCover
         }
         .frame(width: 260, height: 260)
+        .background {
+            SmartAsyncImage(url: coverURL) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .blur(radius: 10)
+                    .opacity(0.4)
+            } placeholder: {
+                Color.appSecondaryBackground
+            }
+        }
         .clipped()
             .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
             .overlay(

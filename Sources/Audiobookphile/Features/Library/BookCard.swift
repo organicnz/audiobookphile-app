@@ -72,13 +72,28 @@ public struct BookCard: View {
     private var coverImage: some View {
         ZStack(alignment: .topTrailing) {
             Color.clear
-                .aspectRatio(aspectRatio, contentMode: .fill)
-                .overlay {
+                .aspectRatio(aspectRatio, contentMode: .fit)
+                .background {
                     if let url = coverURL {
                         SmartAsyncImage(url: url) { image in
                             image
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
+                                .blur(radius: 6)
+                                .opacity(0.35)
+                        } placeholder: {
+                            Color.appSecondaryBackground
+                        }
+                    } else {
+                        Color.appSecondaryBackground
+                    }
+                }
+                .overlay {
+                    if let url = coverURL {
+                        SmartAsyncImage(url: url) { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
                         } placeholder: {
                             placeholderCover
                         }

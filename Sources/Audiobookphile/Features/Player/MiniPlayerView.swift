@@ -41,12 +41,12 @@ public struct MiniPlayerView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(audioPlayer.session?.displayTitle ?? "Sample Book Title")
-                    .font(.subheadline.bold())
-                    .foregroundStyle(.white)
+                    .font(.footnote.weight(.medium))
+                    .foregroundStyle(.primary)
                     .lineLimit(1)
                 Text(audioPlayer.session?.displayAuthor ?? "Sample Author")
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.65))
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
 
@@ -56,24 +56,40 @@ public struct MiniPlayerView: View {
                 audioPlayer.togglePlayPause()
             } label: {
                 Image(systemName: audioPlayer.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.title2)
-                    .foregroundStyle(.white)
+                    .font(.title3)
+                    .foregroundStyle(.primary)
                     .applyPlayPauseSymbolEffect(isPlaying: audioPlayer.isPlaying)
             }
             .applySensoryFeedback(trigger: audioPlayer.isPlaying)
             .padding(.trailing, 4)
 
             Button {
+                audioPlayer.skipForward()
+            } label: {
+                Image(systemName: "goforward.15")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .padding(8)
+            }
+
+            Button {
                 onClose()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.subheadline.bold())
-                    .foregroundStyle(.white.opacity(0.6))
-                    .padding(8)
+                    .font(.caption.bold())
+                    .foregroundStyle(.secondary)
+                    .padding(6)
             }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
+        .contextMenu {
+            Button(role: .destructive) {
+                onClose()
+            } label: {
+                Label("Stop Playback", systemImage: "xmark.circle")
+            }
+        }
 
         // Glowing Progress Bar
         GeometryReader { geometry in
@@ -98,7 +114,7 @@ public struct MiniPlayerView: View {
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .shadow(color: .black.opacity(0.35), radius: 16, x: 0, y: 8)
-        .overlay(
+        .overlay(content: {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .strokeBorder(
                     LinearGradient(
@@ -108,7 +124,7 @@ public struct MiniPlayerView: View {
                     ),
                     lineWidth: 1
                 )
-        )
+        })
         .padding(.horizontal, 12)
         .liquidPressable()
         .onTapGesture {

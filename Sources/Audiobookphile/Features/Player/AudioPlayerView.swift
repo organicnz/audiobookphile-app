@@ -501,18 +501,13 @@ public struct AudioPlayerView: View {
         } label: {
             Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
                 .font(.system(size: 32))
-                .foregroundStyle(coverIsLight ? .black : .white)
+                .foregroundStyle(.black)
                 .applyPlayPauseSymbolEffect(isPlaying: viewModel.isPlaying)
-                .frame(width: 80, height: 80)
+                .frame(width: 76, height: 76)
                 .background {
                     Circle()
-                        .fill(Color.appPrimary)
-                        .overlay {
-                            Circle()
-                                .fill(.ultraThinMaterial)
-                                .opacity(0.2)
-                        }
-                        .shadow(color: Color.appPrimary.opacity(0.3), radius: 20)
+                        .fill(Color.white)
+                        .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 4)
                 }
         }
         .accessibilityElement(children: .ignore)
