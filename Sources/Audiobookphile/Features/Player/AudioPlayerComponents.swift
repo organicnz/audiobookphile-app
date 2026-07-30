@@ -77,21 +77,44 @@ public struct BookmarksListView: View {
         NavigationStack {
             List {
                 if viewModel.bookmarks.isEmpty {
-                    Text("No bookmarks yet.")
-                        .foregroundStyle(.secondary)
+                    VStack(spacing: 12) {
+                        Image(systemName: "bookmark.slash")
+                            .font(.largeTitle)
+                            .foregroundStyle(.secondary)
+                        Text("No bookmarks yet")
+                            .font(.headline)
+                        Text("Tap the bookmark icon in the player to save your favorite moments.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 180)
+                    .listRowBackground(Color.clear)
                 } else {
                     ForEach(viewModel.bookmarks) { bookmark in
                         Button {
                             viewModel.seek(to: bookmark.timePos)
                             dismiss()
                         } label: {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(bookmark.title ?? "Bookmark")
-                                    .font(.headline)
-                                    .foregroundStyle(.primary)
-                                Text(viewModel.formatTime(bookmark.timePos))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                            HStack(spacing: 12) {
+                                Image(systemName: "bookmark.fill")
+                                    .foregroundStyle(Color.appPrimary)
+                                    .font(.body)
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(bookmark.title ?? "Bookmark")
+                                        .font(.headline)
+                                        .foregroundStyle(.primary)
+                                    Text(viewModel.formatTime(bookmark.timePos))
+                                        .font(.caption.monospaced())
+                                        .foregroundStyle(.secondary)
+                                }
+
+                                Spacer()
+
+                                Image(systemName: "play.circle.fill")
+                                    .font(.title3)
+                                    .foregroundStyle(Color.appPrimary)
                             }
                         }
                     }

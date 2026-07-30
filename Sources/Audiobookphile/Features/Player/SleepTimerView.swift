@@ -20,8 +20,14 @@ public struct SleepTimerView: View {
                         onSetTimer(nil)
                         dismiss()
                     } label: {
-                        Text("Off")
-                            .foregroundStyle(.primary)
+                        HStack(spacing: 12) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.red)
+                                .font(.body)
+                            Text("Off")
+                                .foregroundStyle(.primary)
+                            Spacer()
+                        }
                     }
                 }
 
@@ -30,24 +36,42 @@ public struct SleepTimerView: View {
                         onSetTimer(15 * 60)
                         dismiss()
                     } label: {
-                        Text("15 Minutes")
-                            .foregroundStyle(.primary)
+                        HStack(spacing: 12) {
+                            Image(systemName: "clock.fill")
+                                .foregroundStyle(Color.appPrimary)
+                                .font(.body)
+                            Text("15 Minutes")
+                                .foregroundStyle(.primary)
+                            Spacer()
+                        }
                     }
 
                     Button {
                         onSetTimer(30 * 60)
                         dismiss()
                     } label: {
-                        Text("30 Minutes")
-                            .foregroundStyle(.primary)
+                        HStack(spacing: 12) {
+                            Image(systemName: "clock.fill")
+                                .foregroundStyle(Color.appPrimary)
+                                .font(.body)
+                            Text("30 Minutes")
+                                .foregroundStyle(.primary)
+                            Spacer()
+                        }
                     }
 
                     Button {
                         onSetTimer(60 * 60)
                         dismiss()
                     } label: {
-                        Text("60 Minutes")
-                            .foregroundStyle(.primary)
+                        HStack(spacing: 12) {
+                            Image(systemName: "clock.fill")
+                                .foregroundStyle(Color.appPrimary)
+                                .font(.body)
+                            Text("60 Minutes")
+                                .foregroundStyle(.primary)
+                            Spacer()
+                        }
                     }
                 } header: {
                     Text("Time")
@@ -58,8 +82,14 @@ public struct SleepTimerView: View {
                         onSetEndOfChapter()
                         dismiss()
                     } label: {
-                        Text("End of Chapter")
-                            .foregroundStyle(.primary)
+                        HStack(spacing: 12) {
+                            Image(systemName: "moon.zzz.fill")
+                                .foregroundStyle(.indigo)
+                                .font(.body)
+                            Text("End of Chapter")
+                                .foregroundStyle(.primary)
+                            Spacer()
+                        }
                     }
                 }
             }
