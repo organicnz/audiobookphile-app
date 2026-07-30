@@ -32,10 +32,18 @@ public struct SettingsView: View {
 
                 ScrollView {
                     VStack(spacing: 24) {
+                        // Quick Navigation Banner (Return to Library & Admin Dashboard)
+                        quickNavigationBanner
+
                         // User section
                         if let user = viewModel.currentUser {
                             userSection(user)
                             securitySection
+                        }
+
+                        // Admin (visible to admins & root)
+                        if let user = viewModel.currentUser, ["admin", "root"].contains(user.type) {
+                            adminSection
                         }
 
                         // Statistics & Insights
@@ -56,11 +64,6 @@ public struct SettingsView: View {
                         // About
                         aboutSection
 
-                        // Admin (visible only to admins)
-                        if let user = viewModel.currentUser, user.type == "admin" {
-                            adminSection
-                        }
-
                         // Logout
                         logoutButton
 
@@ -75,6 +78,20 @@ public struct SettingsView: View {
             .navigationBarTitleDisplayMode(.large)
             #endif
             .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button {
+                        appState.selectedTab = 0
+                        dismiss()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                            Text("Library")
+                        }
+                        .font(.subheadline.weight(.semibold))
+                    }
+                    .foregroundStyle(Color.appPrimary)
+                }
+
                 ToolbarItem(placement: trailingPlacement) {
                     Button("Done") {
                         dismiss()
@@ -84,6 +101,73 @@ public struct SettingsView: View {
             }
             .task {
                 await viewModel.loadStats(libraryId: appState.currentLibraryId)
+            }
+        }
+    }
+
+    // MARK: - Quick Navigation Banner
+
+    private var quickNavigationBanner: some View {
+        VStack(spacing: 10) {
+            Button {
+                appState.selectedTab = 0
+                dismiss()
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "arrow.left.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(Color.appPrimary)
+
+                    Text("Return to Library")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.white)
+
+                    Spacer()
+
+                    Image(systemName: "books.vertical")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.4))
+                }
+                .padding(14)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color.white.opacity(0.06))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(Color.appPrimary.opacity(0.3), lineWidth: 1)
+                        )
+                )
+            }
+
+            if let user = viewModel.currentUser, ["admin", "root"].contains(user.type) {
+                NavigationLink {
+                    AdminDashboardView()
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "shield.righthalf.filled")
+                            .font(.title3)
+                            .foregroundStyle(Color.orange)
+
+                        Text("Admin Dashboard")
+                            .font(.subheadline.weight(.bold))
+                            .foregroundStyle(Color.orange)
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.4))
+                    }
+                    .padding(14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.orange.opacity(0.12))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+                            )
+                    )
+                }
             }
         }
     }
@@ -426,6 +510,30 @@ public struct SettingsView: View {
     private var adminSection: some View {
         SettingsSection(title: "Administration") {
             VStack(spacing: 0) {
+                NavigationLink {
+                    AdminDashboardView()
+                } label: {
+                    HStack {
+                        Image(systemName: "shield.righthalf.filled")
+                            .foregroundStyle(Color.orange)
+                            .frame(width: 28)
+
+                        Text("Open Admin Dashboard")
+                            .foregroundStyle(.white)
+                            .font(.subheadline.weight(.semibold))
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.4))
+                    }
+                    .padding(12)
+                }
+
+                Divider()
+                    .background(Color.white.opacity(0.1))
+
                 NavigationLink {
                     AdminInviteView()
                 } label: {

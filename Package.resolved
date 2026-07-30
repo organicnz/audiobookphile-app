@@ -1,5 +1,5 @@
 {
-  "originHash" : "39f9f5429a30592f37a61779efe81c3f2d214032af3228204613bcc0f73de527",
+  "originHash" : "511cbca023ecc79df550bbb501d9dcd6147fcd2f4f070bda4988b5a76d90f3b5",
   "pins" : [
     {
       "identity" : "anycodable",
@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://source.skip.tools/skip-fuse-ui.git",
       "state" : {
-        "revision" : "08ed97131411d35eefad3490033f52b98cd98519",
-        "version" : "1.17.0"
+        "revision" : "0a5659e1010e30b3211bf1efd0965501b63f83b0",
+        "version" : "1.16.0"
       }
     },
     {
