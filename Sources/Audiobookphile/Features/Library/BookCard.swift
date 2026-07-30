@@ -33,7 +33,7 @@ public struct BookCard: View {
                 // Book info
                 VStack(alignment: .leading, spacing: 3) {
                     Text(book.title)
-                        .font(.system(.subheadline, design: .rounded))
+                        .font(.subheadline)
                         .fontWeight(.semibold)
                         .lineLimit(2)
                         .foregroundStyle(.white)
@@ -41,12 +41,12 @@ public struct BookCard: View {
 
                     if let author = book.author, !author.isEmpty, author != "Unknown Author" {
                         Text(author)
-                            .font(.system(.caption, design: .rounded))
+                            .font(.caption)
                             .foregroundStyle(.white.opacity(0.65))
                             .lineLimit(1)
                     } else {
                         Text(" ")
-                            .font(.system(.caption, design: .rounded))
+                            .font(.caption)
                             .hidden()
                     }
 

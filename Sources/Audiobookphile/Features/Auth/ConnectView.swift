@@ -128,7 +128,7 @@ public struct ConnectView: View {
 
             // Title
             Text("Audiobookphile")
-                .font(.system(size: 38, weight: .black, design: .rounded))
+                .font(.system(size: 38, weight: .bold))
                 .foregroundStyle(Color.primary)
                 .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
 

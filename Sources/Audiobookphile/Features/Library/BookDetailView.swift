@@ -159,21 +159,21 @@ public struct BookDetailView: View {
             // Title & Authors
             VStack(spacing: 6) {
                 Text(detailed.title)
-                    .font(.system(.title2, design: .rounded))
+                    .font(.title2)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.white)
 
                 if let author = detailed.author, !author.isEmpty, author != "Unknown Author" {
                     Text("by \(author)")
-                        .font(.system(.headline, design: .rounded))
+                        .font(.headline)
                         .foregroundStyle(Color.appPrimary)
                         .multilineTextAlignment(.center)
                 }
 
                 if let narrator = detailed.media.metadata.narratorName {
                     Text("Narrated by \(narrator)")
-                        .font(.system(.subheadline, design: .rounded))
+                        .font(.subheadline)
                         .foregroundStyle(.white.opacity(0.65))
                         .multilineTextAlignment(.center)
                 }
