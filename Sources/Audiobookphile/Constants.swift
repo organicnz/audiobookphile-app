@@ -119,8 +119,8 @@ public enum StorageKeys {
 // MARK: - App Colors
 
 extension Color {
-    public static let appBackground = Color(red: 0.07, green: 0.07, blue: 0.07) // Dark #111111
-    public static let appSecondaryBackground = Color(red: 0.12, green: 0.12, blue: 0.12) // Dark secondary #1f1f1f
+    public static let appBackground = Color(red: 55/255, green: 56/255, blue: 56/255) // #373838 Audiobookshelf dark background
+    public static let appSecondaryBackground = Color(red: 35/255, green: 35/255, blue: 35/255) // #232323 Audiobookshelf dark surface
 
     public static let appPrimary = Color(red: 0.97, green: 0.45, blue: 0.09) // AudioBooth Orange #f97316
     public static let appSecondary = Color(red: 0.91, green: 0.35, blue: 0.05)
