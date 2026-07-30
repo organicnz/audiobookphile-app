@@ -416,7 +416,7 @@ public struct FluidAuraBackground: View {
     public var body: some View {
         ZStack {
             // Base background based on system theme
-            (colorScheme == .dark ? Color.black : Color(red: 250/255, green: 249/255, blue: 246/255))
+            (colorScheme == .dark ? Color.appBackground : Color(red: 250/255, green: 249/255, blue: 246/255))
                 .ignoresSafeArea()
             
             // Glowing orbs

@@ -983,6 +983,18 @@ public class AudioPlayerService {
             }
         }
 
+        // Handle relative URLs by resolving against baseURL
+        if trimmedPath.hasPrefix("/") {
+            let base = UserDefaults.standard.string(forKey: "abp_serverURL") ?? ""
+            let fullString = base + trimmedPath
+            if let url = URL(string: fullString) {
+                return url
+            }
+            if let encodedString = fullString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+                return URL(string: encodedString)
+            }
+        }
+
         logger.error("Error: trackPath is not a valid HTTP URL or local path: \(trackPath)")
         return nil
     }
