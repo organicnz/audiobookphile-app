@@ -120,7 +120,7 @@ public struct AdminInviteView: View {
                 ZStack {
                     Circle()
                         .fill(LinearGradient(
-                            colors: [.appPrimary, .purple],
+                            colors: [.appPrimary, .appAccent],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ))
@@ -241,7 +241,7 @@ public struct AdminInviteView: View {
             .background(
                 LinearGradient(
                     colors: viewModel.isValidEmail && !viewModel.isLoading
-                        ? [.appPrimary, .purple]
+                        ? [.appPrimary, .appAccent]
                         : [.gray.opacity(0.3), .gray.opacity(0.2)],
                     startPoint: .leading,
                     endPoint: .trailing

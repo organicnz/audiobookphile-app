@@ -146,11 +146,11 @@ public struct SettingsView: View {
                     HStack(spacing: 12) {
                         Image(systemName: "shield.righthalf.filled")
                             .font(.title3)
-                            .foregroundStyle(Color.orange)
+                            .foregroundStyle(Color.appPrimary)
 
                         Text("Admin Dashboard")
                             .font(.subheadline.weight(.bold))
-                            .foregroundStyle(Color.orange)
+                            .foregroundStyle(Color.appPrimary)
 
                         Spacer()
 
@@ -161,10 +161,10 @@ public struct SettingsView: View {
                     .padding(14)
                     .background(
                         RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.orange.opacity(0.12))
+                            .fill(Color.appPrimary.opacity(0.15))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 14)
-                                    .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+                                    .stroke(Color.appPrimary.opacity(0.35), lineWidth: 1)
                             )
                     )
                 }
