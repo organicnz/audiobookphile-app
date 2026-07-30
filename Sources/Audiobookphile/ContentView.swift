@@ -25,6 +25,7 @@ public struct ContentView: View {
         }
         .animation(.easeInOut, value: appState.isAuthenticated)
         .animation(.easeInOut, value: appState.isLoading)
+        .preferredColorScheme(.dark)
         .onChange(of: scenePhase) { oldPhase, newPhase in
             if newPhase == .active {
                 Task {
@@ -57,6 +58,7 @@ public struct MainTabView: View {
                     HomeView()
                         #if os(iOS) || SKIP
                         .toolbarBackground(.hidden, for: .navigationBar)
+                        .toolbarColorScheme(.dark, for: .navigationBar)
                         #endif
                 }
                 .tabItem {
@@ -69,6 +71,7 @@ public struct MainTabView: View {
                     BookshelfView()
                         #if os(iOS) || SKIP
                         .toolbarBackground(.hidden, for: .navigationBar)
+                        .toolbarColorScheme(.dark, for: .navigationBar)
                         #endif
                 }
                 .tabItem {
@@ -81,6 +84,7 @@ public struct MainTabView: View {
                     CollectionsView()
                         #if os(iOS) || SKIP
                         .toolbarBackground(.hidden, for: .navigationBar)
+                        .toolbarColorScheme(.dark, for: .navigationBar)
                         #endif
                 }
                 .tabItem {
@@ -93,6 +97,7 @@ public struct MainTabView: View {
                     DownloadsView()
                         #if os(iOS) || SKIP
                         .toolbarBackground(.hidden, for: .navigationBar)
+                        .toolbarColorScheme(.dark, for: .navigationBar)
                         #endif
                 }
                 .tabItem {
