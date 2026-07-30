@@ -25,7 +25,6 @@ public struct ContentView: View {
         }
         .animation(.easeInOut, value: appState.isAuthenticated)
         .animation(.easeInOut, value: appState.isLoading)
-        .preferredColorScheme(.dark)
         .onChange(of: scenePhase) { oldPhase, newPhase in
             if newPhase == .active {
                 Task {
@@ -42,10 +41,10 @@ public struct MainTabView: View {
     @Environment(PlayerCoordinator.self) private var playerCoordinator
 
     // Value-based navigation paths for deep linking
+    @State private var homePath = NavigationPath()
     @State private var libraryPath = NavigationPath()
-    @State private var searchPath = NavigationPath()
+    @State private var collectionsPath = NavigationPath()
     @State private var downloadsPath = NavigationPath()
-    @State private var settingsPath = NavigationPath()
 
     public init() {}
 
@@ -53,55 +52,51 @@ public struct MainTabView: View {
         @Bindable var bindableAppState = appState
         return ZStack(alignment: .bottom) {
             TabView(selection: $bindableAppState.selectedTab) {
+                // Home Tab
+                NavigationStack(path: $homePath) {
+                    HomeView()
+                        #if os(iOS) || SKIP
+                        .toolbarBackground(.hidden, for: .navigationBar)
+                        #endif
+                }
+                .tabItem {
+                    Label("Home", systemImage: "house")
+                }
+                .tag(0)
+
                 // Library Tab
                 NavigationStack(path: $libraryPath) {
                     BookshelfView()
                         #if os(iOS) || SKIP
                         .toolbarBackground(.hidden, for: .navigationBar)
-                        .toolbarColorScheme(.dark, for: .navigationBar)
                         #endif
                 }
                 .tabItem {
                     Label("Library", systemImage: "books.vertical")
                 }
-                .tag(0)
+                .tag(1)
 
-                // Search Tab
-                NavigationStack(path: $searchPath) {
-                    SearchView()
+                // Collections Tab
+                NavigationStack(path: $collectionsPath) {
+                    CollectionsView()
                         #if os(iOS) || SKIP
                         .toolbarBackground(.hidden, for: .navigationBar)
-                        .toolbarColorScheme(.dark, for: .navigationBar)
                         #endif
                 }
                 .tabItem {
-                    Label("Search", systemImage: "magnifyingglass")
+                    Label("Collections", systemImage: "square.grid.2x2")
                 }
-                .tag(1)
+                .tag(2)
 
                 // Downloads Tab
                 NavigationStack(path: $downloadsPath) {
                     DownloadsView()
                         #if os(iOS) || SKIP
                         .toolbarBackground(.hidden, for: .navigationBar)
-                        .toolbarColorScheme(.dark, for: .navigationBar)
                         #endif
                 }
                 .tabItem {
                     Label("Downloads", systemImage: "arrow.down.circle")
-                }
-                .tag(2)
-
-                // Settings Tab
-                NavigationStack(path: $settingsPath) {
-                    SettingsView()
-                        #if os(iOS) || SKIP
-                        .toolbarBackground(.hidden, for: .navigationBar)
-                        .toolbarColorScheme(.dark, for: .navigationBar)
-                        #endif
-                }
-                .tabItem {
-                    Label("Settings", systemImage: "gear")
                 }
                 .tag(3)
             }

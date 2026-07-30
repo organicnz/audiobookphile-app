@@ -20,7 +20,6 @@ public struct TwoFactorChallengeView: View {
         NavigationStack {
             ZStack {
                 FluidAuraBackground()
-                    .ignoresSafeArea()
 
                 VStack(spacing: 24) {
                     VStack(spacing: 12) {

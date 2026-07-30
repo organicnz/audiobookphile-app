@@ -20,6 +20,14 @@ public struct BookshelfView: View {
     @State var selectedBookForDetails: Book?
     @State var showStatsSheet = false
 
+    @State var selectedPill: LibraryPill = .library
+    
+    enum LibraryPill: String, CaseIterable {
+        case library = "Library"
+        case authors = "Authors"
+        case narrators = "Narrators"
+    }
+
     public init() {}
 
     public var body: some View {
@@ -30,19 +38,25 @@ public struct BookshelfView: View {
             // Main content
             ScrollView {
                 VStack(spacing: 24) {
-                    // Header section with parallax
-                    headerSection
-                        .offset(y: scrollOffset > 0 ? 0 : scrollOffset * 0.4)
-                        .blur(radius: max(0, -scrollOffset / 15))
-                        .opacity(1.0 - max(0, -scrollOffset / 250))
-
-                    // Continue listening section
-                    if !viewModel.continueListening.isEmpty {
-                        continueListeningSection
-                    }
+                    // Top Navigation Pills
+                    navigationPillSection
+                        .padding(.top, 16)
 
                     // Main library grid
-                    libraryGridSection
+                    if selectedPill == .library {
+                        libraryGridSection
+                    } else {
+                        // Placeholder for Authors/Narrators
+                        VStack(spacing: 20) {
+                            Spacer().frame(height: 100)
+                            Image(systemName: "person.2.slash")
+                                .font(.largeTitle)
+                                .foregroundStyle(.secondary)
+                            Text("\(selectedPill.rawValue) Coming Soon")
+                                .font(.headline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                 }
                 .background(GeometryReader { proxy in
                     Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: proxy.frame(in: .named("scroll")).minY)
@@ -113,91 +127,43 @@ public struct BookshelfView: View {
         .allowsHitTesting(false)
     }
 
-    // MARK: - Header Section
+    // MARK: - Navigation Pills
 
-    private var headerSection: some View {
-        VStack(spacing: 16) {
-            // Library name
-            Text(viewModel.currentLibrary?.name ?? "Library")
-                .font(.system(size: 42, weight: .bold, design: .rounded))
-                .foregroundStyle(.white)
-                .shadow(radius: 10)
-
-            // Stats row
-            HStack(spacing: 16) {
-                statItem(
-                    icon: "book.fill",
-                    value: "\(viewModel.totalBooks)",
-                    label: "Books"
-                )
-
-                statItem(
-                    icon: "clock.fill",
-                    value: viewModel.totalDurationFormatted,
-                    label: "Hours"
-                )
-
-                statItem(
-                    icon: "headphones",
-                    value: "\(viewModel.inProgressCount)",
-                    label: "In Progress"
-                )
-            }
-            .glassCard()
-            .padding(.horizontal)
-        }
-        .padding(.top, 40)
-    }
-
-    private func statItem(icon: String, value: String, label: String) -> some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.title3)
-                .foregroundStyle(.cyan)
-
-            Text(value)
-                .font(.headline)
-                .fontWeight(.bold)
-                .foregroundStyle(.white)
-
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    // MARK: - Continue Listening
-
-    private var continueListeningSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Continue Listening")
-                .font(.title3)
-                .fontWeight(.bold)
-                .foregroundStyle(.white)
-                .padding(.horizontal)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 16) {
-                    ForEach(viewModel.continueListening) { book in
-                        ContinueListeningCard(book: book) {
-                            selectedBookForDetails = book
+    private var navigationPillSection: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(LibraryPill.allCases, id: \.self) { pill in
+                    Button(action: {
+                        withAnimation(.snappy) {
+                            selectedPill = pill
                         }
+                    }) {
+                        Text(pill.rawValue)
+                            .font(.subheadline)
+                            .fontWeight(selectedPill == pill ? .semibold : .regular)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .background(
+                                Capsule()
+                                    .fill(selectedPill == pill ? Color.cyan.opacity(0.8) : Color.white.opacity(0.1))
+                            )
+                            .foregroundStyle(selectedPill == pill ? .white : .secondary)
                     }
                 }
-                .padding(.horizontal)
             }
+            .padding(.horizontal)
         }
     }
+
+    // (Continue listening moved to HomeView)
 
     // MARK: - Library Grid
 
     private var libraryGridSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Section header
             HStack {
-                Text("All Books")
-                    .font(.title3)
+                Text(viewModel.currentLibrary?.name ?? "All Books")
+                    .font(.title2)
                     .fontWeight(.bold)
                     .foregroundStyle(.white)
 

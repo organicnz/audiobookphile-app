@@ -29,7 +29,6 @@ public struct TwoFactorSettingsView: View {
     public var body: some View {
         ZStack {
             FluidAuraBackground()
-                .ignoresSafeArea()
 
             ScrollView {
                 VStack(spacing: 24) {

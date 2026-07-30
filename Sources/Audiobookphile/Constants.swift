@@ -119,20 +119,20 @@ public enum StorageKeys {
 // MARK: - App Colors
 
 extension Color {
-    public static let appBackground = Color(red: 0.07, green: 0.07, blue: 0.07)
-    public static let appSecondaryBackground = Color(red: 0.12, green: 0.12, blue: 0.12)
+    public static let appBackground = Color(red: 250/255, green: 249/255, blue: 246/255) // Cream
+    public static let appSecondaryBackground = Color.white
 
-    public static let appPrimary = Color(red: 0.96, green: 0.62, blue: 0.04) // Amber/Gold #f59e0b
-    public static let appSecondary = Color(red: 0.85, green: 0.49, blue: 0.02) // Amber/Orange #d97706
-    public static let appAccent = Color(red: 0.98, green: 0.75, blue: 0.14) // Amber/Yellow #fbbf24
+    public static let appPrimary = Color(red: 0.97, green: 0.45, blue: 0.09) // AudioBooth Orange #f97316
+    public static let appSecondary = Color(red: 0.91, green: 0.35, blue: 0.05)
+    public static let appAccent = Color(red: 0.98, green: 0.55, blue: 0.15)
 
     public static let appSuccess = Color.green
     public static let appWarning = Color.orange
     public static let appError = Color.red
 
-    public static let textPrimary = Color.white
-    public static let textSecondary = Color.white.opacity(0.7)
-    public static let textTertiary = Color.white.opacity(0.5)
+    public static let textPrimary = Color.primary
+    public static let textSecondary = Color.secondary
+    public static let textTertiary = Color.secondary.opacity(0.5)
 }
 
 // MARK: - Gradient Presets

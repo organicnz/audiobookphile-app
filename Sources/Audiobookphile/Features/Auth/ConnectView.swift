@@ -129,18 +129,12 @@ public struct ConnectView: View {
             // Title
             Text("Audiobookphile")
                 .font(.system(size: 38, weight: .black, design: .rounded))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [.white, .white.opacity(0.8)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 5)
+                .foregroundStyle(Color.primary)
+                .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
 
             Text("Sign in to your account")
                 .font(.headline.weight(.medium))
-                .foregroundStyle(.white.opacity(0.7))
+                .foregroundStyle(Color.secondary)
                 .padding(.top, -4)
         }
     }
@@ -248,7 +242,7 @@ public struct ConnectView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Recent Connections")
                 .font(.headline)
-                .foregroundStyle(.white.opacity(0.8))
+                .foregroundStyle(Color.secondary)
                 .padding(.horizontal, 4)
 
             VStack(spacing: 8) {
@@ -315,23 +309,23 @@ struct GlassTextField: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .foregroundStyle(.white.opacity(0.6))
+                .foregroundStyle(Color.primary.opacity(0.6))
                 .frame(width: 24)
 
             TextField(placeholder, text: $text)
                 .textFieldStyle(.plain)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.primary)
                 #if os(iOS) || SKIP
                 .textInputAutocapitalization(autocapitalize ? .sentences : .none)
                 #endif
                 .autocorrectionDisabled()
         }
         .padding(16)
-        .background(.white.opacity(0.1))
+        .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay {
             RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(.white.opacity(0.2), lineWidth: 1)
+                .strokeBorder(Color.gray.opacity(0.3), lineWidth: 1)
         }
     }
 }
@@ -345,13 +339,13 @@ struct GlassSecureField: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .foregroundStyle(.white.opacity(0.6))
+                .foregroundStyle(Color.primary.opacity(0.6))
                 .frame(width: 24)
 
             if showPassword {
                 TextField(placeholder, text: $text)
                     .textFieldStyle(.plain)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.primary)
                     #if os(iOS) || SKIP
                     .textInputAutocapitalization(.none)
                     #endif
@@ -359,22 +353,22 @@ struct GlassSecureField: View {
             } else {
                 SecureField(placeholder, text: $text)
                     .textFieldStyle(.plain)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.primary)
             }
 
             Button {
                 showPassword.toggle()
             } label: {
                 Image(systemName: showPassword ? "eye.slash" : "eye")
-                    .foregroundStyle(.white.opacity(0.6))
+                    .foregroundStyle(Color.primary.opacity(0.6))
             }
         }
         .padding(16)
-        .background(.white.opacity(0.1))
+        .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay {
             RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(.white.opacity(0.2), lineWidth: 1)
+                .strokeBorder(Color.gray.opacity(0.3), lineWidth: 1)
         }
     }
 }
@@ -392,65 +386,73 @@ struct RecentServerRow: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(server.address)
                         .font(.subheadline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.primary)
 
                     if let username = server.username {
                         Text(username)
                             .font(.caption)
-                            .foregroundStyle(.white.opacity(0.6))
+                            .foregroundStyle(Color.secondary)
                     }
                 }
 
                 Spacer()
 
                 Image(systemName: "chevron.right")
-                    .foregroundStyle(.white.opacity(0.4))
+                    .foregroundStyle(Color.secondary.opacity(0.4))
             }
             .padding(12)
-            .background(.ultraThinMaterial)
+            .background(.regularMaterial)
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
     }
 }
 
 public struct FluidAuraBackground: View {
-    @State private var phase = 0.0
+    @Environment(\.colorScheme) var colorScheme
+    @State private var animate = false
 
     public init() {}
 
     public var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
-
-            // Background base
-            Color(red: 0.05, green: 0.05, blue: 0.08).ignoresSafeArea()
-
+            // Base background based on system theme
+            (colorScheme == .dark ? Color.black : Color(red: 250/255, green: 249/255, blue: 246/255))
+                .ignoresSafeArea()
+            
+            // Glowing orbs
             GeometryReader { proxy in
-                let w = proxy.size.width
-                let h = proxy.size.height
-
-                Circle()
-                    .fill(Color.appPrimary.opacity(0.5))
-                    .frame(width: w * 0.9)
-                    .offset(x: sin(phase) * w * 0.25, y: cos(phase) * h * 0.2)
-                    .blur(radius: 90)
-
-                Circle()
-                    .fill(Color.appSecondary.opacity(0.4))
-                    .frame(width: w * 0.8)
-                    .offset(x: cos(phase + .pi/2) * w * 0.2, y: sin(phase + .pi/2) * h * 0.25)
-                    .blur(radius: 90)
-
-                Circle()
-                    .fill(Color.purple.opacity(0.3))
-                    .frame(width: w)
-                    .offset(x: sin(phase + .pi) * w * 0.15, y: cos(phase + .pi/4) * h * 0.2)
-                    .blur(radius: 100)
+                let width = proxy.size.width
+                let height = proxy.size.height
+                
+                ZStack {
+                    Circle()
+                        .fill(colorScheme == .dark ? Color.appPrimary.opacity(0.6) : Color.appPrimary.opacity(0.4))
+                        .frame(width: width * 0.8)
+                        .blur(radius: 80)
+                        .offset(x: animate ? width * 0.2 : -width * 0.2,
+                                y: animate ? -height * 0.2 : height * 0.2)
+                    
+                    Circle()
+                        .fill(colorScheme == .dark ? Color(red: 0.8, green: 0.3, blue: 0.0).opacity(0.5) : Color(red: 1.0, green: 0.8, blue: 0.5).opacity(0.7))
+                        .frame(width: width * 0.6)
+                        .blur(radius: 60)
+                        .offset(x: animate ? -width * 0.3 : width * 0.1,
+                                y: animate ? height * 0.3 : -height * 0.1)
+                }
+                .saturation(1.3)
+                .drawingGroup()
             }
+            .ignoresSafeArea()
+            
+            // Liquid glass noise or overlay layer
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .opacity(0.1)
+                .ignoresSafeArea()
         }
         .onAppear {
-            withAnimation(.linear(duration: 20).repeatForever(autoreverses: true)) {
-                phase = .pi * 2
+            withAnimation(.easeInOut(duration: 8.0).repeatForever(autoreverses: true)) {
+                animate = true
             }
         }
     }
@@ -473,7 +475,7 @@ public struct LoadingView: View {
 
                 Text(message)
                     .font(.headline)
-                    .foregroundStyle(.white.opacity(0.8))
+                    .foregroundStyle(Color.primary)
             }
         }
     }
