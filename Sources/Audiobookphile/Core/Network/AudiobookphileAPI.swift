@@ -40,7 +40,7 @@ public actor AudiobookphileAPI {
         }
 
         var adjustedPath = path
-        if isSupabaseBackend && (path.starts(with: "/login") || path.starts(with: "/auth/refresh")) {
+        if isSupabaseBackend && !path.starts(with: "/api") {
             adjustedPath = "/api\(path)"
         }
 
