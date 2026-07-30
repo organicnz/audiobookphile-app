@@ -225,10 +225,23 @@ public struct AudioPlayerView: View {
             let cardSide = min(geometry.size.width * 0.76, geometry.size.height * 0.9)
             ZStack {
                 if let url = coverURL {
+                    // AudioBooth signature background blur backdrop
                     SmartAsyncImage(url: url) { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        colorLoader.backgroundColor
+                    }
+                    .frame(width: cardSide, height: cardSide)
+                    .blur(radius: 12, opaque: true)
+                    .opacity(0.4)
+
+                    // AudioBooth unclipped foreground artwork (.fit)
+                    SmartAsyncImage(url: url) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
                     } placeholder: {
                         placeholderCover
                     }
@@ -238,8 +251,8 @@ public struct AudioPlayerView: View {
             }
             .frame(width: cardSide, height: cardSide)
             .clipped()
-                .frame(maxWidth: .infinity)
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .frame(maxWidth: .infinity)
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
                     .strokeBorder(
@@ -251,6 +264,19 @@ public struct AudioPlayerView: View {
                         lineWidth: 1
                     )
             )
+            // AudioBooth signature topLeading Progress Badge
+            .overlay(alignment: .topLeading) {
+                let progPercent = Int(viewModel.progress * 100)
+                audioBoothBadge(text: "\(progPercent)%")
+                    .padding(8)
+            }
+            // AudioBooth signature topTrailing Sleep Timer Badge (if active)
+            .overlay(alignment: .topTrailing) {
+                if viewModel.sleepTimerActive {
+                    audioBoothBadge(icon: "timer", text: viewModel.sleepTimerRemainingPretty)
+                        .padding(8)
+                }
+            }
             .scaleEffect(viewModel.isPlaying ? 1.02 : 0.96)
             .animation(.spring(response: 0.5, dampingFraction: 0.7), value: viewModel.isPlaying)
             .shadow(
@@ -260,6 +286,22 @@ public struct AudioPlayerView: View {
             )
         }
         .frame(height: 300)
+    }
+
+    private func audioBoothBadge(icon: String? = nil, text: String) -> some View {
+        HStack(spacing: 4) {
+            if let icon = icon {
+                Image(systemName: icon)
+            }
+            Text(text)
+        }
+        .font(.footnote)
+        .fontWeight(.bold)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(Color.black.opacity(0.75))
+        .foregroundColor(.white)
+        .clipShape(Capsule())
     }
 
     private var placeholderCover: some View {

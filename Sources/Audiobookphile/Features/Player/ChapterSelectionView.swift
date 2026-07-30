@@ -37,44 +37,63 @@ public struct ChapterSelectionView: View {
 
     public var body: some View {
         NavigationStack {
-            List {
-                ForEach(chapters) { chapter in
-                    HStack {
-                        Button {
-                            onSelect(chapter)
-                        } label: {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(chapter.title)
-                                        .font(.headline)
+            ScrollViewReader { proxy in
+                List {
+                    ForEach(chapters) { chapter in
+                        HStack {
+                            Button {
+                                onSelect(chapter)
+                            } label: {
+                                HStack(spacing: 12) {
+                                    if chapter.id == currentChapter?.id {
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .fill(Color.appPrimary)
+                                            .frame(width: 4, height: 28)
+                                    }
 
-                                    Text(formatDuration(chapter.end - chapter.start))
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(chapter.title)
+                                            .font(.headline)
+                                            .fontWeight(chapter.id == currentChapter?.id ? .bold : .regular)
+                                            .foregroundStyle(chapter.id == currentChapter?.id ? Color.appPrimary : .primary)
 
-                                Spacer()
+                                        Text(formatDuration(chapter.end - chapter.start))
+                                            .font(.caption)
+                                            .fontWeight(chapter.id == currentChapter?.id ? .bold : .regular)
+                                            .foregroundStyle(.secondary)
+                                    }
 
-                                if chapter.id == currentChapter?.id {
-                                    Image(systemName: "speaker.wave.2.fill")
-                                        .foregroundStyle(Color.appPrimary)
+                                    Spacer()
+
+                                    if chapter.id == currentChapter?.id {
+                                        Image(systemName: "speaker.wave.2.fill")
+                                            .foregroundStyle(Color.appPrimary)
+                                    }
                                 }
                             }
-                        }
 
-                        // AI Insights Button
-                        Button {
-                            loadAIInsights(for: chapter)
-                        } label: {
-                            Image(systemName: "sparkles")
-                                .font(.body)
-                                .foregroundStyle(.cyan)
-                                .padding(8)
-                                .background(Color.cyan.opacity(0.15), in: Circle())
+                            // AI Insights Button
+                            Button {
+                                loadAIInsights(for: chapter)
+                            } label: {
+                                Image(systemName: "sparkles")
+                                    .font(.body)
+                                    .foregroundStyle(.cyan)
+                                    .padding(8)
+                                    .background(Color.cyan.opacity(0.15), in: Circle())
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
+                        .applyBookshelfScrollTransition()
+                        .id(chapter.id)
                     }
-                    .applyBookshelfScrollTransition()
+                }
+                .onAppear {
+                    if let current = currentChapter {
+                        withAnimation {
+                            proxy.scrollTo(current.id, anchor: .center)
+                        }
+                    }
                 }
             }
             .navigationTitle("Chapters")
