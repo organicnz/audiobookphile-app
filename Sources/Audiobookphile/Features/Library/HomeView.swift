@@ -75,7 +75,7 @@ public struct HomeView: View {
                 Text("Home")
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                    .foregroundStyle(Color.appText)
+                    .foregroundStyle(Color.textPrimary)
             }
             Spacer()
         }
@@ -86,7 +86,7 @@ public struct HomeView: View {
             Text("Continue Listening")
                 .font(.title3)
                 .fontWeight(.bold)
-                .foregroundStyle(Color.appText)
+                .foregroundStyle(Color.textPrimary)
                 .padding(.horizontal)
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -107,7 +107,7 @@ public struct HomeView: View {
             Text("Recently Added")
                 .font(.title3)
                 .fontWeight(.bold)
-                .foregroundStyle(Color.appText)
+                .foregroundStyle(Color.textPrimary)
                 .padding(.horizontal)
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -137,7 +137,7 @@ public struct HomeView: View {
             Text("Continue Series")
                 .font(.title3)
                 .fontWeight(.bold)
-                .foregroundStyle(Color.appText)
+                .foregroundStyle(Color.textPrimary)
                 .padding(.horizontal)
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -156,7 +156,7 @@ public struct HomeView: View {
                             Text("Series Title")
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
-                                .foregroundStyle(Color.appText)
+                                .foregroundStyle(Color.textPrimary)
                             Text("Book 2 of 4")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
