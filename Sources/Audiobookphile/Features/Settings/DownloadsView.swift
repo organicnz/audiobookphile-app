@@ -480,20 +480,18 @@ public struct DownloadsView: View {
     public init() {}
 
     public var body: some View {
-        NavigationStack {
-            ZStack {
-                Color.appBackground.ignoresSafeArea()
+        ZStack {
+            Color.appBackground.ignoresSafeArea()
 
-                if downloadService.downloads.isEmpty {
-                    emptyState
-                } else {
-                    downloadsList
-                }
+            if downloadService.downloads.isEmpty {
+                emptyState
+            } else {
+                downloadsList
             }
-            .audiobookphileNavigationToolbar(title: "Downloads")
-            .sheet(item: $selectedBook) { book in
-                BookDetailView(book: book)
-            }
+        }
+        .audiobookphileNavigationToolbar(title: "Downloads")
+        .sheet(item: $selectedBook) { book in
+            BookDetailView(book: book)
         }
     }
 

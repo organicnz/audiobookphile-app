@@ -68,7 +68,7 @@ public struct MainTabView: View {
                     BookshelfView()
                 }
                 .tabItem {
-                    Label("Library", systemImage: "books.vertical")
+                    Label("Library", systemImage: "books.vertical.fill")
                 }
                 .tag(1)
 
@@ -77,7 +77,7 @@ public struct MainTabView: View {
                     CollectionsView()
                 }
                 .tabItem {
-                    Label("Collections", systemImage: "square.grid.2x2")
+                    Label("Collections", systemImage: "square.stack.3d.up.fill")
                 }
                 .tag(2)
 
@@ -86,7 +86,7 @@ public struct MainTabView: View {
                     DownloadsView()
                 }
                 .tabItem {
-                    Label("Downloads", systemImage: "arrow.down.circle")
+                    Label("Downloads", systemImage: "arrow.down.circle.fill")
                 }
                 .tag(3)
 

@@ -1,22 +1,31 @@
 import SwiftUI
 
 public struct CollectionsView: View {
+    public enum CollectionType: String, CaseIterable {
+        case series = "Series"
+        case collections = "Collections"
+        case playlists = "Playlists"
+    }
+
+    @State private var selectedType: CollectionType = .collections
+
     public init() {}
+
     public var body: some View {
         ZStack {
             Color.appBackground.ignoresSafeArea()
 
             VStack(spacing: 16) {
-                Image(systemName: "square.grid.2x2.fill")
+                Image(systemName: iconForType(selectedType))
                     .font(.system(size: 48))
                     .foregroundStyle(Color.appPrimary.opacity(0.8))
                 
-                Text("Collections")
+                Text(selectedType.rawValue)
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundStyle(Color.textPrimary)
 
-                Text("Your customized book collections will appear here.")
+                Text("Your customized \(selectedType.rawValue.lowercased()) will appear here.")
                     .font(.subheadline)
                     .foregroundStyle(Color.textSecondary)
                     .multilineTextAlignment(.center)
@@ -27,5 +36,28 @@ public struct CollectionsView: View {
             .padding(.horizontal, 24)
         }
         .audiobookphileNavigationToolbar(title: "Collections")
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Picker("Collection Type", selection: $selectedType) {
+                    Text("Series").tag(CollectionType.series)
+                    Text("Collections").tag(CollectionType.collections)
+                    Text("Playlists").tag(CollectionType.playlists)
+                }
+                .pickerStyle(.segmented)
+                .controlSize(.large)
+                .tint(.appPrimary)
+            }
+        }
+    }
+
+    private func iconForType(_ type: CollectionType) -> String {
+        switch type {
+        case .series:
+            return "books.vertical.fill"
+        case .collections:
+            return "square.stack.3d.up.fill"
+        case .playlists:
+            return "music.note.list"
+        }
     }
 }
