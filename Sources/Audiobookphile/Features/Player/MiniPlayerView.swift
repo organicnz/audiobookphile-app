@@ -55,10 +55,16 @@ public struct MiniPlayerView: View {
             Button {
                 audioPlayer.togglePlayPause()
             } label: {
-                Image(systemName: audioPlayer.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.title3)
-                    .foregroundStyle(.primary)
-                    .applyPlayPauseSymbolEffect(isPlaying: audioPlayer.isPlaying)
+                ZStack {
+                    Image(systemName: audioPlayer.isPlaying ? "pause.fill" : "play.fill")
+                        .font(.title3)
+                        .foregroundStyle(.primary)
+                        .applyPlayPauseSymbolEffect(isPlaying: audioPlayer.isPlaying)
+                        .opacity(audioPlayer.isBuffering ? 0.3 : 1.0)
+                    if audioPlayer.isBuffering {
+                        ProgressView()
+                    }
+                }
             }
             .applySensoryFeedback(trigger: audioPlayer.isPlaying)
             .padding(.trailing, 4)

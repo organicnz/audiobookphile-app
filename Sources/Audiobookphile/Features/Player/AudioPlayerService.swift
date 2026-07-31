@@ -36,10 +36,19 @@ public class AudioPlayerService {
 
     private var currentTrackIndex = 0
 
+    private var retryCount = 0
+    private var lastQueuedIndex: Int = -1
+    private var pendingSeekTimeWithinTrack: TimeInterval?
+
     #if !SKIP && !os(Android)
-    private var player: AVPlayer?
+    private var player: AVQueuePlayer?
     private var timeObserverToken: Any?
     private var playerItemObserverToken: Any?
+    private var playerFailedObserverToken: Any?
+    private var playerStalledObserverToken: Any?
+    private var timeControlStatusObserver: NSKeyValueObservation?
+    private var currentItemObserver: NSKeyValueObservation?
+    private var currentItemStatusObserver: NSKeyValueObservation?
     private var eqUnit: AVAudioUnitEQ?
     #endif
 
@@ -92,15 +101,7 @@ public class AudioPlayerService {
             stopSleepTimer()
 
             #if !SKIP && !os(Android)
-            if let token = timeObserverToken {
-                player?.removeTimeObserver(token)
-                timeObserverToken = nil
-            }
-            if let token = playerItemObserverToken {
-                NotificationCenter.default.removeObserver(token)
-                playerItemObserverToken = nil
-            }
-            player = nil
+            cleanupPlayer()
             #endif
             self.session = nil
 
@@ -179,26 +180,17 @@ public class AudioPlayerService {
             UserDefaults.standard.removeObject(forKey: pendingKey)
         }
 
-        // Find the correct starting track index based on currentTime
-        var startingTrackIndex = 0
-        var seekTimeWithinTrack = currentTime
-
-        for (index, track) in session.audioTracks.enumerated() {
-            let trackStart = track.startOffset
-            let trackEnd = trackStart + track.duration
-            if currentTime >= trackStart && currentTime < trackEnd {
-                startingTrackIndex = index
-                seekTimeWithinTrack = currentTime - trackStart
-                break
-            }
-        }
+        // Find the correct starting track index and offset based on currentTime
+        let trackInfo = findTrackIndexAndOffset(for: currentTime)
+        self.currentTrackIndex = trackInfo.index
 
         #if !SKIP && !os(Android)
         setupNowPlayingInfo(for: session)
+        loadQueue(from: trackInfo.index, seekTimeWithinTrack: trackInfo.offset, autoPlay: true)
         #endif
-
-        loadTrack(index: startingTrackIndex, seekTimeWithinTrack: seekTimeWithinTrack)
-        play()
+        self.isPlaying = true
+        updateNowPlaying(rate: playbackRate)
+        syncWidgetState()
         startSyncTimer()
     }
 
@@ -206,8 +198,16 @@ public class AudioPlayerService {
         guard session != nil else { return }
 
         #if !SKIP && !os(Android)
-        player?.play()
-        player?.rate = playbackRate
+        reconfigureAudioSession()
+        if let currentItem = player?.currentItem {
+            if currentItem.status == .readyToPlay {
+                player?.play()
+                player?.rate = playbackRate
+            }
+        } else if session != nil {
+            let trackInfo = findTrackIndexAndOffset(for: currentTime)
+            loadQueue(from: trackInfo.index, seekTimeWithinTrack: trackInfo.offset, autoPlay: true)
+        }
         #endif
 
         isPlaying = true
@@ -231,6 +231,8 @@ public class AudioPlayerService {
         #endif
 
         isPlaying = false
+        isBuffering = false
+        retryCount = 0
 
         #if os(iOS)
         if UIAccessibility.isVoiceOverRunning {
@@ -253,6 +255,21 @@ public class AudioPlayerService {
         } else {
             play()
         }
+    }
+
+    private func findTrackIndexAndOffset(for time: TimeInterval) -> (index: Int, offset: TimeInterval) {
+        guard let session = session, !session.audioTracks.isEmpty else { return (0, time) }
+        let targetTime = max(0, min(time, duration))
+        for (index, track) in session.audioTracks.enumerated() {
+            let trackStart = track.startOffset
+            let trackEnd = trackStart + track.duration
+            if targetTime >= trackStart && targetTime < trackEnd {
+                return (index, targetTime - trackStart)
+            }
+        }
+        let lastIndex = session.audioTracks.count - 1
+        let lastTrackStart = session.audioTracks[lastIndex].startOffset
+        return (lastIndex, max(0, targetTime - lastTrackStart))
     }
 
     public func seek(to time: TimeInterval) {
@@ -300,7 +317,7 @@ public class AudioPlayerService {
             }
         } else {
             // Switch tracks!
-            loadTrack(index: targetTrackIndex, seekTimeWithinTrack: seekTimeWithinTrack)
+            loadQueue(from: targetTrackIndex, seekTimeWithinTrack: seekTimeWithinTrack, autoPlay: isPlaying)
             updateNowPlaying(elapsedTime: targetTime)
             syncProgressImmediately()
         }
@@ -407,15 +424,7 @@ public class AudioPlayerService {
         stopSleepTimer()
 
         #if !SKIP && !os(Android)
-        if let token = timeObserverToken {
-            player?.removeTimeObserver(token)
-            timeObserverToken = nil
-        }
-        if let token = playerItemObserverToken {
-            NotificationCenter.default.removeObserver(token)
-            playerItemObserverToken = nil
-        }
-        player = nil
+        cleanupPlayer()
         #endif
         self.session = nil
 
@@ -625,20 +634,7 @@ public class AudioPlayerService {
     }
     #endif
 
-    private func loadTrack(index: Int, seekTimeWithinTrack: TimeInterval) {
-        guard let session = session else { return }
-        guard index >= 0 && index < session.audioTracks.count else { return }
-
-        self.currentTrackIndex = index
-        let track = session.audioTracks[index]
-
-        guard let url = getFullTrackURL(from: track.contentUrl, libraryItemId: session.libraryItemId) else {
-            logger.error("Error: No playable track URL found for track index \(index). contentUrl was: \(track.contentUrl)")
-            return
-        }
-
-        logger.info("Loading track \(index) at resolved URL: \(url)")
-
+    private func cleanupPlayer() {
         #if !SKIP && !os(Android)
         if let token = timeObserverToken {
             player?.removeTimeObserver(token)
@@ -648,105 +644,319 @@ public class AudioPlayerService {
             NotificationCenter.default.removeObserver(token)
             playerItemObserverToken = nil
         }
+        if let token = playerFailedObserverToken {
+            NotificationCenter.default.removeObserver(token)
+            playerFailedObserverToken = nil
+        }
+        if let token = playerStalledObserverToken {
+            NotificationCenter.default.removeObserver(token)
+            playerStalledObserverToken = nil
+        }
+        timeControlStatusObserver = nil
+        currentItemObserver = nil
+        currentItemStatusObserver = nil
+        player?.removeAllItems()
+        player = nil
+        #endif
+    }
 
-        let asset = AVURLAsset(url: url, options: [AVURLAssetPreferPreciseDurationAndTimingKey: true])
-        let playerItem = AVPlayerItem(asset: asset)
-        playerItem.preferredForwardBufferDuration = 30.0
-        #if os(iOS)
-        playerItem.audioTimePitchAlgorithm = .spectral
-        if #available(iOS 15.0, *) {
-            playerItem.allowedAudioSpatializationFormats = [.monoAndStereo, .multichannel]
+    private func loadQueue(from index: Int, seekTimeWithinTrack: TimeInterval, autoPlay: Bool = true) {
+        guard let session = session else { return }
+        guard index >= 0 && index < session.audioTracks.count else { return }
+
+        self.currentTrackIndex = index
+        self.pendingSeekTimeWithinTrack = seekTimeWithinTrack > 0.1 ? seekTimeWithinTrack : nil
+
+        #if !SKIP && !os(Android)
+        if player == nil {
+            player = AVQueuePlayer()
+            setupRemoteCommandCenter()
+            setupPlayerObservers()
+        }
+
+        player?.removeAllItems()
+        topUpQueue(from: index)
+        #endif
+    }
+
+    private func topUpQueue(from startIndex: Int? = nil) {
+        guard let session = session else { return }
+        #if !SKIP && !os(Android)
+        guard let player = player else { return }
+        
+        if let start = startIndex {
+            lastQueuedIndex = start - 1
+        }
+
+        let maxQueuedItems = 3
+        while player.items().count < maxQueuedItems {
+            let nextIndex = lastQueuedIndex + 1
+            guard nextIndex < session.audioTracks.count else { break }
+            lastQueuedIndex = nextIndex
+
+            if let item = makePlayerItem(for: nextIndex) {
+                player.insert(item, after: nil)
+            } else {
+                logger.error("Failed to create AVPlayerItem for track index \(nextIndex)")
+            }
         }
         #endif
+    }
 
-        if player == nil {
-            player = AVPlayer(playerItem: playerItem)
-            setupRemoteCommandCenter()
-        } else {
-            player?.replaceCurrentItem(with: playerItem)
+    private func makePlayerItem(for index: Int) -> AVPlayerItem? {
+        guard let session = session, index >= 0 && index < session.audioTracks.count else { return nil }
+        let track = session.audioTracks[index]
+        guard let url = getFullTrackURL(from: track.contentUrl, libraryItemId: session.libraryItemId) else {
+            logger.error("No valid URL for track index \(index): \(track.contentUrl)")
+            return nil
+        }
+        let asset = AVURLAsset(url: url, options: [AVURLAssetPreferPreciseDurationAndTimingKey: true])
+        let item = AVPlayerItem(asset: asset)
+        item.preferredForwardBufferDuration = 30.0
+        #if os(iOS)
+        item.audioTimePitchAlgorithm = .spectral
+        if #available(iOS 15.0, *) {
+            item.allowedAudioSpatializationFormats = [.monoAndStereo, .multichannel]
+        }
+        #endif
+        return item
+    }
+
+    #if !SKIP && !os(Android)
+    private func setupPlayerObservers() {
+        guard let player = player else { return }
+
+        timeControlStatusObserver = player.observe(\.timeControlStatus, options: [.initial, .new]) { [weak self] player, _ in
+            Task { @MainActor in
+                guard let self = self else { return }
+                switch player.timeControlStatus {
+                case .playing:
+                    self.isPlaying = true
+                    self.isBuffering = false
+                    self.retryCount = 0
+                case .waitingToPlayAtSpecifiedRate:
+                    self.isBuffering = true
+                case .paused:
+                    self.isPlaying = false
+                    self.isBuffering = false
+                @unknown default:
+                    break
+                }
+                self.syncWidgetState()
+            }
+        }
+
+        currentItemObserver = player.observe(\.currentItem, options: [.initial, .new]) { [weak self] player, _ in
+            Task { @MainActor in
+                guard let self = self else { return }
+                self.handleCurrentItemChanged(player.currentItem)
+            }
+        }
+
+        if let token = timeObserverToken {
+            player.removeTimeObserver(token)
+            timeObserverToken = nil
+        }
+        let interval = CMTime(seconds: 0.5, preferredTimescale: 600)
+        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+            Task { @MainActor in
+                self?.handlePeriodicTimeUpdate(time: time)
+            }
+        }
+    }
+
+    private func handleCurrentItemChanged(_ item: AVPlayerItem?) {
+        guard let session = session else { return }
+        guard let item = item else {
+            if isPlaying && currentTrackIndex >= session.audioTracks.count - 1 {
+                logger.info("Reached the end of the audiobook.")
+                pause()
+                currentTime = duration
+                syncProgressImmediately()
+                syncWidgetState()
+            }
+            return
+        }
+
+        if let asset = item.asset as? AVURLAsset,
+           let matchedIndex = session.audioTracks.firstIndex(where: {
+               getFullTrackURL(from: $0.contentUrl, libraryItemId: session.libraryItemId) == asset.url
+           }) {
+            if matchedIndex != currentTrackIndex {
+                logger.info("Advanced to track index \(matchedIndex)")
+                currentTrackIndex = matchedIndex
+            }
+        }
+
+        observeCurrentItemStatus(item)
+        topUpQueue()
+        updateNowPlaying(rate: isPlaying ? playbackRate : 0.0, elapsedTime: currentTime)
+    }
+
+    private func observeCurrentItemStatus(_ item: AVPlayerItem) {
+        if let token = playerItemObserverToken {
+            NotificationCenter.default.removeObserver(token)
+            playerItemObserverToken = nil
+        }
+        if let token = playerFailedObserverToken {
+            NotificationCenter.default.removeObserver(token)
+            playerFailedObserverToken = nil
+        }
+        if let token = playerStalledObserverToken {
+            NotificationCenter.default.removeObserver(token)
+            playerStalledObserverToken = nil
+        }
+
+        currentItemStatusObserver = item.observe(\.status, options: [.initial, .new]) { [weak self] item, _ in
+            Task { @MainActor in
+                guard let self = self else { return }
+                switch item.status {
+                case .readyToPlay:
+                    self.logger.info("AVPlayerItem ready to play (track \(self.currentTrackIndex))")
+                    if let pendingSeek = self.pendingSeekTimeWithinTrack, pendingSeek > 0.1 {
+                        self.pendingSeekTimeWithinTrack = nil
+                        let cmTime = CMTime(seconds: pendingSeek, preferredTimescale: 600)
+                        self.logger.info("Seeking ready AVPlayerItem to pending time: \(pendingSeek)s")
+                        item.seek(to: cmTime, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] _ in
+                            Task { @MainActor in
+                                guard let self = self else { return }
+                                if self.isPlaying {
+                                    self.reconfigureAudioSession()
+                                    self.player?.play()
+                                    self.player?.rate = self.playbackRate
+                                    self.updateNowPlaying(rate: self.playbackRate, elapsedTime: self.currentTime)
+                                }
+                            }
+                        }
+                    } else {
+                        if self.isPlaying {
+                            self.reconfigureAudioSession()
+                            self.player?.play()
+                            self.player?.rate = self.playbackRate
+                            self.updateNowPlaying(rate: self.playbackRate, elapsedTime: self.currentTime)
+                        }
+                    }
+                case .failed:
+                    let errStr = item.error?.localizedDescription ?? "Unknown error"
+                    self.logger.error("AVPlayerItem failed: \(errStr)")
+                    self.handlePlaybackFailure(error: item.error)
+                case .unknown:
+                    break
+                @unknown default:
+                    break
+                }
+            }
         }
 
         playerItemObserverToken = NotificationCenter.default.addObserver(
             forName: .AVPlayerItemDidPlayToEndTime,
-            object: playerItem,
+            object: item,
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
-                self?.handleTrackFinished()
+                guard let self = self, let session = self.session else { return }
+                if self.currentTrackIndex == session.audioTracks.count - 1 {
+                    self.logger.info("Finished last track.")
+                    self.pause()
+                    self.currentTime = self.duration
+                    self.syncProgressImmediately()
+                    self.syncWidgetState()
+                } else {
+                    self.logger.info("Finished track \(self.currentTrackIndex). AVQueuePlayer advancing automatically...")
+                }
             }
         }
 
-        let cmTime = CMTime(seconds: seekTimeWithinTrack, preferredTimescale: 600)
-        player?.seek(to: cmTime, toleranceBefore: .zero, toleranceAfter: .zero)
-
-        if isPlaying {
-            player?.play()
-            player?.rate = playbackRate
-        }
-
-        let interval = CMTime(seconds: 0.5, preferredTimescale: 600)
-        timeObserverToken = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+        playerFailedObserverToken = NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemFailedToPlayToEndTime,
+            object: item,
+            queue: .main
+        ) { [weak self] notification in
+            let error = notification.userInfo?[AVPlayerItemFailedToPlayToEndTimeErrorKey] as? Error
             Task { @MainActor in
-                guard let self = self, self.isPlaying else { return }
+                self?.logger.error("AVPlayerItemFailedToPlayToEndTime: \(error?.localizedDescription ?? "nil")")
+                self?.handlePlaybackFailure(error: error)
+            }
+        }
 
-                let trackStart = track.startOffset
-                let absoluteTime = trackStart + time.seconds
-                self.currentTime = absoluteTime
+        playerStalledObserverToken = NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemPlaybackStalled,
+            object: item,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.logger.warning("Playback stalled due to buffer underrun. Will attempt recovery.")
+                self?.handlePlaybackStalled()
+            }
+        }
+    }
 
-                self.updateNowPlaying(elapsedTime: absoluteTime)
+    private func handlePlaybackFailure(error: Error?) {
+        guard let session = session else { return }
+        logger.error("Handling playback failure for track \(self.currentTrackIndex), retryCount=\(self.retryCount)")
+        
+        if retryCount < 3 {
+            retryCount += 1
+            let delay = Double(retryCount) * 1.5
+            logger.info("Retrying track \(self.currentTrackIndex) after \(delay)s...")
+            
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                guard self.session?.id == session.id else { return }
+                
+                let track = session.audioTracks[self.currentTrackIndex]
+                let seekTimeWithinTrack = max(0, self.currentTime - track.startOffset)
+                self.loadQueue(from: self.currentTrackIndex, seekTimeWithinTrack: seekTimeWithinTrack, autoPlay: self.isPlaying)
+            }
+        } else {
+            logger.error("Exhausted retries for playback failure. Pausing.")
+            retryCount = 0
+            pause()
+        }
+    }
 
-                var trackDuration = track.duration
+    private func handlePlaybackStalled() {
+        guard isPlaying else { return }
+        isBuffering = true
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            if self.isBuffering && self.isPlaying {
+                self.logger.info("Re-triggering play() after stall recovery wait")
+                self.player?.play()
+                self.player?.rate = self.playbackRate
+            }
+        }
+    }
 
-                // Note: do NOT update lastSyncedTime here. It must only change
-                // inside syncProgress()/startPlayback(); otherwise the
-                // `elapsedListened` guard in syncProgress() sees a ~0.5s delta
-                // (the observer cadence) and skips the sync entirely, so
-                // progress never persists.
+    private func handlePeriodicTimeUpdate(time: CMTime) {
+        guard isPlaying, let session = session, currentTrackIndex < session.audioTracks.count else { return }
+        let track = session.audioTracks[currentTrackIndex]
+        let trackStart = track.startOffset
+        let absoluteTime = trackStart + time.seconds
+        self.currentTime = absoluteTime
 
-                // Update track duration if needed (handle estimates)
-                trackDuration = self.session?.audioTracks[self.currentTrackIndex].duration ?? track.duration
-                if let item = self.player?.currentItem, item.status == .readyToPlay {
-                    let itemDur = item.duration.seconds
-                    // Update if the track duration is 0, or if the actual duration is significantly different from the estimate
-                    if itemDur > 0 && !itemDur.isNaN && (trackDuration <= 0 || abs(itemDur - trackDuration) > 2) {
-                        trackDuration = itemDur
+        self.updateNowPlaying(elapsedTime: absoluteTime)
 
-                        // Update session track durations and offsets to enable accurate seeking
-                        self.session?.audioTracks[self.currentTrackIndex].duration = itemDur
+        var trackDuration = track.duration
+        trackDuration = self.session?.audioTracks[self.currentTrackIndex].duration ?? track.duration
+        if let item = self.player?.currentItem, item.status == .readyToPlay {
+            let itemDur = item.duration.seconds
+            if itemDur > 0 && !itemDur.isNaN && (trackDuration <= 0 || abs(itemDur - trackDuration) > 2) {
+                trackDuration = itemDur
+                self.session?.audioTracks[self.currentTrackIndex].duration = itemDur
 
-                        var currentOffset: TimeInterval = 0
-                        if let tracks = self.session?.audioTracks {
-                            for i in 0..<tracks.count {
-                                self.session?.audioTracks[i].startOffset = currentOffset
-                                currentOffset += self.session?.audioTracks[i].duration ?? 0
-                            }
-                            self.duration = currentOffset
-                        }
+                var currentOffset: TimeInterval = 0
+                if let tracks = self.session?.audioTracks {
+                    for i in 0..<tracks.count {
+                        self.session?.audioTracks[i].startOffset = currentOffset
+                        currentOffset += self.session?.audioTracks[i].duration ?? 0
                     }
-                }
-
-                if trackDuration > 0 && time.seconds >= trackDuration - 0.5 {
-                    self.handleTrackFinished()
+                    self.duration = currentOffset
                 }
             }
         }
-        #endif
     }
-
-    private func handleTrackFinished() {
-        guard let session = session else { return }
-
-        if currentTrackIndex + 1 < session.audioTracks.count {
-            self.logger.info("Transitioning to next track: \(self.currentTrackIndex + 1)")
-            loadTrack(index: currentTrackIndex + 1, seekTimeWithinTrack: 0)
-        } else {
-            logger.info("Reached the end of the last track.")
-            pause()
-            self.currentTime = duration
-            syncProgressImmediately()
-            syncWidgetState()
-        }
-    }
+    #endif
 
     #if !SKIP && !os(Android)
     private func setupNowPlayingInfo(for session: PlaybackSession) {

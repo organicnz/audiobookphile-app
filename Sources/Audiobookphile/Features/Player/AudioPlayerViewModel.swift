@@ -38,6 +38,10 @@ public class AudioPlayerViewModel {
         AudioPlayerService.shared.playbackRate
     }
 
+    public var isBuffering: Bool {
+        AudioPlayerService.shared.isBuffering
+    }
+
     public var progress: Double {
         duration > 0 ? currentTime / duration : 0.0
     }

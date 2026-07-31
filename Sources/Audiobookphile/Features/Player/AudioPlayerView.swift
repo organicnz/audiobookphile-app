@@ -541,16 +541,23 @@ public struct AudioPlayerView: View {
             triggerHaptic()
             viewModel.togglePlayPause()
         } label: {
-            Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-                .font(.system(size: 32))
-                .foregroundStyle(.black)
-                .applyPlayPauseSymbolEffect(isPlaying: viewModel.isPlaying)
-                .frame(width: 76, height: 76)
-                .background {
-                    Circle()
-                        .fill(Color.white)
-                        .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 4)
+            ZStack {
+                Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 32))
+                    .foregroundStyle(.black)
+                    .applyPlayPauseSymbolEffect(isPlaying: viewModel.isPlaying)
+                    .opacity(viewModel.isBuffering ? 0.3 : 1.0)
+                if viewModel.isBuffering {
+                    ProgressView()
+                        .tint(.black)
                 }
+            }
+            .frame(width: 76, height: 76)
+            .background {
+                Circle()
+                    .fill(Color.white)
+                    .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 4)
+            }
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(viewModel.isPlaying ? "Pause" : "Play"))
