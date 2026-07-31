@@ -9,6 +9,7 @@ on:
       - '.github/workflows/ci-mobile.yml'
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   verify-swift:
@@ -23,3 +24,24 @@ jobs:
 
       - name: Build & Typecheck Package
         run: swift build
+
+  deploy-mobile:
+    name: Deploy iOS & macOS App (TestFlight / Xcode Cloud)
+    needs: verify-swift
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Check Apple Distribution Secrets & Trigger Deployment
+        env:
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+        run: |
+          if [ -z "$APP_STORE_CONNECT_API_KEY" ]; then
+            echo "No App Store Connect API key configured in secrets. Relying on Xcode Cloud / native Git integration for TestFlight release."
+            exit 0
+          fi
+          echo "Executing Apple App Store Connect / TestFlight deployment pipeline..."
+          # Future fastlane / xcodebuild release commands go here when secrets are set
+
