@@ -81,12 +81,7 @@ public struct BookshelfView: View {
         .navigationDestination(item: $selectedBookForDetails) { book in
             BookDetailView(book: book)
         }
-        #if os(iOS) || SKIP
-        .navigationBarTitleDisplayMode(.inline)
-        #endif
-        .toolbar {
-            toolbarContent
-        }
+        .audiobookphileNavigationToolbar(title: "Library")
         .task {
             await viewModel.loadLibrary(libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated)
         }
@@ -284,66 +279,7 @@ public struct BookshelfView: View {
         .background(.ultraThinMaterial)
     }
 
-    private var leadingPlacement: ToolbarItemPlacement {
-        #if os(iOS) || SKIP
-        return .navigationBarLeading
-        #else
-        return .navigation
-        #endif
-    }
-
-    private var trailingPlacement: ToolbarItemPlacement {
-        #if os(iOS) || SKIP
-        return .navigationBarTrailing
-        #else
-        return .primaryAction
-        #endif
-    }
-
-    // MARK: - Toolbar
-
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: leadingPlacement) {
-            Button(action: { showSearch.toggle() }) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.white)
-            }
-        }
-
-        ToolbarItem(placement: trailingPlacement) {
-            Menu {
-                Menu("Sort & Filter") {
-                    Button(action: { /* sort by title */ }) {
-                        Label("By Title", systemImage: "textformat.abc")
-                    }
-                    Button(action: { /* sort by recent */ }) {
-                        Label("By Recent", systemImage: "clock")
-                    }
-                    Button(action: { /* sort by author */ }) {
-                        Label("By Author", systemImage: "person.fill")
-                    }
-                }
-
-                Divider()
-
-                Button(action: viewModel.showSettings) {
-                    Label("Settings", systemImage: "gear")
-                }
-
-                Button(action: viewModel.showDownloads) {
-                    Label("Downloads", systemImage: "arrow.down.circle")
-                }
-
-                Button(action: { showStatsSheet = true }) {
-                    Label("Stats", systemImage: "chart.bar")
-                }
-            } label: {
-                Image(systemName: "ellipsis.circle")
-                    .foregroundStyle(.white)
-            }
-        }
-    }
+    // MARK: - End BookshelfView
 }
 
 // MARK: - Continue Listening Card

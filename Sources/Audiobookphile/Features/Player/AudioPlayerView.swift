@@ -267,13 +267,13 @@ public struct AudioPlayerView: View {
             // AudioBooth signature topLeading Progress Badge
             .overlay(alignment: .topLeading) {
                 let progPercent = Int(viewModel.progress * 100)
-                audioBoothBadge(text: "\(progPercent)%")
+                audiobookphileBadge(text: "\(progPercent)%")
                     .padding(8)
             }
             // AudioBooth signature topTrailing Sleep Timer Badge (if active)
             .overlay(alignment: .topTrailing) {
                 if viewModel.sleepTimerActive {
-                    audioBoothBadge(icon: "timer", text: viewModel.sleepTimerRemainingPretty)
+                    audiobookphileBadge(icon: "timer", text: viewModel.sleepTimerRemainingPretty)
                         .padding(8)
                 }
             }
@@ -288,7 +288,7 @@ public struct AudioPlayerView: View {
         .frame(height: 300)
     }
 
-    private func audioBoothBadge(icon: String? = nil, text: String) -> some View {
+    private func audiobookphileBadge(icon: String? = nil, text: String) -> some View {
         HStack(spacing: 4) {
             if let icon = icon {
                 Image(systemName: icon)

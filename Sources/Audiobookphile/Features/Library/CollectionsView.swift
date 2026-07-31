@@ -26,6 +26,6 @@ public struct CollectionsView: View {
             .glassBackground(cornerRadius: 20)
             .padding(.horizontal, 24)
         }
-        .navigationTitle("Collections")
+        .audiobookphileNavigationToolbar(title: "Collections")
     }
 }

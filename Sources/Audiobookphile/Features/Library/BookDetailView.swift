@@ -196,7 +196,7 @@ public struct BookDetailView: View {
             }
 
             // AudioBooth Metadata Section
-            audioBoothMetadataSection(detailed)
+            audiobookphileMetadataSection(detailed)
 
             // Chapters List
             if !detailed.chapters.isEmpty {
@@ -482,7 +482,7 @@ public struct BookDetailView: View {
         .glassCard()
     }
 
-    private func audioBoothMetadataSection(_ detailed: Book) -> some View {
+    private func audiobookphileMetadataSection(_ detailed: Book) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Metadata")
                 .font(.headline)

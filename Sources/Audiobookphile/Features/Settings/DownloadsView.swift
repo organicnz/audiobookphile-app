@@ -479,14 +479,6 @@ public struct DownloadsView: View {
 
     public init() {}
 
-    private var trailingPlacement: ToolbarItemPlacement {
-        #if os(iOS) || SKIP
-        return .navigationBarTrailing
-        #else
-        return .primaryAction
-        #endif
-    }
-
     public var body: some View {
         NavigationStack {
             ZStack {
@@ -498,20 +490,7 @@ public struct DownloadsView: View {
                     downloadsList
                 }
             }
-            .navigationTitle("Downloads")
-            #if os(iOS) || SKIP
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                if !downloadService.downloads.isEmpty {
-                    ToolbarItem(placement: trailingPlacement) {
-                        #if os(iOS) || SKIP
-                        EditButton()
-                            .foregroundStyle(Color.appPrimary)
-                        #endif
-                    }
-                }
-            }
+            .audiobookphileNavigationToolbar(title: "Downloads")
             .sheet(item: $selectedBook) { book in
                 BookDetailView(book: book)
             }

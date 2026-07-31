@@ -97,6 +97,7 @@ public struct SearchView: View {
             .task {
                 await fetchRecentSearches()
             }
+            .audiobookphileNavigationToolbar(title: "Search")
             .sheet(item: $selectedBook) { book in
                 BookDetailView(book: book)
             }

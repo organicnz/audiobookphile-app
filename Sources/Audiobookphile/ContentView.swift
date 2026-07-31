@@ -46,6 +46,7 @@ public struct MainTabView: View {
     @State private var libraryPath = NavigationPath()
     @State private var collectionsPath = NavigationPath()
     @State private var downloadsPath = NavigationPath()
+    @State private var searchPath = NavigationPath()
 
     public init() {}
 
@@ -56,10 +57,6 @@ public struct MainTabView: View {
                 // Home Tab
                 NavigationStack(path: $homePath) {
                     HomeView()
-                        #if os(iOS) || SKIP
-                        .toolbarBackground(.hidden, for: .navigationBar)
-                        .toolbarColorScheme(.dark, for: .navigationBar)
-                        #endif
                 }
                 .tabItem {
                     Label("Home", systemImage: "house")
@@ -69,10 +66,6 @@ public struct MainTabView: View {
                 // Library Tab
                 NavigationStack(path: $libraryPath) {
                     BookshelfView()
-                        #if os(iOS) || SKIP
-                        .toolbarBackground(.hidden, for: .navigationBar)
-                        .toolbarColorScheme(.dark, for: .navigationBar)
-                        #endif
                 }
                 .tabItem {
                     Label("Library", systemImage: "books.vertical")
@@ -82,10 +75,6 @@ public struct MainTabView: View {
                 // Collections Tab
                 NavigationStack(path: $collectionsPath) {
                     CollectionsView()
-                        #if os(iOS) || SKIP
-                        .toolbarBackground(.hidden, for: .navigationBar)
-                        .toolbarColorScheme(.dark, for: .navigationBar)
-                        #endif
                 }
                 .tabItem {
                     Label("Collections", systemImage: "square.grid.2x2")
@@ -95,15 +84,20 @@ public struct MainTabView: View {
                 // Downloads Tab
                 NavigationStack(path: $downloadsPath) {
                     DownloadsView()
-                        #if os(iOS) || SKIP
-                        .toolbarBackground(.hidden, for: .navigationBar)
-                        .toolbarColorScheme(.dark, for: .navigationBar)
-                        #endif
                 }
                 .tabItem {
                     Label("Downloads", systemImage: "arrow.down.circle")
                 }
                 .tag(3)
+
+                // Search Tab
+                NavigationStack(path: $searchPath) {
+                    SearchView()
+                }
+                .tabItem {
+                    Label("Search", systemImage: "magnifyingglass")
+                }
+                .tag(4)
             }
             .tint(.appPrimary)
 

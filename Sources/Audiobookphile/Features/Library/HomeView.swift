@@ -15,18 +15,15 @@ public struct HomeView: View {
 
             ScrollView {
                 VStack(spacing: 32) {
-                    // Header
-                    headerSection
-                        .padding(.top, 40)
-                        .padding(.horizontal)
-
                     // Continue Listening
                     if !viewModel.continueListening.isEmpty {
                         continueListeningSection
+                            .padding(.top, 16)
                     }
 
                     // Recently Added
                     recentlyAddedSection
+                        .padding(.top, viewModel.continueListening.isEmpty ? 16 : 0)
 
                     // Continue Series (Dummy for now)
                     continueSeriesSection
@@ -40,6 +37,7 @@ public struct HomeView: View {
             }
             #endif
         }
+        .audiobookphileNavigationToolbar(title: "Home")
         .navigationDestination(item: $selectedBookForDetails) { book in
             BookDetailView(book: book)
         }
@@ -64,22 +62,6 @@ public struct HomeView: View {
         Color.appBackground.ignoresSafeArea()
     }
 
-    private var headerSection: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Audiobookshelf")
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.secondary)
-                
-                Text("Home")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundStyle(Color.textPrimary)
-            }
-            Spacer()
-        }
-    }
 
     private var continueListeningSection: some View {
         VStack(alignment: .leading, spacing: 12) {
