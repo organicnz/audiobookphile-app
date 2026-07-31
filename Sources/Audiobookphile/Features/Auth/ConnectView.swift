@@ -26,6 +26,7 @@ public struct RecentServer: Codable, Identifiable {
 
 public struct ConnectView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
     @State var viewModel = ConnectViewModel()
     @State var serverURL = EnvironmentConfig.serverURL
     @State var username = ""
@@ -38,12 +39,23 @@ public struct ConnectView: View {
 
     public var body: some View {
         @Bindable var appState = appState
-        return ZStack {
+        return ZStack(alignment: .topTrailing) {
             // Fluid Aura background
             FluidAuraBackground()
 
             // Particle effects
             GlassParticlesView(particleCount: 20, colors: [.white.opacity(0.15), .appPrimary.opacity(0.1)])
+
+            // Dismiss Button for Sheet presentation
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(Color.white.opacity(0.6))
+                    .padding(20)
+            }
+            .zIndex(100)
 
             ScrollView {
                 VStack(spacing: 32) {

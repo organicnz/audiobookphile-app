@@ -16,6 +16,7 @@ public struct AudiobookphileMenuToolbar: ViewModifier {
     @State private var showingSettings = false
     @State private var showingStats = false
     @State private var showingAccount = false
+    @State private var showingConnectModal = false
 
     public init(title: String) {
         self.title = title
@@ -28,7 +29,11 @@ public struct AudiobookphileMenuToolbar: ViewModifier {
             .navigationBarTitleDisplayMode(.large)
             #endif
             .toolbar {
-                audiobookphileServerMenuToolbarItem(appState: appState, showingAccount: $showingAccount)
+                audiobookphileServerMenuToolbarItem(
+                    appState: appState,
+                    showingAccount: $showingAccount,
+                    showingConnectModal: $showingConnectModal
+                )
                 audiobookphileTrailingToolbarItems(showingStats: $showingStats, showingSettings: $showingSettings)
             }
             .sheet(isPresented: $showingSettings) {
@@ -45,6 +50,9 @@ public struct AudiobookphileMenuToolbar: ViewModifier {
                 NavigationStack {
                     AccountView()
                 }
+            }
+            .sheet(isPresented: $showingConnectModal) {
+                ConnectView()
             }
     }
 }
@@ -77,7 +85,8 @@ private var trailingToolbarPlacement: ToolbarItemPlacement {
 @ToolbarContentBuilder
 public func audiobookphileServerMenuToolbarItem(
     appState: AppState,
-    showingAccount: Binding<Bool>
+    showingAccount: Binding<Bool>,
+    showingConnectModal: Binding<Bool>
 ) -> some ToolbarContent {
     ToolbarItem(placement: leadingToolbarPlacement) {
         Menu {
@@ -101,6 +110,11 @@ public func audiobookphileServerMenuToolbarItem(
                     appState.serverURL.isEmpty ? "No Server Connected" : appState.serverURL,
                     systemImage: "server.rack"
                 )
+                Button {
+                    showingConnectModal.wrappedValue = true
+                } label: {
+                    Label("Manage / Connect Server", systemImage: "server.rack")
+                }
                 Button {
                     showingAccount.wrappedValue = true
                 } label: {

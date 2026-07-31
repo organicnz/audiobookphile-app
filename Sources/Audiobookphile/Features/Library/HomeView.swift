@@ -13,29 +13,33 @@ public struct HomeView: View {
             // Background
             backgroundLayer
 
-            ScrollView {
-                VStack(spacing: 32) {
-                    // Continue Listening
-                    if !viewModel.continueListening.isEmpty {
-                        continueListeningSection
-                            .padding(.top, 16)
+            if !appState.isAuthenticated || (viewModel.books.isEmpty && viewModel.continueListening.isEmpty) {
+                emptyState
+            } else {
+                ScrollView {
+                    VStack(spacing: 32) {
+                        // Continue Listening
+                        if !viewModel.continueListening.isEmpty {
+                            continueListeningSection
+                                .padding(.top, 16)
+                        }
+
+                        // Recently Added
+                        recentlyAddedSection
+                            .padding(.top, viewModel.continueListening.isEmpty ? 16 : 0)
+
+                        // Continue Series
+                        continueSeriesSection
+                        
+                        Spacer().frame(height: 100) // Bottom padding
                     }
-
-                    // Recently Added
-                    recentlyAddedSection
-                        .padding(.top, viewModel.continueListening.isEmpty ? 16 : 0)
-
-                    // Continue Series (Dummy for now)
-                    continueSeriesSection
-                    
-                    Spacer().frame(height: 100) // Bottom padding
                 }
+                #if os(iOS) || SKIP
+                .refreshable {
+                    await viewModel.refresh(libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated)
+                }
+                #endif
             }
-            #if os(iOS) || SKIP
-            .refreshable {
-                await viewModel.refresh(libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated)
-            }
-            #endif
         }
         .audiobookphileNavigationToolbar(title: "Home")
         .navigationDestination(item: $selectedBookForDetails) { book in
@@ -148,5 +152,26 @@ public struct HomeView: View {
                 .padding(.horizontal)
             }
         }
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "headphones")
+                .font(.system(size: 60))
+                .foregroundStyle(Color.secondary.opacity(0.6))
+
+            Text("No Content Available")
+                .font(.title2)
+                .fontWeight(.medium)
+                .foregroundStyle(Color.textPrimary)
+
+            Text("Your personalized content will appear here")
+                .font(.body)
+                .foregroundStyle(Color.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

@@ -10,29 +10,40 @@ import SwiftUI
 public struct ContentView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.scenePhase) private var scenePhase
+    @State private var showingConnectSheet = false
 
     public init() {}
 
     public var body: some View {
-        ZStack {
-            if appState.isLoading {
-                LoadingView(message: "Starting up...")
-            } else if appState.isAuthenticated {
-                MainTabView()
-            } else {
+        MainTabView()
+            .preferredColorScheme(.dark)
+            .sheet(isPresented: $showingConnectSheet) {
                 ConnectView()
             }
-        }
-        .animation(.easeInOut, value: appState.isAuthenticated)
-        .animation(.easeInOut, value: appState.isLoading)
-        .preferredColorScheme(.dark)
-        .onChange(of: scenePhase) { oldPhase, newPhase in
-            if newPhase == .active {
-                Task {
-                    await appState.refreshSessionIfNeeded()
+            .onAppear {
+                if !appState.isAuthenticated && !appState.isLoading {
+                    showingConnectSheet = true
                 }
             }
-        }
+            .onChange(of: appState.isLoading) { _, isLoading in
+                if !isLoading && !appState.isAuthenticated {
+                    showingConnectSheet = true
+                }
+            }
+            .onChange(of: appState.isAuthenticated) { _, isAuthenticated in
+                if isAuthenticated {
+                    showingConnectSheet = false
+                } else if !appState.isLoading {
+                    showingConnectSheet = true
+                }
+            }
+            .onChange(of: scenePhase) { oldPhase, newPhase in
+                if newPhase == .active {
+                    Task {
+                        await appState.refreshSessionIfNeeded()
+                    }
+                }
+            }
     }
 }
 
