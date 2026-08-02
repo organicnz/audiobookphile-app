@@ -1,0 +1,113 @@
+//
+//  PlayerCoverArtView.swift
+//  Audiobookphile
+//
+
+import SwiftUI
+
+public struct PlayerCoverArtView: View {
+    var viewModel: AudioPlayerViewModel
+    var coverURL: URL?
+    var backgroundColor: Color
+
+    public init(viewModel: AudioPlayerViewModel, coverURL: URL?, backgroundColor: Color) {
+        self.viewModel = viewModel
+        self.coverURL = coverURL
+        self.backgroundColor = backgroundColor
+    }
+
+    public var body: some View {
+        GeometryReader { geometry in
+            let cardSide = min(geometry.size.width * 0.76, geometry.size.height * 0.9)
+            ZStack {
+                if let url = coverURL {
+                    // AudioBooth signature background blur backdrop
+                    SmartAsyncImage(url: url) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        backgroundColor
+                    }
+                    .frame(width: cardSide, height: cardSide)
+                    .blur(radius: 12, opaque: true)
+                    .opacity(0.4)
+
+                    // AudioBooth unclipped foreground artwork (.fit)
+                    SmartAsyncImage(url: url) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                    } placeholder: {
+                        placeholderCover
+                    }
+                } else {
+                    placeholderCover
+                }
+            }
+            .frame(width: cardSide, height: cardSide)
+            .clipped()
+            .frame(maxWidth: .infinity)
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [.white.opacity(0.4), .white.opacity(0.08)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            )
+            // AudioBooth signature topLeading Progress Badge
+            .overlay(alignment: .topLeading) {
+                let progPercent = Int(viewModel.progress * 100)
+                audiobookphileBadge(text: "\(progPercent)%")
+                    .padding(8)
+            }
+            // AudioBooth signature topTrailing Sleep Timer Badge (if active)
+            .overlay(alignment: .topTrailing) {
+                if viewModel.sleepTimerActive {
+                    audiobookphileBadge(icon: "timer", text: viewModel.sleepTimerRemainingPretty)
+                        .padding(8)
+                }
+            }
+            .scaleEffect(viewModel.isPlaying ? 1.02 : 0.96)
+            .animation(.spring(response: 0.5, dampingFraction: 0.7), value: viewModel.isPlaying)
+            .shadow(
+                color: backgroundColor.opacity(0.55),
+                radius: 35,
+                y: 18
+            )
+        }
+        .frame(height: 300)
+    }
+
+    private func audiobookphileBadge(icon: String? = nil, text: String) -> some View {
+        HStack(spacing: 4) {
+            if let icon = icon {
+                Image(systemName: icon)
+            }
+            Text(text)
+        }
+        .font(.footnote)
+        .fontWeight(.bold)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(Color.black.opacity(0.75))
+        .foregroundColor(.white)
+        .clipShape(Capsule())
+    }
+
+    private var placeholderCover: some View {
+        ZStack {
+            Image("BookPlaceholder", bundle: .module)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+
+            Color.black.opacity(0.15)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+    }
+}

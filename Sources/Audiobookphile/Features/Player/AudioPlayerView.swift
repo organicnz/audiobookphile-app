@@ -21,8 +21,7 @@ public struct AudioPlayerView: View {
     @State var showChapters = false
     @State var showSleepTimer = false
     @State var showMoreMenu = false
-    @State var isDraggingSeeker = false
-    @State var draggedTime: TimeInterval = 0
+    @State var showMoreMenu = false
     @State var isUiLocked = false
     @State var showBookmarksList = false
     @State var showAddBookmark = false
@@ -158,7 +157,11 @@ public struct AudioPlayerView: View {
             Spacer()
 
             // Cover art
-            coverArtSection
+            PlayerCoverArtView(
+                viewModel: viewModel,
+                coverURL: coverURL,
+                backgroundColor: colorLoader.backgroundColor
+            )
                 .padding(.vertical, 20)
 
             // Hardware vDSP Audio Spectrum Visualizer
@@ -173,13 +176,29 @@ public struct AudioPlayerView: View {
 
             // Playback controls
             VStack(spacing: 24) {
-                quickActionsBar
+                PlayerQuickActionsView(
+                    viewModel: viewModel,
+                    coverIsLight: coverIsLight,
+                    showAddBookmark: $showAddBookmark,
+                    showBookmarksList: $showBookmarksList,
+                    showSleepTimer: $showSleepTimer,
+                    showAudioAccessibilitySheet: $showAudioAccessibilitySheet,
+                    showChapters: $showChapters
+                )
                     .padding(.horizontal, 24)
 
-                trackView
+                PlaybackScrubberView(
+                    viewModel: viewModel,
+                    coverIsLight: coverIsLight,
+                    isUiLocked: isUiLocked
+                )
                     .padding(.horizontal, 24)
 
-                playbackControls
+                PlaybackControlsView(
+                    viewModel: viewModel,
+                    coverIsLight: coverIsLight,
+                    isUiLocked: isUiLocked
+                )
                     .padding(.horizontal, 24)
                     .padding(.bottom, 40)
             }
@@ -220,100 +239,6 @@ public struct AudioPlayerView: View {
         .padding(.horizontal, 24)
     }
 
-    private var coverArtSection: some View {
-        GeometryReader { geometry in
-            let cardSide = min(geometry.size.width * 0.76, geometry.size.height * 0.9)
-            ZStack {
-                if let url = coverURL {
-                    // AudioBooth signature background blur backdrop
-                    SmartAsyncImage(url: url) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } placeholder: {
-                        colorLoader.backgroundColor
-                    }
-                    .frame(width: cardSide, height: cardSide)
-                    .blur(radius: 12, opaque: true)
-                    .opacity(0.4)
-
-                    // AudioBooth unclipped foreground artwork (.fit)
-                    SmartAsyncImage(url: url) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                    } placeholder: {
-                        placeholderCover
-                    }
-                } else {
-                    placeholderCover
-                }
-            }
-            .frame(width: cardSide, height: cardSide)
-            .clipped()
-            .frame(maxWidth: .infinity)
-            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: [.white.opacity(0.4), .white.opacity(0.08)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
-            )
-            // AudioBooth signature topLeading Progress Badge
-            .overlay(alignment: .topLeading) {
-                let progPercent = Int(viewModel.progress * 100)
-                audiobookphileBadge(text: "\(progPercent)%")
-                    .padding(8)
-            }
-            // AudioBooth signature topTrailing Sleep Timer Badge (if active)
-            .overlay(alignment: .topTrailing) {
-                if viewModel.sleepTimerActive {
-                    audiobookphileBadge(icon: "timer", text: viewModel.sleepTimerRemainingPretty)
-                        .padding(8)
-                }
-            }
-            .scaleEffect(viewModel.isPlaying ? 1.02 : 0.96)
-            .animation(.spring(response: 0.5, dampingFraction: 0.7), value: viewModel.isPlaying)
-            .shadow(
-                color: colorLoader.backgroundColor.opacity(0.55),
-                radius: 35,
-                y: 18
-            )
-        }
-        .frame(height: 300)
-    }
-
-    private func audiobookphileBadge(icon: String? = nil, text: String) -> some View {
-        HStack(spacing: 4) {
-            if let icon = icon {
-                Image(systemName: icon)
-            }
-            Text(text)
-        }
-        .font(.footnote)
-        .fontWeight(.bold)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .background(Color.black.opacity(0.75))
-        .foregroundColor(.white)
-        .clipShape(Capsule())
-    }
-
-    private var placeholderCover: some View {
-        ZStack {
-            Image("BookPlaceholder", bundle: .module)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-
-            Color.black.opacity(0.15)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-    }
 
     private var titleSection: some View {
         VStack(spacing: 8) {
@@ -332,245 +257,6 @@ public struct AudioPlayerView: View {
         }
     }
 
-    private var quickActionsBar: some View {
-        HStack(spacing: 0) {
-            Menu {
-                Button {
-                    showAddBookmark = true
-                } label: {
-                    Label("Add Bookmark", systemImage: "plus")
-                }
-                Button {
-                    showBookmarksList = true
-                } label: {
-                    Label("View Bookmarks", systemImage: "list.bullet")
-                }
-            } label: {
-                Image(systemName: viewModel.hasBookmarks ? "bookmark.fill" : "bookmark")
-                    .font(.title2)
-                    .foregroundStyle(coverIsLight ? .black : .white)
-                    .frame(width: 44, height: 44)
-                    .background(Color.white.opacity(0.1))
-                    .clipShape(Circle())
-            }
-
-            Spacer()
-
-            Menu {
-                ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5], id: \.self) { rate in
-                    Button {
-                        viewModel.setPlaybackRate(Float(rate))
-                    } label: {
-                        HStack {
-                            Text(String(format: "%.2f×", rate))
-                            if abs(viewModel.playbackRate - Float(rate)) < 0.05 {
-                                Image(systemName: "checkmark")
-                            }
-                        }
-                    }
-                }
-            } label: {
-                Text("\(viewModel.playbackRate, specifier: "%.1f")×")
-                    .font(.system(.body, design: .monospaced))
-                    .fontWeight(.medium)
-                    .foregroundStyle(coverIsLight ? .black : .white)
-            }
-
-            Spacer()
-
-            Button {
-                showSleepTimer = true
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "moon")
-                        .symbolVariant(viewModel.sleepTimerActive ? .fill : .none)
-                    if viewModel.sleepTimerActive {
-                        Text(viewModel.sleepTimerRemainingPretty)
-                            .font(.system(.caption, design: .monospaced))
-                    }
-                }
-                .foregroundStyle(viewModel.sleepTimerActive ? Color.appPrimary : (coverIsLight ? .black : .white))
-            }
-
-            Spacer()
-
-            AirPlayButton(color: coverIsLight ? .black : .white)
-
-            Spacer()
-
-            GlassIconButton(
-                icon: "waveform.path.badge.plus",
-                fill: false,
-                color: coverIsLight ? .black : .white,
-                action: { showAudioAccessibilitySheet = true }
-            )
-            .accessibilityLabel("Audio & Hardware Accessibility")
-
-            Spacer()
-
-            GlassIconButton(
-                icon: "list.bullet",
-                fill: false,
-                color: coverIsLight ? .black : .white,
-                action: { showChapters = true }
-            )
-            .opacity(viewModel.chapters.isEmpty ? 0.3 : 1.0)
-            .disabled(viewModel.chapters.isEmpty)
-        }
-    }
-
-    private var trackView: some View {
-        VStack(spacing: 8) {
-            HStack {
-                Text(isDraggingSeeker ? viewModel.formatTime(draggedTime) : viewModel.currentTimePretty)
-                    .font(.system(.caption, design: .monospaced))
-                Spacer()
-                Text(isDraggingSeeker ? "-" + viewModel.formatTime(viewModel.duration - draggedTime) : viewModel.totalTimeRemainingPretty)
-                    .font(.system(.caption, design: .monospaced))
-            }
-            .foregroundStyle(coverIsLight ? .black : .white)
-
-            GeometryReader { geometry in
-                let rawProgress = isDraggingSeeker ? (viewModel.duration > 0 ? draggedTime / viewModel.duration : 0) : (viewModel.useTotalTrack ? viewModel.totalProgress : viewModel.progress)
-                let currentVisualProgress = max(0, min(1, rawProgress)) // Clamp to 0...1
-                
-                // Bulletproof hit testing: Clear background takes the gesture, visuals are just an overlay
-                Color.clear
-                    .contentShape(Rectangle())
-                    .gesture(
-                        isUiLocked ? nil : DragGesture(minimumDistance: 0)
-                            .onChanged { value in
-                                isDraggingSeeker = true
-                                let progress = min(max(0, value.location.x / geometry.size.width), 1)
-                                draggedTime = viewModel.duration * progress
-                            }
-                            .onEnded { value in
-                                let progress = min(max(0, value.location.x / geometry.size.width), 1)
-                                viewModel.seek(to: viewModel.duration * progress)
-                                isDraggingSeeker = false
-                            }
-                    )
-                    .overlay(alignment: .leading) {
-                        ZStack(alignment: .leading) {
-                            Capsule()
-                                .fill(.white.opacity(0.3))
-                                .frame(height: 6)
-
-                            Capsule()
-                                .fill(.white.opacity(0.5))
-                                .frame(width: max(0, geometry.size.width * CGFloat(viewModel.bufferedProgress)), height: 6)
-
-                            Capsule()
-                                .fill(Color.appPrimary)
-                                .frame(width: max(0, geometry.size.width * CGFloat(currentVisualProgress)), height: 6)
-
-                            Circle()
-                                .fill(Color.appPrimary)
-                                .frame(width: 20, height: 20)
-                                .shadow(color: .black.opacity(0.3), radius: 4)
-                                .offset(x: max(0, geometry.size.width * CGFloat(currentVisualProgress) - 10))
-                        }
-                        .allowsHitTesting(false)
-                    }
-            }
-            .frame(height: 44)
-        }
-    }
-
-    private var playbackControls: some View {
-        HStack(spacing: 0) {
-            GlassIconButton(
-                icon: "backward.end.fill",
-                size: .medium,
-                color: coverIsLight ? .black : .white,
-                action: {
-                    triggerHaptic(isLight: true)
-                    viewModel.jumpToChapterStart()
-                }
-            )
-
-            Spacer()
-
-            GlassIconButton(
-                icon: "gobackward.\(viewModel.jumpBackwardTime)",
-                size: .medium,
-                color: coverIsLight ? .black : .white,
-                action: {
-                    triggerHaptic(isLight: true)
-                    viewModel.jumpBackward()
-                }
-            )
-            .disabled(isUiLocked)
-            .opacity(isUiLocked ? 0.3 : 1.0)
-
-            Spacer()
-
-            playPauseButton
-
-            Spacer()
-
-            GlassIconButton(
-                icon: "goforward.\(viewModel.jumpForwardTime)",
-                size: .medium,
-                color: coverIsLight ? .black : .white,
-                action: {
-                    triggerHaptic(isLight: true)
-                    viewModel.jumpForward()
-                }
-            )
-            .disabled(isUiLocked)
-            .opacity(isUiLocked ? 0.3 : 1.0)
-
-            Spacer()
-
-            GlassIconButton(
-                icon: "forward.end.fill",
-                size: .medium,
-                color: coverIsLight ? .black : .white,
-                action: {
-                    triggerHaptic(isLight: true)
-                    viewModel.jumpToNextChapter()
-                }
-            )
-            .opacity(viewModel.hasNextChapter ? 1.0 : 0.3)
-            .disabled(!viewModel.hasNextChapter)
-        }
-    }
-
-    private func triggerHaptic(isLight: Bool = false) {
-        #if os(iOS) && !SKIP
-        let feedbackStyle: UIImpactFeedbackGenerator.FeedbackStyle = isLight ? .light : .medium
-        UIImpactFeedbackGenerator(style: feedbackStyle).impactOccurred()
-        #endif
-    }
-
-    private var playPauseButton: some View {
-        Button {
-            triggerHaptic()
-            viewModel.togglePlayPause()
-        } label: {
-            ZStack {
-                Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 32))
-                    .foregroundStyle(.black)
-                    .applyPlayPauseSymbolEffect(isPlaying: viewModel.isPlaying)
-                    .opacity(viewModel.isBuffering ? 0.3 : 1.0)
-                if viewModel.isBuffering {
-                    ProgressView()
-                        .tint(.black)
-                }
-            }
-            .frame(width: 76, height: 76)
-            .background {
-                Circle()
-                    .fill(Color.white)
-                    .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 4)
-            }
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(viewModel.isPlaying ? "Pause" : "Play"))
-        .accessibilityAddTraits(.isButton)
-    }
 }
 
 // MARK: - Audio Accessibility Quick Sheet
