@@ -139,8 +139,8 @@ public struct BookshelfView: View {
                 ],
                 spacing: 24
             ) {
-                if viewModel.isLoading && viewModel.filteredBooks.isEmpty {
-                    ForEach(0..<6, id: \.self) { _ in
+                if (appState.isLoading || viewModel.isLoading) && viewModel.filteredBooks.isEmpty {
+                    ForEach(0..<12, id: \.self) { _ in
                         BookCardSkeleton()
                     }
                 } else {
@@ -389,7 +389,7 @@ public class BookshelfViewModel {
     public var continueListening: [Book] = []
     public var currentLibrary: Library?
     public var selectedBook: Book?
-    public var isLoading = false
+    public var isLoading = true
     public var errorMessage: String?
 
     // Pagination State

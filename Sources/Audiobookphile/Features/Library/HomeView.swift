@@ -13,12 +13,12 @@ public struct HomeView: View {
             // Background
             backgroundLayer
 
-            if !appState.isAuthenticated {
-                emptyState
-            } else if viewModel.isLoading && viewModel.books.isEmpty && viewModel.continueListening.isEmpty {
-                // Cold-start: show beautiful skeleton loading
+            if appState.isLoading || (appState.isAuthenticated && viewModel.isLoading && viewModel.books.isEmpty && viewModel.continueListening.isEmpty) {
+                // Cold-start: show beautiful skeleton while auth check or data fetch is in flight
                 skeletonLoadingState
-            } else if viewModel.books.isEmpty && viewModel.continueListening.isEmpty {
+            } else if !appState.isAuthenticated {
+                emptyState
+            } else if !viewModel.isLoading && viewModel.books.isEmpty && viewModel.continueListening.isEmpty {
                 // Truly empty after load completed
                 emptyState
             } else {
