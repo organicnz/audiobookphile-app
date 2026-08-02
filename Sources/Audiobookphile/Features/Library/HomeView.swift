@@ -13,7 +13,13 @@ public struct HomeView: View {
             // Background
             backgroundLayer
 
-            if !appState.isAuthenticated || (viewModel.books.isEmpty && viewModel.continueListening.isEmpty) {
+            if !appState.isAuthenticated {
+                emptyState
+            } else if viewModel.isLoading && viewModel.books.isEmpty && viewModel.continueListening.isEmpty {
+                // Cold-start: show beautiful skeleton loading
+                skeletonLoadingState
+            } else if viewModel.books.isEmpty && viewModel.continueListening.isEmpty {
+                // Truly empty after load completed
                 emptyState
             } else {
                 ScrollView {
@@ -140,6 +146,98 @@ public struct HomeView: View {
                 .padding(.horizontal)
             }
         }
+    }
+
+    // MARK: - Skeleton Loading State (Cold Start)
+
+    private var skeletonLoadingState: some View {
+        ScrollView {
+            VStack(spacing: 32) {
+                // Skeleton: Continue Listening
+                VStack(alignment: .leading, spacing: 12) {
+                    skeletonTextBar(width: 180)
+                        .padding(.horizontal)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 16) {
+                            ForEach(0..<2, id: \.self) { _ in
+                                VStack(alignment: .leading, spacing: 10) {
+                                    HStack(spacing: 14) {
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .fill(Color.white.opacity(0.08))
+                                            .frame(width: 70, height: 70)
+
+                                        VStack(alignment: .leading, spacing: 6) {
+                                            skeletonTextBar(width: 120)
+                                            skeletonTextBar(width: 80, height: 10)
+                                            // Progress bar skeleton
+                                            RoundedRectangle(cornerRadius: 3, style: .continuous)
+                                                .fill(Color.white.opacity(0.06))
+                                                .frame(height: 6)
+                                                .frame(maxWidth: .infinity)
+                                        }
+                                    }
+                                }
+                                .padding(14)
+                                .frame(width: 280)
+                                .glassCard(cornerRadius: 16)
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+                .padding(.top, 16)
+
+                // Skeleton: Recently Added
+                VStack(alignment: .leading, spacing: 12) {
+                    skeletonTextBar(width: 150)
+                        .padding(.horizontal)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 16) {
+                            ForEach(0..<4, id: \.self) { _ in
+                                BookCardSkeleton()
+                                    .frame(width: 140)
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+
+                // Skeleton: Continue Series
+                VStack(alignment: .leading, spacing: 12) {
+                    skeletonTextBar(width: 140)
+                        .padding(.horizontal)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 16) {
+                            ForEach(0..<3, id: \.self) { _ in
+                                VStack(alignment: .leading, spacing: 8) {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.white.opacity(0.06))
+                                        .frame(width: 200, height: 100)
+                                    skeletonTextBar(width: 120)
+                                    skeletonTextBar(width: 80, height: 10)
+                                }
+                                .shimmer()
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+
+                Spacer().frame(height: 100)
+            }
+        }
+        .transition(.opacity.animation(.easeOut(duration: 0.3)))
+    }
+
+    /// Reusable skeleton text bar with shimmer
+    private func skeletonTextBar(width: CGFloat, height: CGFloat = 14) -> some View {
+        RoundedRectangle(cornerRadius: 4, style: .continuous)
+            .fill(Color.white.opacity(0.10))
+            .frame(width: width, height: height)
+            .shimmer()
     }
 
     private var emptyState: some View {
