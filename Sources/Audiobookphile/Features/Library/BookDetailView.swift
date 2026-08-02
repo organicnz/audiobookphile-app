@@ -152,15 +152,15 @@ public struct BookDetailView: View {
             }
 
             // Metadata Stats Row
-            statsRowSection(detailed)
+            BookDetailStatsRow(detailed: detailed, viewModel: viewModel)
 
             // Description (Expandable)
             if let description = detailed.description, !description.isEmpty {
-                descriptionSection(description)
+                BookDetailDescriptionSection(text: description, viewModel: viewModel)
             }
 
             // AudioBooth Metadata Section
-            audiobookphileMetadataSection(detailed)
+            BookDetailMetadataSection(detailed: detailed, viewModel: viewModel)
 
             // Chapters List
             if !detailed.chapters.isEmpty {
@@ -169,7 +169,7 @@ public struct BookDetailView: View {
 
             // Similar Books
             if !viewModel.similarBooks.isEmpty {
-                similarBooksSection
+                BookDetailSimilarBooksSection(viewModel: viewModel)
             }
         }
     }
@@ -198,133 +198,5 @@ public struct BookDetailView: View {
         )
     }
 
-    private func statsRowSection(_ detailed: Book) -> some View {
-        HStack(spacing: 12) {
-            statBadge(icon: "clock", value: viewModel.formatDuration(detailed.duration), label: "Duration")
-            if let year = detailed.media.metadata.publishedYear {
-                statBadge(icon: "calendar", value: year, label: "Published")
-            }
-            statBadge(icon: "list.bullet", value: "\(detailed.chapters.count)", label: "Chapters")
-        }
-    }
 
-    private func statBadge(icon: String, value: String, label: String) -> some View {
-        VStack(spacing: 4) {
-            Image(systemName: icon)
-                    .font(.subheadline)
-                    .foregroundStyle(Color.appPrimary)
-            Text(value)
-                .font(.subheadline)
-                .fontWeight(.bold)
-                .foregroundStyle(.white)
-            Text(label)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
-        .glassCard()
-    }
-
-    private func descriptionSection(_ text: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Synopsis")
-                .font(.headline)
-                .foregroundStyle(.white)
-
-            Text(cleanHTML(text))
-                .font(.body)
-                .foregroundStyle(.white.opacity(0.8))
-                .lineLimit(viewModel.isDescriptionExpanded ? nil : 4)
-                .animation(.easeInOut, value: viewModel.isDescriptionExpanded)
-
-            Button {
-                viewModel.isDescriptionExpanded.toggle()
-            } label: {
-                Text(viewModel.isDescriptionExpanded ? "Show Less" : "Read More")
-                    .font(.subheadline.bold())
-                    .foregroundStyle(Color.appPrimary)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .glassCard()
-    }
-
-    private func audiobookphileMetadataSection(_ detailed: Book) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Metadata")
-                .font(.headline)
-                .foregroundStyle(.white)
-
-            VStack(alignment: .leading, spacing: 10) {
-                if let publisher = detailed.media.metadata.publisher, !publisher.isEmpty {
-                    metadataRow(icon: "building.2", label: "Publisher", value: publisher)
-                }
-                if let publishedYear = detailed.media.metadata.publishedYear, !publishedYear.isEmpty {
-                    metadataRow(icon: "calendar", label: "Published", value: publishedYear)
-                }
-                if let language = detailed.media.metadata.language, !language.isEmpty {
-                    metadataRow(icon: "globe", label: "Language", value: language)
-                }
-                if let narrator = detailed.media.metadata.narratorName, !narrator.isEmpty {
-                    metadataRow(icon: "person.wave.2", label: "Narrator", value: narrator)
-                }
-                if let series = detailed.media.metadata.seriesName, !series.isEmpty {
-                    metadataRow(icon: "books.vertical", label: "Series", value: series)
-                }
-                metadataRow(icon: "clock", label: "Duration", value: viewModel.formatDuration(detailed.duration))
-                if !detailed.media.metadata.genres.isEmpty {
-                    metadataRow(icon: "tag", label: "Genres", value: detailed.media.metadata.genres.joined(separator: ", "))
-                }
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .glassCard()
-    }
-
-    private func metadataRow(icon: String, label: String, value: String) -> some View {
-        HStack(alignment: .top, spacing: 10) {
-            Image(systemName: icon)
-                .font(.subheadline)
-                .foregroundStyle(Color.appPrimary)
-                .frame(width: 20)
-            HStack(spacing: 4) {
-                Text(label + ":")
-                    .font(.subheadline.bold())
-                    .foregroundStyle(.white)
-                Text(value)
-                    .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.85))
-            }
-        }
-    }
-
-    private func cleanHTML(_ html: String) -> String {
-        // Strip basic HTML tag patterns for cleaner text display
-        html.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
-    }
-
-    // MARK: - Similar Books Section
-
-    private var similarBooksSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Similar Books")
-                .font(.title3)
-                .bold()
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
-                    ForEach(viewModel.similarBooks) { similarBook in
-                        NavigationLink(destination: BookDetailView(book: similarBook)) {
-                            BookCard(book: similarBook) {}
-                                .frame(width: 140)
-                        }
-                    }
-                }
-            }
-        }
-        .padding(.vertical, 8)
-    }
 }
