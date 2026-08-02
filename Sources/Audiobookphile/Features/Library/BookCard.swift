@@ -314,32 +314,6 @@ public struct GlassBookCard: View {
         return appState.getCoverURL(itemId: book.id, updatedAt: book.updatedAt)
     }
 }
-
-// MARK: - Book Card Skeleton Loader
-public struct BookCardSkeleton: View {
-    public init() {}
-
-    public var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.white.opacity(0.08))
-                .aspectRatio(1.0, contentMode: .fit)
-
-            VStack(alignment: .leading, spacing: 6) {
-                RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .fill(Color.white.opacity(0.12))
-                    .frame(height: 14)
-
-                RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .fill(Color.white.opacity(0.08))
-                    .frame(width: 80, height: 10)
-            }
-            .frame(height: 68, alignment: .topLeading)
-        }
-        .shimmer()
-    }
-}
-
 // MARK: - Circular Download Progress Badge Component (Apple Podcasts & Spotify Style)
 public struct CircularDownloadProgressBadge: View {
     public let progress: Double

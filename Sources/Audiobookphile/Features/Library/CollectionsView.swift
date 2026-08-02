@@ -8,6 +8,8 @@ public struct CollectionsView: View {
     }
 
     @State private var selectedType: CollectionType = .collections
+    @State private var viewModel = CollectionsViewModel()
+    @Environment(AppState.self) private var appState
 
     public init() {}
 
@@ -15,29 +17,25 @@ public struct CollectionsView: View {
         ZStack {
             Color.appBackground.ignoresSafeArea()
 
-            VStack(spacing: 16) {
-                Image(systemName: iconForType(selectedType))
-                    .font(.system(size: 48))
-                    .foregroundStyle(Color.appPrimary.opacity(0.8))
-                
-                Text(selectedType.rawValue)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundStyle(Color.textPrimary)
-
-                Text("Your customized \(selectedType.rawValue.lowercased()) will appear here.")
-                    .font(.subheadline)
-                    .foregroundStyle(Color.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
+            if viewModel.isLoading && viewModel.series.isEmpty && viewModel.collections.isEmpty && viewModel.playlists.isEmpty {
+                ProgressView()
+                    .controlSize(.large)
+                    .tint(.appPrimary)
+            } else {
+                CollectionListView(
+                    type: selectedType,
+                    series: viewModel.series,
+                    collections: viewModel.collections,
+                    playlists: viewModel.playlists
+                )
             }
-            .padding(24)
-            .glassBackground(cornerRadius: 20)
-            .padding(.horizontal, 24)
         }
         .audiobookphileNavigationToolbar(title: "Collections")
         #if os(iOS) || SKIP
         .navigationBarTitleDisplayMode(.inline)
+        .refreshable {
+            await viewModel.refresh(libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated, type: selectedType)
+        }
         #endif
         .toolbar {
             ToolbarItem(placement: .principal) {
@@ -51,16 +49,11 @@ public struct CollectionsView: View {
                 .tint(.appPrimary)
             }
         }
-    }
-
-    private func iconForType(_ type: CollectionType) -> String {
-        switch type {
-        case .series:
-            return "books.vertical.fill"
-        case .collections:
-            return "square.stack.3d.up.fill"
-        case .playlists:
-            return "music.note.list"
+        .task(id: selectedType) {
+            await viewModel.loadData(libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated, type: selectedType)
+        }
+        .task(id: appState.currentLibraryId) {
+            await viewModel.refresh(libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated, type: selectedType)
         }
     }
 }

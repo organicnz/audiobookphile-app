@@ -435,14 +435,15 @@ public struct AudioPlayerView: View {
                 ZStack(alignment: .leading) {
                     Capsule()
                         .fill(.white.opacity(0.3))
+                        .frame(height: 6)
 
                     Capsule()
                         .fill(.white.opacity(0.5))
-                        .frame(width: geometry.size.width * CGFloat(viewModel.bufferedProgress))
+                        .frame(width: geometry.size.width * CGFloat(viewModel.bufferedProgress), height: 6)
 
                     Capsule()
                         .fill(Color.appPrimary)
-                        .frame(width: geometry.size.width * CGFloat(currentVisualProgress))
+                        .frame(width: geometry.size.width * CGFloat(currentVisualProgress), height: 6)
 
                     Circle()
                         .fill(Color.appPrimary)
@@ -450,7 +451,8 @@ public struct AudioPlayerView: View {
                         .shadow(color: .black.opacity(0.3), radius: 4)
                         .offset(x: geometry.size.width * CGFloat(currentVisualProgress) - 10)
                 }
-                .frame(height: 6)
+                .frame(maxHeight: .infinity)
+                .contentShape(Rectangle())
                 .gesture(
                     isUiLocked ? nil : DragGesture(minimumDistance: 0)
                         .onChanged { value in
@@ -465,7 +467,7 @@ public struct AudioPlayerView: View {
                         }
                 )
             }
-            .frame(height: 20)
+            .frame(height: 44)
         }
     }
 

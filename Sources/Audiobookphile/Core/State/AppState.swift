@@ -25,6 +25,12 @@ public class AppState {
     public var pending2FAMethods: TwoFactorMethodsMap?
     public var selectedLibraryId: String?
     public var selectedTab = 0
+    
+    // Top-level presentation state
+    public var showingSettings = false
+    public var showingStats = false
+    public var showingAccount = false
+    public var showingConnectModal = false
 
     // Real API loaded libraries
     public var libraries: [Library] = []

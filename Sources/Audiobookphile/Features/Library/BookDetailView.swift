@@ -8,23 +8,12 @@
 import SwiftUI
 
 public struct BookDetailView: View {
-    public let book: Book
+    @State var viewModel: BookDetailViewModel
     @Environment(\.dismiss) var dismiss
     @Environment(AppState.self) private var appState
 
-    @State var detailedBook: Book?
-    @State var isLoading = true
-    @State private var playbackError: String?
-    @State private var showPlaybackError = false
-    @State private var isStartingPlayback = false
-    @State private var showRemoveDownloadConfirmation = false
-    @State var isDescriptionExpanded = false
-    @State var colorLoader = DynamicColorLoader()
-    @State private var similarBooks: [Book] = []
-    var downloadService = DownloadService.shared
-
     public init(book: Book) {
-        self.book = book
+        self._viewModel = State(wrappedValue: BookDetailViewModel(book: book))
     }
 
     public var body: some View {
@@ -37,9 +26,9 @@ public struct BookDetailView: View {
                     // Back / Close handle
                     dragHandle
 
-                    if isLoading {
+                    if viewModel.isLoading {
                         loadingState
-                    } else if let detailed = detailedBook {
+                    } else if let detailed = viewModel.detailedBook {
                         bookDetailsContent(detailed)
                     } else {
                         errorState
@@ -51,27 +40,25 @@ public struct BookDetailView: View {
             }
         }
         .preferredColorScheme(.dark)
-        .alert("Playback Error", isPresented: $showPlaybackError) {
+        .alert("Playback Error", isPresented: $viewModel.showPlaybackError) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text(playbackError ?? "Unknown error")
+            Text(viewModel.playbackError ?? "Unknown error")
         }
         .confirmationDialog(
             "Remove Download",
-            isPresented: $showRemoveDownloadConfirmation,
+            isPresented: $viewModel.showRemoveDownloadConfirmation,
             titleVisibility: .visible
         ) {
             Button("Remove Downloaded File", role: .destructive) {
-                if let detailed = detailedBook {
-                    try? downloadService.deleteDownload(bookId: detailed.id)
-                }
+                viewModel.removeDownload()
             }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Are you sure you want to remove this downloaded audiobook from your device?")
         }
         .task {
-            await fetchDetails()
+            await viewModel.fetchDetails(appState: appState)
         }
     }
 
@@ -79,14 +66,14 @@ public struct BookDetailView: View {
 
     private var backgroundLayer: some View {
         ZStack {
-            if colorLoader.isLoaded {
-                colorLoader.backgroundColor
+            if viewModel.colorLoader.isLoaded {
+                viewModel.colorLoader.backgroundColor
                     .ignoresSafeArea()
 
                 LinearGradient(
                     colors: [
-                        colorLoader.backgroundColor.opacity(0.6),
-                        colorLoader.backgroundColor.opacity(0.2),
+                        viewModel.colorLoader.backgroundColor.opacity(0.6),
+                        viewModel.colorLoader.backgroundColor.opacity(0.2),
                         Color.appBackground
                     ],
                     startPoint: .top,
@@ -139,7 +126,7 @@ public struct BookDetailView: View {
                 .foregroundStyle(.white)
             Button("Retry") {
                 Task {
-                    await fetchDetails()
+                    await viewModel.fetchDetails(appState: appState)
                 }
             }
             .padding()
@@ -153,34 +140,11 @@ public struct BookDetailView: View {
 
     private func bookDetailsContent(_ detailed: Book) -> some View {
         VStack(spacing: 24) {
-            // Large Cover Art
-            coverArtSection(detailed)
-
-            // Title & Authors
-            VStack(spacing: 6) {
-                Text(detailed.title)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.white)
-
-                if let author = detailed.author, !author.isEmpty, author != "Unknown Author" {
-                    Text("by \(author)")
-                        .font(.headline)
-                        .foregroundStyle(Color.appPrimary)
-                        .multilineTextAlignment(.center)
-                }
-
-                if let narrator = detailed.media.metadata.narratorName {
-                    Text("Narrated by \(narrator)")
-                        .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.65))
-                        .multilineTextAlignment(.center)
-                }
-            }
+            // Header: Large Cover Art, Title & Authors
+            BookDetailHeader(detailed: detailed, appState: appState, viewModel: viewModel)
 
             // Play & Download Actions
-            actionButtonsSection(detailed)
+            BookActionRow(detailed: detailed, viewModel: viewModel)
 
             // Missing Files Warning
             if detailed.isMissing == true {
@@ -200,208 +164,12 @@ public struct BookDetailView: View {
 
             // Chapters List
             if !detailed.chapters.isEmpty {
-                chaptersSection(detailed)
+                ChapterListView(detailed: detailed, viewModel: viewModel)
             }
 
             // Similar Books
-            if !similarBooks.isEmpty {
+            if !viewModel.similarBooks.isEmpty {
                 similarBooksSection
-            }
-        }
-    }
-
-    private func coverArtSection(_ detailed: Book) -> some View {
-        let coverURL = appState.getCoverURL(itemId: detailed.id, width: 600, updatedAt: detailed.updatedAt)
-        return SmartAsyncImage(url: coverURL) { image in
-            image
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-        } placeholder: {
-            placeholderCover
-        }
-        .frame(width: 260, height: 260)
-        .background {
-            SmartAsyncImage(url: coverURL) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .blur(radius: 10)
-                    .opacity(0.4)
-            } placeholder: {
-                Color.appSecondaryBackground
-            }
-        }
-        .clipped()
-            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.4),
-                                Color.white.opacity(0.1)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 0.5
-                    )
-            )
-            .shadow(color: colorLoader.backgroundColor.opacity(0.55), radius: 24, x: 0, y: 12)
-    }
-
-    private var placeholderCover: some View {
-        ZStack {
-            Image("BookPlaceholder", bundle: .module)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-
-            Color.black.opacity(0.15)
-        }
-        .frame(width: 260, height: 260)
-    }
-
-    private func actionButtonsSection(_ detailed: Book) -> some View {
-        HStack(spacing: 16) {
-            // Main Play / Continue Button
-            Button {
-                playBook(detailed)
-            } label: {
-                HStack(spacing: 8) {
-                    if isStartingPlayback {
-                        ProgressView().tint(.white)
-                        Text("Starting...")
-                            .fontWeight(.bold)
-                    } else {
-                        Image(systemName: hasProgress(detailed) ? "play.circle.fill" : "play.fill")
-                            .font(.title3)
-                        Text(hasProgress(detailed) ? "Continue (\(detailed.userMediaProgress?.progressPercentage ?? 0)%)" : "Play")
-                            .fontWeight(.bold)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .foregroundStyle((detailed.isMissing == true || isStartingPlayback) ? .white.opacity(0.5) : .white)
-                .background(
-                    (detailed.isMissing == true || isStartingPlayback) ?
-                    LinearGradient(colors: [.gray.opacity(0.3), .gray.opacity(0.2)], startPoint: .leading, endPoint: .trailing) :
-                    LinearGradient(colors: [.appPrimary, .appSecondary], startPoint: .leading, endPoint: .trailing)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .shadow(color: (detailed.isMissing == true || isStartingPlayback) ? .clear : .appPrimary.opacity(0.3), radius: 10)
-            }
-            .disabled(detailed.isMissing == true || isStartingPlayback)
-
-            // Dynamic Download Button
-            if detailed.isMissing == true {
-                Button {
-                    // Disabled
-                } label: {
-                    Image(systemName: "exclamationmark.triangle")
-                        .font(.title3)
-                        .foregroundStyle(.white.opacity(0.5))
-                        .padding()
-                        .background(.white.opacity(0.05))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-                .disabled(true)
-            } else if let download = downloadService.downloads.first(where: { $0.libraryItemId == detailed.id }) {
-                switch download.status {
-                case .pending:
-                    Button {
-                        #if os(iOS) && !SKIP
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        #endif
-                        downloadService.cancelDownload(bookId: detailed.id)
-                    } label: {
-                        HStack(spacing: 8) {
-                            CircularDownloadProgressBadge(status: .pending)
-                            Text("Pending...")
-                                .font(.caption.bold())
-                                .foregroundStyle(.orange)
-                        }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
-                        .background(.white.opacity(0.1))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-
-                case .downloading:
-                    Button {
-                        #if os(iOS) && !SKIP
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        #endif
-                        downloadService.cancelDownload(bookId: detailed.id)
-                    } label: {
-                        CircularDownloadProgressBadge(progress: download.progress, status: .downloading)
-                            .frame(width: 32, height: 32)
-                            .padding(8)
-                            .background(.white.opacity(0.1))
-                            .clipShape(Circle())
-                    }
-
-                case .completed:
-                    Button {
-                        #if os(iOS) && !SKIP
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        #endif
-                        showRemoveDownloadConfirmation = true
-                    } label: {
-                        CircularDownloadProgressBadge(status: .completed)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 10)
-                            .background(.white.opacity(0.1))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-
-                case .failed:
-                    Button {
-                        #if os(iOS) && !SKIP
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        #endif
-                        Task {
-                            await downloadService.downloadBook(detailed)
-                        }
-                    } label: {
-                        CircularDownloadProgressBadge(status: .failed)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 10)
-                            .background(.white.opacity(0.1))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                case .paused:
-                    Button {
-                        #if os(iOS) && !SKIP
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        #endif
-                        Task {
-                            await downloadService.downloadBook(detailed)
-                        }
-                    } label: {
-                        CircularDownloadProgressBadge(status: .paused)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 10)
-                            .background(.white.opacity(0.1))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                }
-            } else {
-                Button {
-                    #if os(iOS) && !SKIP
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    #endif
-                    Task {
-                        await downloadService.downloadBook(detailed)
-                    }
-                } label: {
-                    Image(systemName: "arrow.down.circle")
-                        .font(.title3)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                        .background(.white.opacity(0.1))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
             }
         }
     }
@@ -432,7 +200,7 @@ public struct BookDetailView: View {
 
     private func statsRowSection(_ detailed: Book) -> some View {
         HStack(spacing: 12) {
-            statBadge(icon: "clock", value: formatDuration(detailed.duration), label: "Duration")
+            statBadge(icon: "clock", value: viewModel.formatDuration(detailed.duration), label: "Duration")
             if let year = detailed.media.metadata.publishedYear {
                 statBadge(icon: "calendar", value: year, label: "Published")
             }
@@ -467,13 +235,13 @@ public struct BookDetailView: View {
             Text(cleanHTML(text))
                 .font(.body)
                 .foregroundStyle(.white.opacity(0.8))
-                .lineLimit(isDescriptionExpanded ? nil : 4)
-                .animation(.easeInOut, value: isDescriptionExpanded)
+                .lineLimit(viewModel.isDescriptionExpanded ? nil : 4)
+                .animation(.easeInOut, value: viewModel.isDescriptionExpanded)
 
             Button {
-                isDescriptionExpanded.toggle()
+                viewModel.isDescriptionExpanded.toggle()
             } label: {
-                Text(isDescriptionExpanded ? "Show Less" : "Read More")
+                Text(viewModel.isDescriptionExpanded ? "Show Less" : "Read More")
                     .font(.subheadline.bold())
                     .foregroundStyle(Color.appPrimary)
             }
@@ -504,7 +272,7 @@ public struct BookDetailView: View {
                 if let series = detailed.media.metadata.seriesName, !series.isEmpty {
                     metadataRow(icon: "books.vertical", label: "Series", value: series)
                 }
-                metadataRow(icon: "clock", label: "Duration", value: formatDuration(detailed.duration))
+                metadataRow(icon: "clock", label: "Duration", value: viewModel.formatDuration(detailed.duration))
                 if !detailed.media.metadata.genres.isEmpty {
                     metadataRow(icon: "tag", label: "Genres", value: detailed.media.metadata.genres.joined(separator: ", "))
                 }
@@ -531,115 +299,6 @@ public struct BookDetailView: View {
         }
     }
 
-    private func chaptersSection(_ detailed: Book) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Chapters (\(detailed.chapters.count))")
-                .font(.headline)
-                .foregroundStyle(.white)
-                .padding(.horizontal, 4)
-
-            VStack(spacing: 8) {
-                ForEach(detailed.chapters) { chapter in
-                    Button {
-                        playBook(detailed, seekToTime: chapter.start)
-                    } label: {
-                        HStack {
-                            Text(chapter.title)
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.white)
-                                .multilineTextAlignment(.leading)
-
-                            Spacer()
-
-                            Text(formatDuration(chapter.duration))
-                                .font(.caption.monospaced())
-                                .foregroundStyle(.secondary)
-                        }
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 14)
-                        .background(.ultraThinMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .strokeBorder(.white.opacity(0.15), lineWidth: 1)
-                        )
-                    }
-                    .liquidPressable()
-                }
-            }
-        }
-    }
-
-    // MARK: - Operations / Helpers
-
-    private func fetchDetails() async {
-        isLoading = true
-        do {
-            let detailed = try await AudiobookphileAPI.shared.getLibraryItem(id: book.id)
-            self.detailedBook = detailed
-            if let coverUrl = appState.getCoverURL(itemId: detailed.id, width: 600, updatedAt: detailed.updatedAt) {
-                await colorLoader.loadColor(from: coverUrl)
-            }
-            // Fetch Similar Books in parallel or sequentially
-            let similar = try? await AudiobookphileAPI.shared.getSimilarItems(itemId: book.id)
-            if let similar {
-                self.similarBooks = similar
-            }
-        } catch {
-            print("[BookDetailView] Error fetching detailed metadata: \(error)")
-            playbackError = error.localizedDescription
-            showPlaybackError = true
-        }
-        isLoading = false
-    }
-
-    private func playBook(_ detailed: Book, seekToTime: TimeInterval? = nil) {
-        Task {
-            isStartingPlayback = true
-            defer { isStartingPlayback = false }
-            do {
-                let session = try await AudiobookphileAPI.shared.startPlaybackSession(libraryItemId: detailed.id)
-
-                // If a seek time is supplied (e.g. from tapping a chapter), store it before starting
-                if let seekTime = seekToTime {
-                    UserDefaults.standard.set(seekTime, forKey: "pendingSeekTime-\(session.id)")
-                }
-
-                // Actually start playback (loads tracks, sets up AVPlayer, starts playing)
-                AudioPlayerService.shared.startPlayback(session: session)
-
-                dismiss()
-
-                // Open full player using the Coordinator with a slight delay
-                // to allow the dismissal animation to complete.
-                PlayerCoordinator.shared.presentPlayer(delayMilliseconds: 500)
-
-            } catch {
-                print("Failed to start playback session: \(error)")
-                playbackError = error.localizedDescription
-                showPlaybackError = true
-            }
-        }
-    }
-
-    private func hasProgress(_ detailed: Book) -> Bool {
-        if let progress = detailed.userMediaProgress, !progress.isFinished, progress.progress > 0 {
-            return true
-        }
-        return false
-    }
-
-    private func formatDuration(_ duration: TimeInterval) -> String {
-        let hours = Int(duration) / 3600
-        let minutes = (Int(duration) % 3600) / 60
-        if hours > 0 {
-            return "\(hours)h \(minutes)m"
-        } else {
-            return "\(minutes)m"
-        }
-    }
-
     private func cleanHTML(_ html: String) -> String {
         // Strip basic HTML tag patterns for cleaner text display
         html.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
@@ -657,7 +316,7 @@ public struct BookDetailView: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    ForEach(similarBooks) { similarBook in
+                    ForEach(viewModel.similarBooks) { similarBook in
                         NavigationLink(destination: BookDetailView(book: similarBook)) {
                             BookCard(book: similarBook) {}
                                 .frame(width: 140)

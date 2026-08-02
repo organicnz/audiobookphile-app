@@ -55,6 +55,8 @@ public class AudioPlayerService {
 
     private var progressSyncTimer: Timer?
     private var lastSyncedTime: TimeInterval = 0
+    private var seekTask: Task<Void, Never>?
+    private var progressSyncTask: Task<Void, Never>?
 
     private init() {
         #if os(iOS)
@@ -308,29 +310,36 @@ public class AudioPlayerService {
         }
 
         #if !SKIP && !os(Android)
-        if targetTrackIndex == currentTrackIndex {
-            // We are already on the correct track, just seek AVPlayer
-            let cmTime = CMTime(seconds: seekTimeWithinTrack, preferredTimescale: 600)
-            player?.seek(to: cmTime, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] completed in
-                Task { @MainActor in
-                    guard let self = self, self.currentSeekID == seekID else { return }
-                    self.currentSeekID = nil
-                    if completed {
-                        self.updateNowPlaying(elapsedTime: targetTime)
-                        self.syncProgressImmediately()
+        seekTask?.cancel()
+        seekTask = Task { @MainActor [weak self] in
+            // Debounce physical AVPlayer seek by 300ms to avoid thrashing
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            guard !Task.isCancelled, let self = self else { return }
+            
+            if targetTrackIndex == self.currentTrackIndex {
+                // We are already on the correct track, just seek AVPlayer
+                let cmTime = CMTime(seconds: seekTimeWithinTrack, preferredTimescale: 600)
+                self.player?.seek(to: cmTime, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] completed in
+                    Task { @MainActor in
+                        guard let self = self, self.currentSeekID == seekID else { return }
+                        self.currentSeekID = nil
+                        if completed {
+                            self.updateNowPlaying(elapsedTime: targetTime)
+                            self.debounceProgressSync()
+                        }
                     }
                 }
+            } else {
+                // Switch tracks!
+                self.loadQueue(from: targetTrackIndex, seekTimeWithinTrack: seekTimeWithinTrack, autoPlay: self.isPlaying)
+                self.currentSeekID = nil
+                self.updateNowPlaying(elapsedTime: targetTime)
+                self.debounceProgressSync()
             }
-        } else {
-            // Switch tracks!
-            loadQueue(from: targetTrackIndex, seekTimeWithinTrack: seekTimeWithinTrack, autoPlay: isPlaying)
-            currentSeekID = nil
-            updateNowPlaying(elapsedTime: targetTime)
-            syncProgressImmediately()
         }
         #else
         currentSeekID = nil
-        syncProgressImmediately()
+        debounceProgressSync()
         #endif
     }
 
@@ -755,9 +764,13 @@ public class AudioPlayerService {
                     self.isBuffering = false
                     self.retryCount = 0
                 case .waitingToPlayAtSpecifiedRate:
+                    self.isPlaying = true
                     self.isBuffering = true
                 case .paused:
-                    self.isPlaying = false
+                    // Only set to paused if we aren't currently seeking
+                    if self.currentSeekID == nil {
+                        self.isPlaying = false
+                    }
                     self.isBuffering = false
                 @unknown default:
                     break
@@ -1178,6 +1191,14 @@ public class AudioPlayerService {
             let item = ProgressSyncQueueItem(sessionId: session.id, episodeId: session.episodeId, currentTime: currentTime, duration: duration, timeListened: timeListenedToSync)
             queueOfflineProgress(item: item)
             self.syncWidgetState()
+        }
+    }
+    private func debounceProgressSync() {
+        progressSyncTask?.cancel()
+        progressSyncTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            guard !Task.isCancelled else { return }
+            self?.syncProgressImmediately()
         }
     }
 

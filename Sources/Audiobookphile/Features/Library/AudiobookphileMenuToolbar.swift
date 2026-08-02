@@ -13,16 +13,13 @@ public struct AudiobookphileMenuToolbar: ViewModifier {
     @Environment(AppState.self) private var appState
     let title: String
 
-    @State private var showingSettings = false
-    @State private var showingStats = false
-    @State private var showingAccount = false
-    @State private var showingConnectModal = false
-
     public init(title: String) {
         self.title = title
     }
 
     public func body(content: Content) -> some View {
+        @Bindable var bindableAppState = appState
+        
         content
             .navigationTitle(title)
             #if os(iOS) || SKIP
@@ -31,28 +28,13 @@ public struct AudiobookphileMenuToolbar: ViewModifier {
             .toolbar {
                 audiobookphileServerMenuToolbarItem(
                     appState: appState,
-                    showingAccount: $showingAccount,
-                    showingConnectModal: $showingConnectModal
+                    showingAccount: $bindableAppState.showingAccount,
+                    showingConnectModal: $bindableAppState.showingConnectModal
                 )
-                audiobookphileTrailingToolbarItems(showingStats: $showingStats, showingSettings: $showingSettings)
-            }
-            .sheet(isPresented: $showingSettings) {
-                NavigationStack {
-                    SettingsView()
-                }
-            }
-            .sheet(isPresented: $showingStats) {
-                NavigationStack {
-                    StatsView()
-                }
-            }
-            .sheet(isPresented: $showingAccount) {
-                NavigationStack {
-                    AccountView()
-                }
-            }
-            .sheet(isPresented: $showingConnectModal) {
-                ConnectView()
+                audiobookphileTrailingToolbarItems(
+                    showingStats: $bindableAppState.showingStats,
+                    showingSettings: $bindableAppState.showingSettings
+                )
             }
     }
 }

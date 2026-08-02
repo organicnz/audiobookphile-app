@@ -63,7 +63,10 @@ public class DownloadService: NSObject, URLSessionDownloadDelegate {
     private let fm = FileManager.default
     @ObservationIgnored
     private lazy var urlSession: URLSession = {
-        return URLSession(configuration: .default, delegate: self, delegateQueue: nil)
+        let config = URLSessionConfiguration.background(withIdentifier: "com.audiobookphile.downloads")
+        config.isDiscretionary = false
+        config.sessionSendsLaunchEvents = true
+        return URLSession(configuration: config, delegate: self, delegateQueue: nil)
     }()
 
     private var downloadsDirectory: URL {
@@ -464,6 +467,13 @@ public class DownloadService: NSObject, URLSessionDownloadDelegate {
         if let error = error {
             Task { @MainActor in
                 let nsError = error as NSError
+                
+                // Save resume data if available
+                if let resumeData = nsError.userInfo[NSURLSessionDownloadTaskResumeData] as? Data, let bookId = self.activeBookId {
+                    let fileURL = self.downloadsDirectory.appendingPathComponent("\(bookId)_resume.dat")
+                    try? resumeData.write(to: fileURL)
+                }
+                
                 if nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled {
                     return
                 }

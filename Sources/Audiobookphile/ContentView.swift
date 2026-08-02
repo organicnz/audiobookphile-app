@@ -10,31 +10,47 @@ import SwiftUI
 public struct ContentView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.scenePhase) private var scenePhase
-    @State private var showingConnectSheet = false
+
 
     public init() {}
 
     public var body: some View {
-        MainTabView()
+        @Bindable var bindableAppState = appState
+        return MainTabView()
             .preferredColorScheme(.dark)
-            .sheet(isPresented: $showingConnectSheet) {
+            .sheet(isPresented: $bindableAppState.showingConnectModal) {
                 ConnectView()
+            }
+            .sheet(isPresented: $bindableAppState.showingSettings) {
+                NavigationStack {
+                    SettingsView()
+                }
+            }
+            .sheet(isPresented: $bindableAppState.showingStats) {
+                NavigationStack {
+                    StatsView()
+                }
+            }
+            .sheet(isPresented: $bindableAppState.showingAccount) {
+                NavigationStack {
+                    AccountView()
+                }
             }
             .onAppear {
                 if !appState.isAuthenticated && !appState.isLoading {
-                    showingConnectSheet = true
+                    appState.showingConnectModal = true
                 }
             }
             .onChange(of: appState.isLoading) { _, isLoading in
                 if !isLoading && !appState.isAuthenticated {
-                    showingConnectSheet = true
+                    appState.showingConnectModal = true
                 }
             }
             .onChange(of: appState.isAuthenticated) { _, isAuthenticated in
                 if isAuthenticated {
-                    showingConnectSheet = false
+                    appState.showingConnectModal = false
                 } else if !appState.isLoading {
-                    showingConnectSheet = true
+                    appState.showingConnectModal = true
                 }
             }
             .onChange(of: scenePhase) { oldPhase, newPhase in
