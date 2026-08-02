@@ -36,6 +36,9 @@ public struct CollectionsView: View {
             .padding(.horizontal, 24)
         }
         .audiobookphileNavigationToolbar(title: "Collections")
+        #if os(iOS) || SKIP
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Picker("Collection Type", selection: $selectedType) {

@@ -18,7 +18,6 @@ public struct BookshelfView: View {
     @State var searchText = ""
     @State var scrollOffset: CGFloat = 0
     @State var selectedBookForDetails: Book?
-    @State var showStatsSheet = false
 
     @State var selectedPill: LibraryPill = .library
     
@@ -38,10 +37,6 @@ public struct BookshelfView: View {
             // Main content
             ScrollView {
                 VStack(spacing: 24) {
-                    // Top Navigation Pills
-                    navigationPillSection
-                        .padding(.top, 16)
-
                     // Main library grid
                     if selectedPill == .library {
                         libraryGridSection
@@ -82,23 +77,42 @@ public struct BookshelfView: View {
             BookDetailView(book: book)
         }
         .audiobookphileNavigationToolbar(title: "Library")
-        .task {
-            await viewModel.loadLibrary(libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated)
-        }
-        .onChange(of: appState.currentLibraryId) { _, newId in
-            Task {
-                await viewModel.loadLibrary(libraryId: newId, isAuthenticated: appState.isAuthenticated)
+        #if os(iOS) || SKIP
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Picker("Library View", selection: $selectedPill) {
+                    Text("Library").tag(LibraryPill.library)
+                    Text("Authors").tag(LibraryPill.authors)
+                    Text("Narrators").tag(LibraryPill.narrators)
+                }
+                .pickerStyle(.segmented)
+                .controlSize(.large)
+                .tint(.appPrimary)
             }
-        }
-        .onChange(of: appState.isAuthenticated) { _, isAuth in
-            if isAuth {
-                Task {
-                    await viewModel.loadLibrary(libraryId: appState.currentLibraryId, isAuthenticated: isAuth)
+            #if os(iOS) || SKIP
+            ToolbarItem(placement: .topBarTrailing) {
+                if selectedPill == .library {
+                    Button(action: viewModel.showFilterOptions) {
+                        Image(systemName: "line.3.horizontal.decrease.circle")
+                    }
+                    .tint(.primary)
                 }
             }
+            #else
+            ToolbarItem(placement: .primaryAction) {
+                if selectedPill == .library {
+                    Button(action: viewModel.showFilterOptions) {
+                        Image(systemName: "line.3.horizontal.decrease.circle")
+                    }
+                    .tint(.primary)
+                }
+            }
+            #endif
         }
-        .sheet(isPresented: $showStatsSheet) {
-            StatsDashboardView()
+        .task(id: LibraryLoadTrigger(libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated)) {
+            await viewModel.loadLibrary(libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated)
         }
         .applySensoryFeedback(trigger: selectedBookForDetails != nil)
     }
@@ -109,33 +123,7 @@ public struct BookshelfView: View {
         Color.appBackground.ignoresSafeArea()
     }
 
-    // MARK: - Navigation Pills
-
-    private var navigationPillSection: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(LibraryPill.allCases, id: \.self) { pill in
-                    Button(action: {
-                        withAnimation(.snappy) {
-                            selectedPill = pill
-                        }
-                    }) {
-                        Text(pill.rawValue)
-                            .font(.subheadline)
-                            .fontWeight(selectedPill == pill ? .semibold : .regular)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .background(
-                                Capsule()
-                                    .fill(selectedPill == pill ? Color.cyan.opacity(0.8) : Color.white.opacity(0.1))
-                            )
-                            .foregroundStyle(selectedPill == pill ? .white : .secondary)
-                    }
-                }
-            }
-            .padding(.horizontal)
-        }
-    }
+    // MARK: - Navigation Pills removed in favor of Toolbar Picker
 
     // (Continue listening moved to HomeView)
 
@@ -143,22 +131,6 @@ public struct BookshelfView: View {
 
     private var libraryGridSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text(viewModel.currentLibrary?.name ?? "All Books")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white)
-
-                Spacer()
-
-                // Filter/sort button
-                Button(action: viewModel.showFilterOptions) {
-                    Image(systemName: "line.3.horizontal.decrease.circle")
-                        .font(.title3)
-                        .foregroundStyle(.white)
-                }
-            }
-            .padding(.horizontal)
 
             // Virtualized grid (adaptive columns for iPhone / iPad / Mac)
             LazyVGrid(
@@ -276,7 +248,7 @@ public struct BookshelfView: View {
 
             Spacer()
         }
-        .background(.ultraThinMaterial)
+        .glassCard(cornerRadius: 16)
     }
 
     // MARK: - End BookshelfView
@@ -570,4 +542,14 @@ public class BookshelfViewModel {
     public func showSettings() {}
     public func showDownloads() {}
     public func showStats() {}
+}
+
+public struct LibraryLoadTrigger: Equatable {
+    public let libraryId: String?
+    public let isAuthenticated: Bool
+    
+    public init(libraryId: String?, isAuthenticated: Bool) {
+        self.libraryId = libraryId
+        self.isAuthenticated = isAuthenticated
+    }
 }

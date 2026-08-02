@@ -490,6 +490,9 @@ public class AudioPlayerService {
     private func setupAudioSession() {
         reconfigureAudioSession()
         setupAudioObservers()
+        #if os(iOS)
+        UIApplication.shared.beginReceivingRemoteControlEvents()
+        #endif
     }
 
     private func setupAudioObservers() {
@@ -675,6 +678,9 @@ public class AudioPlayerService {
         }
 
         player?.removeAllItems()
+        if autoPlay {
+            self.isPlaying = true
+        }
         topUpQueue(from: index)
         #endif
     }
@@ -710,7 +716,13 @@ public class AudioPlayerService {
             logger.error("No valid URL for track index \(index): \(track.contentUrl)")
             return nil
         }
-        let asset = AVURLAsset(url: url, options: [AVURLAssetPreferPreciseDurationAndTimingKey: true])
+        
+        var options: [String: Any] = [AVURLAssetPreferPreciseDurationAndTimingKey: true]
+        if let token = UserDefaults.standard.string(forKey: "abp_serverToken"), url.absoluteString.hasPrefix("http") {
+            options["AVURLAssetHTTPHeaderFieldsKey"] = ["Authorization": "Bearer \(token)"]
+        }
+        
+        let asset = AVURLAsset(url: url, options: options)
         let item = AVPlayerItem(asset: asset)
         item.preferredForwardBufferDuration = 30.0
         #if os(iOS)

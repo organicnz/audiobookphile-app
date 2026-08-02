@@ -45,20 +45,8 @@ public struct HomeView: View {
         .navigationDestination(item: $selectedBookForDetails) { book in
             BookDetailView(book: book)
         }
-        .task {
+        .task(id: LibraryLoadTrigger(libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated)) {
             await viewModel.loadLibrary(libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated)
-        }
-        .onChange(of: appState.currentLibraryId) { _, newId in
-            Task {
-                await viewModel.loadLibrary(libraryId: newId, isAuthenticated: appState.isAuthenticated)
-            }
-        }
-        .onChange(of: appState.isAuthenticated) { _, isAuth in
-            if isAuth {
-                Task {
-                    await viewModel.loadLibrary(libraryId: appState.currentLibraryId, isAuthenticated: isAuth)
-                }
-            }
         }
     }
 
@@ -131,14 +119,14 @@ public struct HomeView: View {
                     // Dummy placeholders for series
                     ForEach(0..<3, id: \.self) { _ in
                         VStack(alignment: .leading, spacing: 8) {
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(Color.gray.opacity(0.2))
+                            Color.clear
                                 .frame(width: 200, height: 100)
                                 .overlay(
                                     Image(systemName: "books.vertical.fill")
                                         .font(.largeTitle)
                                         .foregroundStyle(.secondary)
                                 )
+                                .glassCard(cornerRadius: 14)
                             Text("Series Title")
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
