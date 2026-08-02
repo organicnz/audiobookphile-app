@@ -420,17 +420,21 @@ public class BookshelfViewModel {
         self.customService = service
     }
 
-    private static var memoryCache: [String: (books: [Book], total: Int, page: Int)] = [:]
+    public struct BookshelfCacheData: Codable, Sendable {
+        public let books: [Book]
+        public let total: Int
+        public let page: Int
+    }
 
     public func loadLibrary(libraryId: String?, isAuthenticated: Bool, sort: String = "addedAt", desc: Bool = true) async {
-        let cacheKey = "\(libraryId ?? "default")_\(sort)_\(desc)"
+        let cacheKey = "bookshelf_\(libraryId ?? "default")_\(sort)_\(desc)"
 
         self.currentPage = 0
         self.currentSort = sort
         self.currentDesc = desc
 
-        // Instantly populate from memory cache if available for smooth navigation
-        if let cached = Self.memoryCache[cacheKey], !cached.books.isEmpty {
+        // Instantly populate from disk cache if available for smooth navigation
+        if let cached = await LocalCacheService.shared.load(forKey: cacheKey, as: BookshelfCacheData.self), !cached.books.isEmpty {
             self.books = cached.books
             self.filteredBooks = cached.books
             self.totalBooksCount = cached.total
@@ -462,7 +466,9 @@ public class BookshelfViewModel {
             self.totalBooksCount = response.total
             self.currentPage = 0
             self.hasMorePages = pageSize > 0 && self.books.count < response.total
-            Self.memoryCache[cacheKey] = (books: response.results, total: response.total, page: 0)
+            
+            let cacheData = BookshelfCacheData(books: response.results, total: response.total, page: 0)
+            await LocalCacheService.shared.save(cacheData, forKey: cacheKey)
 
             // Continue Listening is server-driven
             self.continueListening = try await service.fetchContinueListening(libraryId: libraryId)

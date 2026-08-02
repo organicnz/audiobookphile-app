@@ -30,7 +30,7 @@ public class AudioPlayerService {
     public var currentTime: TimeInterval = 0
     public var playbackRate: Float = 1.0
     public var duration: TimeInterval = 0
-    private var isSeeking = false
+    private var currentSeekID: UUID?
     public var sleepTimerRemaining: TimeInterval?
     public var bookmarks: [Bookmark] = []
     private var sleepTimer: Timer?
@@ -279,7 +279,9 @@ public class AudioPlayerService {
         let targetTime = max(0, min(time, duration))
         self.logger.info("SEEK CALLED: requestedTime=\(time), duration=\(self.duration), targetTime=\(targetTime)")
         self.currentTime = targetTime
-        self.isSeeking = true
+        
+        let seekID = UUID()
+        self.currentSeekID = seekID
 
         // Find the correct track for targetTime
         var targetTrackIndex = session.audioTracks.count > 0 ? session.audioTracks.count - 1 : 0
@@ -310,27 +312,24 @@ public class AudioPlayerService {
             // We are already on the correct track, just seek AVPlayer
             let cmTime = CMTime(seconds: seekTimeWithinTrack, preferredTimescale: 600)
             player?.seek(to: cmTime, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] completed in
-                if completed {
-                    Task { @MainActor in
-                        self?.isSeeking = false
-                        self?.updateNowPlaying(elapsedTime: targetTime)
-                        self?.syncProgressImmediately()
-                    }
-                } else {
-                    Task { @MainActor in
-                        self?.isSeeking = false
+                Task { @MainActor in
+                    guard let self = self, self.currentSeekID == seekID else { return }
+                    self.currentSeekID = nil
+                    if completed {
+                        self.updateNowPlaying(elapsedTime: targetTime)
+                        self.syncProgressImmediately()
                     }
                 }
             }
         } else {
             // Switch tracks!
             loadQueue(from: targetTrackIndex, seekTimeWithinTrack: seekTimeWithinTrack, autoPlay: isPlaying)
-            isSeeking = false
+            currentSeekID = nil
             updateNowPlaying(elapsedTime: targetTime)
             syncProgressImmediately()
         }
         #else
-        isSeeking = false
+        currentSeekID = nil
         syncProgressImmediately()
         #endif
     }
@@ -950,7 +949,7 @@ public class AudioPlayerService {
     }
 
     private func handlePeriodicTimeUpdate(time: CMTime) {
-        guard isPlaying, !isSeeking, let session = session, currentTrackIndex < session.audioTracks.count else { return }
+        guard isPlaying, currentSeekID == nil, let session = session, currentTrackIndex < session.audioTracks.count else { return }
         let track = session.audioTracks[currentTrackIndex]
         let trackStart = track.startOffset
         let absoluteTime = trackStart + time.seconds

@@ -375,7 +375,7 @@ public actor AudiobookphileAPI {
         }
 
         var attempts = 0
-        let maxAttempts = isRetry ? 1 : 3
+        let maxAttempts = isRetry ? 1 : 4
 
         while true {
             attempts += 1
@@ -401,7 +401,7 @@ public actor AudiobookphileAPI {
 
                 // If 5xx server error, attempt retry with exponential backoff
                 if (500...599).contains(httpResponse.statusCode) && attempts < maxAttempts {
-                    let delayNano = UInt64(Double(attempts * 200) * 1_000_000)
+                    let delayNano = UInt64(Double(1 << (attempts - 1)) * 1_000_000_000)
                     try? await Task.sleep(nanoseconds: delayNano)
                     continue
                 }
@@ -440,7 +440,7 @@ public actor AudiobookphileAPI {
                 throw error
             } catch {
                 if attempts < maxAttempts {
-                    let delayNano = UInt64(Double(attempts * 200) * 1_000_000)
+                    let delayNano = UInt64(Double(1 << (attempts - 1)) * 1_000_000_000)
                     try? await Task.sleep(nanoseconds: delayNano)
                     continue
                 }
