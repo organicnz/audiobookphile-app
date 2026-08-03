@@ -281,12 +281,12 @@ public class AudioPlayerService {
         let targetTime = max(0, min(time, duration))
         self.logger.info("SEEK CALLED: requestedTime=\(time), duration=\(self.duration), targetTime=\(targetTime)")
         self.currentTime = targetTime
-        
+
         let seekID = UUID()
         self.currentSeekID = seekID
 
         // Find the correct track for targetTime
-        var targetTrackIndex = session.audioTracks.count > 0 ? session.audioTracks.count - 1 : 0
+        var targetTrackIndex = max(0, session.audioTracks.count - 1)
         var seekTimeWithinTrack = targetTime
         var matched = false
 
@@ -312,12 +312,12 @@ public class AudioPlayerService {
         #if !SKIP && !os(Android)
         seekTask?.cancel()
         seekTask = Task { @MainActor [weak self] in
-            // Debounce physical AVPlayer seek by 300ms to avoid thrashing
+            // Debounce physical AVPlayer seek by 300ms to avoid thrashing during fast scrubs
             try? await Task.sleep(nanoseconds: 300_000_000)
             guard !Task.isCancelled, let self = self else { return }
-            
+
             if targetTrackIndex == self.currentTrackIndex {
-                // We are already on the correct track, just seek AVPlayer
+                // Same track — just seek AVPlayer directly
                 let cmTime = CMTime(seconds: seekTimeWithinTrack, preferredTimescale: 600)
                 self.player?.seek(to: cmTime, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] completed in
                     Task { @MainActor in
@@ -330,7 +330,9 @@ public class AudioPlayerService {
                     }
                 }
             } else {
-                // Switch tracks!
+                // Cross-track seek: set pending seek time regardless of value
+                // (previously a 0.1 threshold caused seeks to chapter/track starts to be dropped)
+                self.pendingSeekTimeWithinTrack = seekTimeWithinTrack
                 self.loadQueue(from: targetTrackIndex, seekTimeWithinTrack: seekTimeWithinTrack, autoPlay: self.isPlaying)
                 self.currentSeekID = nil
                 self.updateNowPlaying(elapsedTime: targetTime)
@@ -685,7 +687,10 @@ public class AudioPlayerService {
         guard index >= 0 && index < session.audioTracks.count else { return }
 
         self.currentTrackIndex = index
-        self.pendingSeekTimeWithinTrack = seekTimeWithinTrack > 0.1 ? seekTimeWithinTrack : nil
+        // Always store the pending seek — the 0.1 threshold caused seeks to track/chapter
+        // starts (seekTimeWithinTrack == 0) to be silently dropped, making the track play
+        // from the beginning instead of the requested position.
+        self.pendingSeekTimeWithinTrack = seekTimeWithinTrack
 
         #if !SKIP && !os(Android)
         if player == nil {
@@ -846,19 +851,31 @@ public class AudioPlayerService {
                 switch item.status {
                 case .readyToPlay:
                     self.logger.info("AVPlayerItem ready to play (track \(self.currentTrackIndex))")
-                    if let pendingSeek = self.pendingSeekTimeWithinTrack, pendingSeek > 0.1 {
+                    if let pendingSeek = self.pendingSeekTimeWithinTrack {
                         self.pendingSeekTimeWithinTrack = nil
-                        let cmTime = CMTime(seconds: pendingSeek, preferredTimescale: 600)
-                        self.logger.info("Seeking ready AVPlayerItem to pending time: \(pendingSeek)s")
-                        item.seek(to: cmTime, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] _ in
-                            Task { @MainActor in
-                                guard let self = self else { return }
-                                if self.isPlaying {
-                                    self.reconfigureAudioSession()
-                                    self.player?.play()
-                                    self.player?.rate = self.playbackRate
-                                    self.updateNowPlaying(rate: self.playbackRate, elapsedTime: self.currentTime)
+                        if pendingSeek > 0.1 {
+                            // Seek to the requested position within this track
+                            let cmTime = CMTime(seconds: pendingSeek, preferredTimescale: 600)
+                            self.logger.info("Seeking ready AVPlayerItem to pending time: \(pendingSeek)s")
+                            item.seek(to: cmTime, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] _ in
+                                Task { @MainActor in
+                                    guard let self = self else { return }
+                                    if self.isPlaying {
+                                        self.reconfigureAudioSession()
+                                        self.player?.play()
+                                        self.player?.rate = self.playbackRate
+                                        self.updateNowPlaying(rate: self.playbackRate, elapsedTime: self.currentTime)
+                                    }
                                 }
+                            }
+                        } else {
+                            // pendingSeek == 0: requested the start of this track — play immediately
+                            self.logger.info("Pending seek is 0 (track start) — playing from beginning of track")
+                            if self.isPlaying {
+                                self.reconfigureAudioSession()
+                                self.player?.play()
+                                self.player?.rate = self.playbackRate
+                                self.updateNowPlaying(rate: self.playbackRate, elapsedTime: self.currentTime)
                             }
                         }
                     } else {
