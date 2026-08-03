@@ -8,6 +8,7 @@ import SwiftUI
 public struct ContinueListeningCard: View {
     public let book: Book
     public let onTap: () -> Void
+    @Environment(AppState.self) private var appState
 
     public init(book: Book, onTap: @escaping () -> Void) {
         self.book = book
@@ -124,6 +125,6 @@ public struct ContinueListeningCard: View {
         if let path = book.coverPath, path.hasPrefix("http") {
             return URL(string: path)
         }
-        return AppState.shared.getCoverURL(itemId: book.id, updatedAt: book.updatedAt)
+        return appState.getCoverURL(itemId: book.id, updatedAt: book.updatedAt)
     }
 }

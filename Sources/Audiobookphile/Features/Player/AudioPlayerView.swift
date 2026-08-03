@@ -98,6 +98,14 @@ public struct AudioPlayerView: View {
         .sheet(isPresented: $showAudioAccessibilitySheet) {
             AudioAccessibilityQuickSheet()
         }
+        .confirmationDialog("Player Options", isPresented: $showMoreMenu, titleVisibility: .visible) {
+            Button("Go to Sleep Timer") { showSleepTimer = true }
+            Button("View Chapters") { showChapters = true }
+            Button("Add Bookmark") { showAddBookmark = true }
+            Button("View Bookmarks") { showBookmarksList = true }
+            Button("Audio & Accessibility") { showAudioAccessibilitySheet = true }
+            Button("Cancel", role: .cancel) {}
+        }
         .task {
             if let url = coverURL {
                 await colorLoader.loadColor(from: url)

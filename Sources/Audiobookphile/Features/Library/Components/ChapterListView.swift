@@ -7,7 +7,8 @@ import SwiftUI
 
 public struct ChapterListView: View {
     public let detailed: Book
-    @Bindable public var viewModel: BookDetailViewModel
+    // Read-only access — calls methods only, no property bindings needed
+    public let viewModel: BookDetailViewModel
     @Environment(\.dismiss) var dismiss
 
     public init(detailed: Book, viewModel: BookDetailViewModel) {

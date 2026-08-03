@@ -16,6 +16,14 @@ public struct PlaybackControlsView: View {
         self.isUiLocked = isUiLocked
     }
 
+    // Valid SF Symbol jump-time suffixes (system icons exist for these values)
+    private static let validJumpTimes: Set<Int> = [5, 10, 15, 30, 45, 60, 75, 90]
+
+    private func jumpIcon(direction: String, time: Int) -> String {
+        let safeTime = Self.validJumpTimes.contains(time) ? time : 15
+        return "\(direction).\(safeTime)"
+    }
+
     public var body: some View {
         HStack(spacing: 0) {
             GlassIconButton(
@@ -31,7 +39,7 @@ public struct PlaybackControlsView: View {
             Spacer()
 
             GlassIconButton(
-                icon: "gobackward.\(viewModel.jumpBackwardTime)",
+                icon: jumpIcon(direction: "gobackward", time: viewModel.jumpBackwardTime),
                 size: .medium,
                 color: coverIsLight ? .black : .white,
                 action: {
@@ -49,7 +57,7 @@ public struct PlaybackControlsView: View {
             Spacer()
 
             GlassIconButton(
-                icon: "goforward.\(viewModel.jumpForwardTime)",
+                icon: jumpIcon(direction: "goforward", time: viewModel.jumpForwardTime),
                 size: .medium,
                 color: coverIsLight ? .black : .white,
                 action: {

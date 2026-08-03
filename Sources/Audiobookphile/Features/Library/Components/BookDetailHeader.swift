@@ -8,7 +8,8 @@ import SwiftUI
 public struct BookDetailHeader: View {
     public let detailed: Book
     public let appState: AppState
-    @Bindable public var viewModel: BookDetailViewModel
+    // Read-only access — no property mutation, so @Bindable is not needed
+    public let viewModel: BookDetailViewModel
 
     public init(detailed: Book, appState: AppState, viewModel: BookDetailViewModel) {
         self.detailed = detailed
