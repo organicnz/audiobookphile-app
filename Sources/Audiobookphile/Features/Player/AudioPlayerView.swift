@@ -21,7 +21,6 @@ public struct AudioPlayerView: View {
     @State var showChapters = false
     @State var showSleepTimer = false
     @State var showMoreMenu = false
-    @State var showMoreMenu = false
     @State var isUiLocked = false
     @State var showBookmarksList = false
     @State var showAddBookmark = false
