@@ -24,13 +24,7 @@ public class AppState {
     public var pending2FAServerURL: String?
     public var pending2FAMethods: TwoFactorMethodsMap?
     public var selectedLibraryId: String?
-    public var selectedTab = 0
-    
-    // Top-level presentation state
-    public var showingSettings = false
-    public var showingStats = false
-    public var showingAccount = false
-    public var showingConnectModal = false
+    public var navigation = NavigationState.shared
 
     // Real API loaded libraries
     public var libraries: [Library] = []
@@ -42,13 +36,6 @@ public class AppState {
     public var serverURL: String = ""
     public var token: String = ""
 
-    /// Tracks when the current access token was issued / last refreshed.
-    /// Used to proactively refresh before the JWT expires (default 1h).
-    private var tokenIssuedAt: Date?
-
-    /// How many seconds before expiry to trigger a proactive refresh.
-    /// Default Supabase JWT expiry is 3600s (1h); refresh at 50 min.
-    private let proactiveRefreshThreshold: TimeInterval = 50 * 60
 
     public var currentLibrary: Library? {
         libraries.first { $0.id == currentLibraryId } ?? libraries.first
@@ -60,123 +47,15 @@ public class AppState {
         }
     }
 
-    public func checkAuthentication() async {
-        isLoading = true
-
-        // Try to load saved credentials
-        if let credentials = try? KeychainManager.shared.loadCredentials() {
-            // Migration check: If the saved server is not the new Supabase backend, clear it.
-            if !credentials.serverURL.contains("supabase.co") && !credentials.serverURL.contains("vercel.app") {
-                print("[AppState] Found old non-Supabase server credentials. Migrating/Clearing...")
-                logout()
-                isLoading = false
-                return
-            }
-
-            self.serverURL = credentials.serverURL
-            self.token = credentials.token
-
-            isAuthenticated = true
-            tokenIssuedAt = Date()
-
-            // Connect socket (no-op)
-            SocketService.shared.connect(
-                serverAddress: credentials.serverURL,
-                token: credentials.token
-            )
-
-            await AudiobookphileAPI.shared.configure(
-                serverURL: credentials.serverURL,
-                token: credentials.token,
-                refreshToken: credentials.refreshToken
-            )
-
-            // Fetch user profile from Supabase API
-            do {
-                self.currentUser = try await AudiobookphileAPI.shared.getCurrentUserProfile()
-            } catch {
-                print("[AppState] Failed to fetch current user profile: \(error)")
-                self.currentUser = User(
-                    id: "local_user",
-                    username: "audiobookphile",
-                    email: nil,
-                    type: "admin",
-                    token: credentials.token,
-                    refreshToken: credentials.refreshToken,
-                    mediaProgress: [],
-                    seriesHideFromContinueListening: [],
-                    bookmarks: [],
-                    isActive: true,
-                    isLocked: false,
-                    lastSeen: nil,
-                    createdAt: Date(),
-                    permissions: UserPermissions(download: true, update: true, delete: true, upload: true, accessAllLibraries: true, accessAllTags: true, accessExplicitContent: true, createEreader: true, selectedTagsNotAccessible: nil),
-                    librariesAccessible: [],
-                    itemTagsAccessible: [],
-                    hasOpenIDLink: nil,
-                    isOldToken: nil
-                )
-            }
-
-            // Fetch user preferences from Supabase
-            do {
-                self.settings = try await AudiobookphileAPI.shared.getPreferences()
-            } catch {
-                print("[AppState] Failed to fetch preferences on launch: \(error)")
-            }
-
-            // Await library fetch so currentLibraryId is set before
-            // isLoading is cleared — otherwise BookshelfView renders
-            // with a nil libraryId and shows no books.
-            await fetchLibraries()
-        } else {
-            isAuthenticated = false
-        }
-
-        isLoading = false
+        public func checkAuthentication() async {
+        await AuthManager.shared.checkAuthentication(appState: self)
     }
 
     /// Called when the app returns to foreground (ScenePhase.active / onResume).
     /// Silently refreshes the access token if it's likely expired without
     /// disrupting the UI or showing the login screen for transient errors.
-    public func refreshSessionIfNeeded() async {
-        guard isAuthenticated else { return }
-
-        let needsRefresh: Bool
-        if let issued = tokenIssuedAt {
-            needsRefresh = Date().timeIntervalSince(issued) > proactiveRefreshThreshold
-        } else {
-            // No recorded issue time — always refresh to be safe
-            needsRefresh = true
-        }
-
-        guard needsRefresh else {
-            print("[AppState] Token still fresh, skipping foreground refresh.")
-            return
-        }
-
-        print("[AppState] Token likely expired, attempting silent foreground refresh...")
-
-        do {
-            // The API client's internal refresh will use the stored refresh token,
-            // get new tokens, and persist them to Keychain.
-            try await AudiobookphileAPI.shared.refreshTokensFromForeground()
-            tokenIssuedAt = Date()
-            print("[AppState] Silent foreground token refresh succeeded.")
-        } catch let error as APIError {
-            switch error {
-            case .authenticationFailed, .sessionExpired, .noRefreshToken:
-                // Refresh token is genuinely invalid — must re-login
-                print("[AppState] Refresh token rejected, logging out: \(error)")
-                logout()
-            default:
-                // Network error, timeout, etc. — don't log out, retry later
-                print("[AppState] Foreground refresh failed (transient): \(error)")
-            }
-        } catch {
-            // Non-API error (network, etc.) — don't log out
-            print("[AppState] Foreground refresh failed (transient): \(error)")
-        }
+        public func refreshSessionIfNeeded() async {
+        await AuthManager.shared.refreshSessionIfNeeded(appState: self)
     }
 
     public func fetchLibraries() async {
@@ -215,105 +94,15 @@ public class AppState {
         }
     }
 
-    public func login(serverURL: String, username: String, password: String) async throws {
-        isLoading = true
-
-        do {
-            let loginResponse = try await AudiobookphileAPI.shared.login(
-                serverURL: serverURL,
-                username: username,
-                password: password
-            )
-
-            if loginResponse.requires2FA == true, let userId = loginResponse.userId, let tempToken = loginResponse.tempToken {
-                self.pending2FAUserId = userId
-                self.pending2FATempToken = tempToken
-                self.pending2FAServerURL = serverURL
-                self.pending2FAMethods = loginResponse.methods
-                self.requires2FAChallenge = true
-                self.isLoading = false
-                return
-            }
-
-            guard let user = loginResponse.user else {
-                throw APIError.invalidResponse
-            }
-
-            self.serverURL = serverURL
-            self.token = user.token
-
-            currentUser = user
-            isAuthenticated = true
-
-            // Connect socket (no-op)
-            SocketService.shared.connect(
-                serverAddress: serverURL,
-                token: user.token
-            )
-
-            // Fetch user preferences from Supabase
-            do {
-                self.settings = try await AudiobookphileAPI.shared.getPreferences()
-            } catch {
-                print("[AppState] Failed to fetch preferences on login: \(error)")
-            }
-
-            // Fetch libraries immediately
-            await fetchLibraries()
-        } catch {
-            isAuthenticated = false
-            isLoading = false
-            throw error
-        }
-
-        isLoading = false
+        public func login(serverURL: String, username: String, password: String) async throws {
+        try await AuthManager.shared.login(serverURL: serverURL, username: username, password: password, appState: self)
     }
 
-    public func verify2FAChallenge(code: String, method: String? = nil) async throws {
-        guard let userId = pending2FAUserId, let tempToken = pending2FATempToken, let serverURL = pending2FAServerURL else {
-            return
-        }
-        isLoading = true
-        do {
-            let loginResponse = try await AudiobookphileAPI.shared.verify2FALogin(
-                userId: userId,
-                tempToken: tempToken,
-                code: code,
-                method: method
-            )
-            guard let user = loginResponse.user else {
-                throw APIError.invalidResponse
-            }
-            self.serverURL = serverURL
-            self.token = user.token
-            self.currentUser = user
-            self.isAuthenticated = true
-            self.requires2FAChallenge = false
-            self.pending2FAUserId = nil
-            self.pending2FATempToken = nil
-            self.pending2FAServerURL = nil
-            self.pending2FAMethods = nil
-
-            SocketService.shared.connect(
-                serverAddress: serverURL,
-                token: user.token
-            )
-
-            do {
-                self.settings = try await AudiobookphileAPI.shared.getPreferences()
-            } catch {
-                print("[AppState] Failed to fetch preferences after 2FA login: \(error)")
-            }
-
-            await fetchLibraries()
-        } catch {
-            isLoading = false
-            throw error
-        }
-        isLoading = false
+        public func verify2FAChallenge(code: String, method: String? = nil) async throws {
+        try await AuthManager.shared.verify2FAChallenge(code: code, method: method, appState: self)
     }
 
-    public func cancel2FAChallenge() {
+        public func cancel2FAChallenge() {
         self.requires2FAChallenge = false
         self.pending2FAUserId = nil
         self.pending2FATempToken = nil
@@ -321,19 +110,8 @@ public class AppState {
         self.pending2FAMethods = nil
     }
 
-    public func logout() {
-        Task {
-            await AudiobookphileAPI.shared.logout()
-        }
-        SocketService.shared.disconnect()
-        isAuthenticated = false
-        currentUser = nil
-        libraries = []
-        currentLibraryId = nil
-        serverURL = ""
-        token = ""
-        settings = AppSettings()
-        UserDefaults.standard.removeObject(forKey: StorageKeys.lastLibraryId)
+        public func logout() {
+        AuthManager.shared.logout(appState: self)
     }
 
     public func updateSettings(_ newSettings: AppSettings) {
@@ -350,18 +128,7 @@ public class AppState {
     public func getCoverURL(itemId: String, width: Int = 400, updatedAt: Date? = nil) -> URL? {
         guard !serverURL.isEmpty else { return nil }
 
-        let isDirectSupabase = serverURL.contains(".supabase.co") || serverURL.contains("54321")
-        var base = serverURL
-        if isDirectSupabase && !serverURL.contains("/functions/v1") {
-            base = "\(serverURL)/functions/v1"
-        }
-
-        var adjustedPath = "/api/items/\(itemId)/cover"
-        if base.hasSuffix("/api") && adjustedPath.starts(with: "/api") {
-            adjustedPath = String(adjustedPath.dropFirst(4))
-        }
-
-        let endpoint = base.hasSuffix("/") ? "\(base)\(adjustedPath.dropFirst())" : "\(base)\(adjustedPath)"
+        let endpoint = APIEndpoint.getCover(itemId: itemId).urlString(baseURL: serverURL)
         guard var components = URLComponents(string: endpoint) else { return nil }
 
         var queryItems = [
@@ -388,19 +155,10 @@ public class AppState {
     public func getAuthorImageURL(authorId: String, updatedAt: Date? = nil) -> URL? {
         guard !serverURL.isEmpty else { return nil }
 
-        let isDirectSupabase = serverURL.contains(".supabase.co") || serverURL.contains("54321")
-        var base = serverURL
-        if isDirectSupabase && !serverURL.contains("/functions/v1") {
-            base = "\(serverURL)/functions/v1"
-        }
-
-        var adjustedPath = "/api/authors/\(authorId)/image"
-        if base.hasSuffix("/api") && adjustedPath.starts(with: "/api") {
-            adjustedPath = String(adjustedPath.dropFirst(4))
-        }
-
-        let endpoint = base.hasSuffix("/") ? "\(base)\(adjustedPath.dropFirst())" : "\(base)\(adjustedPath)"
-        guard var components = URLComponents(string: endpoint) else { return nil }
+        let endpoint = APIEndpoint.getAuthor(authorId: authorId).urlString(baseURL: serverURL)
+        // Add /image suffix since APIEndpoint.getAuthor returns the author details endpoint
+        let imageEndpoint = "\(endpoint)/image"
+        guard var components = URLComponents(string: imageEndpoint) else { return nil }
 
         var queryItems = [URLQueryItem]()
 

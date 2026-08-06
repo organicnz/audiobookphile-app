@@ -28,12 +28,12 @@ public struct AudiobookphileMenuToolbar: ViewModifier {
             .toolbar {
                 audiobookphileServerMenuToolbarItem(
                     appState: appState,
-                    showingAccount: $bindableAppState.showingAccount,
-                    showingConnectModal: $bindableAppState.showingConnectModal
+                    showingAccount: Bindable(bindableAppState.navigation).showingAccount,
+                    showingConnectModal: Bindable(bindableAppState.navigation).showingConnectModal
                 )
                 audiobookphileTrailingToolbarItems(
-                    showingStats: $bindableAppState.showingStats,
-                    showingSettings: $bindableAppState.showingSettings
+                    showingStats: Bindable(bindableAppState.navigation).showingStats,
+                    showingSettings: Bindable(bindableAppState.navigation).showingSettings
                 )
             }
     }

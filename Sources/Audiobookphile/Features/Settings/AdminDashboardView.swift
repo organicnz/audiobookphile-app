@@ -54,7 +54,7 @@ public struct AdminDashboardView: View {
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button {
-                    appState.selectedTab = 0
+                    appState.navigation.selectedTab = 0
                     dismiss()
                 } label: {
                     HStack(spacing: 4) {
@@ -79,7 +79,7 @@ public struct AdminDashboardView: View {
 
     private var navigationBanner: some View {
         Button {
-            appState.selectedTab = 0
+            appState.navigation.selectedTab = 0
             dismiss()
         } label: {
             HStack(spacing: 12) {

@@ -135,6 +135,9 @@ public class AudioPlayerEngine {
         }
 
         currentItemObserver = player.observe(\.currentItem, options: [.initial, .new]) { [weak self] player, _ in
+            if let item = player.currentItem {
+                self?.observeCurrentItemStatus(item)
+            }
             Task { @MainActor in
                 self?.onCurrentItemChanged?(player.currentItem)
             }

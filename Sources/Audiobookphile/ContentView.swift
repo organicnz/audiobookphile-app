@@ -18,39 +18,39 @@ public struct ContentView: View {
         @Bindable var bindableAppState = appState
         return MainTabView()
             .preferredColorScheme(.dark)
-            .sheet(isPresented: $bindableAppState.showingConnectModal) {
+            .sheet(isPresented: Bindable(bindableAppState.navigation).showingConnectModal) {
                 ConnectView()
             }
-            .sheet(isPresented: $bindableAppState.showingSettings) {
+            .sheet(isPresented: Bindable(bindableAppState.navigation).showingSettings) {
                 NavigationStack {
                     SettingsView()
                 }
             }
-            .sheet(isPresented: $bindableAppState.showingStats) {
+            .sheet(isPresented: Bindable(bindableAppState.navigation).showingStats) {
                 NavigationStack {
                     StatsView()
                 }
             }
-            .sheet(isPresented: $bindableAppState.showingAccount) {
+            .sheet(isPresented: Bindable(bindableAppState.navigation).showingAccount) {
                 NavigationStack {
                     AccountView()
                 }
             }
             .onAppear {
                 if !appState.isAuthenticated && !appState.isLoading {
-                    appState.showingConnectModal = true
+                    appState.navigation.showingConnectModal = true
                 }
             }
             .onChange(of: appState.isLoading) { _, isLoading in
                 if !isLoading && !appState.isAuthenticated {
-                    appState.showingConnectModal = true
+                    appState.navigation.showingConnectModal = true
                 }
             }
             .onChange(of: appState.isAuthenticated) { _, isAuthenticated in
                 if isAuthenticated {
-                    appState.showingConnectModal = false
+                    appState.navigation.showingConnectModal = false
                 } else if !appState.isLoading {
-                    appState.showingConnectModal = true
+                    appState.navigation.showingConnectModal = true
                 }
             }
             .onChange(of: scenePhase) { oldPhase, newPhase in
@@ -80,7 +80,7 @@ public struct MainTabView: View {
     public var body: some View {
         @Bindable var bindableAppState = appState
         return ZStack(alignment: .bottom) {
-            TabView(selection: $bindableAppState.selectedTab) {
+            TabView(selection: Bindable(bindableAppState.navigation).selectedTab) {
                 // Home Tab
                 NavigationStack(path: $homePath) {
                     HomeView()

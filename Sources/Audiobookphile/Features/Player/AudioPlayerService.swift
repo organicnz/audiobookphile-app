@@ -373,7 +373,6 @@ public class AudioPlayerService {
             item.allowedAudioSpatializationFormats = [.monoAndStereo, .multichannel]
         }
         #endif
-        engine.observeCurrentItemStatus(item)
         return item
     }
 

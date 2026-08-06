@@ -80,7 +80,7 @@ public struct SettingsView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button {
-                        appState.selectedTab = 0
+                        appState.navigation.selectedTab = 0
                         dismiss()
                     } label: {
                         HStack(spacing: 4) {
@@ -110,7 +110,7 @@ public struct SettingsView: View {
     private var quickNavigationBanner: some View {
         VStack(spacing: 10) {
             Button {
-                appState.selectedTab = 0
+                appState.navigation.selectedTab = 0
                 dismiss()
             } label: {
                 HStack(spacing: 12) {

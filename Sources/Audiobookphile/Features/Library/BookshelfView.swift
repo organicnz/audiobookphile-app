@@ -130,125 +130,13 @@ public struct BookshelfView: View {
     // MARK: - Library Grid
 
     private var libraryGridSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-
-            // Virtualized grid (adaptive columns for iPhone / iPad / Mac)
-            LazyVGrid(
-                columns: [
-                    GridItem(.adaptive(minimum: 105, maximum: 160), spacing: 16)
-                ],
-                spacing: 24
-            ) {
-                if (appState.isLoading || viewModel.isLoading) && viewModel.filteredBooks.isEmpty {
-                    ForEach(0..<12, id: \.self) { _ in
-                        BookCardSkeleton()
-                    }
-                } else {
-                    ForEach(viewModel.filteredBooks) { book in
-                        BookCard(
-                            book: book,
-                            aspectRatio: viewModel.coverAspectRatio
-                        ) {
-                            selectedBookForDetails = book
-                        }
-                        .applyBookshelfScrollTransition()
-                        .onAppear {
-                            Task {
-                                await viewModel.loadNextPageIfNeeded(
-                                    currentBook: book,
-                                    libraryId: appState.currentLibraryId,
-                                    isAuthenticated: appState.isAuthenticated
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-            .padding(.horizontal)
-
-            // Dynamic bottom loader when fetching next page from backend
-            if viewModel.isLoadingNextPage {
-                HStack(spacing: 12) {
-                    ProgressView()
-                        .tint(.cyan)
-                    Text("Loading more audiobooks...")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.vertical, 12)
-                .frame(maxWidth: .infinity)
-            }
-
-            // Connection error state
-            if let errorMessage = viewModel.errorMessage {
-                VStack(spacing: 12) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.largeTitle)
-                        .foregroundStyle(.yellow)
-                    Text("Connection Failed")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                    Text(errorMessage)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-
-                    Button("Log Out") {
-                        AppState.shared.logout()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.red)
-                    .padding(.top, 8)
-                }
-                .padding()
-                .frame(maxWidth: .infinity)
-                .glassCard()
-                .padding(.horizontal)
-            }
-        }
+        BookshelfGridSection(viewModel: viewModel, selectedBookForDetails: $selectedBookForDetails)
     }
 
     // MARK: - Search Overlay
 
     private var searchOverlay: some View {
-        VStack(spacing: 0) {
-            // Search bar
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.secondary)
-
-                TextField("Search books...", text: $searchText)
-                    .textFieldStyle(.plain)
-                    .foregroundStyle(.white)
-
-                if !searchText.isEmpty {
-                    Button(action: { searchText = "" }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-            .glassCard()
-            .padding()
-
-            // Search results
-            if !searchText.isEmpty {
-                ScrollView {
-                    LazyVStack(spacing: 12) {
-                        ForEach(viewModel.searchResults(for: searchText)) { book in
-                            GlassBookCard(book: book) {
-                                selectedBookForDetails = book
-                                showSearch = false
-                            }
-                        }
-                    }
-                    .padding()
-                }
-            }
-
-            Spacer()
-        }
-        .glassCard(cornerRadius: 16)
+        BookshelfSearchOverlay(searchText: $searchText, showSearch: $showSearch, viewModel: viewModel, selectedBookForDetails: $selectedBookForDetails)
     }
 
     // MARK: - End BookshelfView
