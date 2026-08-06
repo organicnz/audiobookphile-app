@@ -323,6 +323,9 @@ public class AudioPlayerService {
 
         self.currentTrackIndex = index
         self.pendingSeekTimeWithinTrack = seekTimeWithinTrack
+        
+        // Prevent periodic time updates while we load and seek the new queue
+        self.currentSeekID = UUID()
 
         #if !SKIP && !os(Android)
         engine.initializePlayer()
@@ -453,17 +456,27 @@ public class AudioPlayerService {
     private func handleItemReady(_ item: AVPlayerItem) {
         if let pendingSeek = self.pendingSeekTimeWithinTrack {
             self.pendingSeekTimeWithinTrack = nil
+            
+            // Capture the seekId to ensure we clear the correct one
+            let seekId = self.currentSeekID
+            
             if pendingSeek > 0.1 {
                 let cmTime = CMTime(seconds: pendingSeek, preferredTimescale: 600)
                 engine.seek(to: cmTime) { [weak self] _ in
                     Task { @MainActor in
                         guard let self = self else { return }
+                        if self.currentSeekID == seekId {
+                            self.currentSeekID = nil
+                        }
                         if self.isPlaying {
                             self.play()
                         }
                     }
                 }
             } else {
+                if self.currentSeekID == seekId {
+                    self.currentSeekID = nil
+                }
                 if self.isPlaying {
                     self.play()
                 }
@@ -490,6 +503,7 @@ public class AudioPlayerService {
         } else {
             retryCount = 0
             pause()
+            self.currentSeekID = nil
         }
     }
 

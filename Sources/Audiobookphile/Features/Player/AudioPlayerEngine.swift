@@ -94,7 +94,11 @@ public class AudioPlayerEngine {
     
     public func seek(to time: CMTime, completionHandler: @escaping (Bool) -> Void) {
         #if !SKIP && !os(Android)
-        player?.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero, completionHandler: completionHandler)
+        if let player = player {
+            player.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero, completionHandler: completionHandler)
+        } else {
+            completionHandler(false)
+        }
         #else
         completionHandler(true)
         #endif
