@@ -560,6 +560,12 @@ public class AudioPlayerService {
         sleepTimer.stopSleepTimer()
     }
 
+    // MARK: - Sync Passthroughs
+    
+    public func flushOfflineProgressQueue() async {
+        await syncManager.flushOfflineProgressQueue()
+    }
+    
     // MARK: - Engine Passthroughs
     
     public func applyAudioDSP() {
