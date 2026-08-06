@@ -275,7 +275,7 @@ public class AudioPlayerService {
                 let seekId = UUID()
                 self.currentSeekID = seekId
                 
-                item.seek(to: cmTime, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] finished in
+                engine.seek(to: cmTime) { [weak self] finished in
                     Task { @MainActor in
                         guard let self = self else { return }
                         if self.currentSeekID == seekId {
@@ -455,7 +455,7 @@ public class AudioPlayerService {
             self.pendingSeekTimeWithinTrack = nil
             if pendingSeek > 0.1 {
                 let cmTime = CMTime(seconds: pendingSeek, preferredTimescale: 600)
-                item.seek(to: cmTime, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] _ in
+                engine.seek(to: cmTime) { [weak self] _ in
                     Task { @MainActor in
                         guard let self = self else { return }
                         if self.isPlaying {

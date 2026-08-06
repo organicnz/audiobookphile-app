@@ -92,6 +92,14 @@ public class AudioPlayerEngine {
         #endif
     }
     
+    public func seek(to time: CMTime, completionHandler: @escaping (Bool) -> Void) {
+        #if !SKIP && !os(Android)
+        player?.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero, completionHandler: completionHandler)
+        #else
+        completionHandler(true)
+        #endif
+    }
+    
     public func insertItem(_ item: AVPlayerItem) {
         #if !SKIP && !os(Android)
         player?.insert(item, after: nil)
