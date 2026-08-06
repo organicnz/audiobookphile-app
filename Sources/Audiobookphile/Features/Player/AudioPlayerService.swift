@@ -560,6 +560,16 @@ public class AudioPlayerService {
         sleepTimer.stopSleepTimer()
     }
 
+    // MARK: - Engine Passthroughs
+    
+    public func applyAudioDSP() {
+        engine.applyAudioDSP()
+    }
+    
+    public func reconfigureAudioSession() {
+        engine.reconfigureAudioSession()
+    }
+
     // MARK: - Widget State Sync
 
     private func syncWidgetState() {
