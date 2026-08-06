@@ -275,6 +275,10 @@ public class AudioPlayerService {
                 let seekId = UUID()
                 self.currentSeekID = seekId
                 
+                if wasPlaying {
+                    engine.pause()
+                }
+                
                 engine.seek(to: cmTime) { [weak self] finished in
                     Task { @MainActor in
                         guard let self = self else { return }
