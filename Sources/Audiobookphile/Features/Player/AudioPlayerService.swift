@@ -125,8 +125,8 @@ public class AudioPlayerService {
     }
     
     // MARK: - Playback Control
-
-    public func startPlayback(session: PlaybackSession) {
+    
+    public func closeSession() async {
         if let activeSession = self.session {
             syncManager.recordClosedSession(session: activeSession, syncTime: self.currentTime, syncDuration: self.duration)
             pause()
@@ -137,6 +137,14 @@ public class AudioPlayerService {
             engine.cleanup()
             #endif
             self.session = nil
+        }
+    }
+
+    public func startPlayback(session: PlaybackSession) {
+        if self.session != nil {
+            Task {
+                await closeSession()
+            }
         }
 
         logger.info("startPlayback called - session id: \(session.id)")
@@ -435,7 +443,7 @@ public class AudioPlayerService {
                 if let tracks = self.session?.audioTracks {
                     for i in 0..<tracks.count {
                         self.session?.audioTracks[i].startOffset = currentOffset
-                        currentOffset += self.session?.audioTracks[i].duration
+                        currentOffset += self.session?.audioTracks[i].duration ?? 0
                     }
                     self.duration = currentOffset
                 }

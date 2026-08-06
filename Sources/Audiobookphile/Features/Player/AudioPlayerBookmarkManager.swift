@@ -19,9 +19,9 @@ public class AudioPlayerBookmarkManager {
     public func addBookmark(title: String, currentTime: TimeInterval, libraryItemId: String) async -> Bookmark? {
         let newTitle = title.isEmpty ? "Bookmark at \(formatTime(currentTime))" : title
         do {
-            return try await AudiobookphileAPI.shared.addBookmark(
+            return try await AudiobookphileAPI.shared.createBookmark(
                 libraryItemId: libraryItemId,
-                time: currentTime,
+                timePos: currentTime,
                 title: newTitle
             )
         } catch {
@@ -32,10 +32,7 @@ public class AudioPlayerBookmarkManager {
 
     public func deleteBookmark(_ bookmark: Bookmark, libraryItemId: String) async -> Bool {
         do {
-            try await AudiobookphileAPI.shared.deleteBookmark(
-                libraryItemId: libraryItemId,
-                time: bookmark.time
-            )
+            try await AudiobookphileAPI.shared.deleteBookmark(bookmarkId: bookmark.id)
             return true
         } catch {
             logger.error("Failed to delete bookmark: \(error)")
