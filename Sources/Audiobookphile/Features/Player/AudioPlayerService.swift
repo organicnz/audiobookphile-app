@@ -410,7 +410,7 @@ public class AudioPlayerService {
     private func handleCurrentItemChanged(_ item: AVPlayerItem?) {
         guard let session = session else { return }
         guard let item = item else {
-            if isPlaying && currentTrackIndex >= session.audioTracks.count - 1 {
+            if isPlaying && currentTrackIndex >= session.audioTracks.count - 1 && currentSeekID == nil {
                 handleItemDidPlayToEndTime()
             }
             return

@@ -46,11 +46,19 @@ public struct PlaybackScrubberView: View {
                 value: Binding(
                     get: { displayTime },
                     set: { newValue in
-                        draggedProgress = newValue / (viewModel.duration > 0 ? viewModel.duration : 1)
+                        if !isDragging {
+                            isDragging = true
+                        }
+                        let dur = viewModel.duration > 0 ? viewModel.duration : 1
+                        draggedProgress = newValue / dur
                     }
                 ),
                 in: 0...(viewModel.duration > 0 ? viewModel.duration : 1),
                 onEditingChanged: { editing in
+                    if editing && !isDragging {
+                        let dur = viewModel.duration > 0 ? viewModel.duration : 1
+                        draggedProgress = viewModel.currentTime / dur
+                    }
                     isDragging = editing
                     if !editing {
                         viewModel.seek(to: draggedProgress * viewModel.duration)
