@@ -23,6 +23,7 @@ public class AudioPlayerService {
     public var currentTime: TimeInterval = 0
     public var playbackRate: Float = 1.0
     public var duration: TimeInterval = 0
+    public var playbackError: Error?
     private var currentSeekID: UUID?
     
     private var currentTrackIndex = 0
@@ -519,6 +520,9 @@ public class AudioPlayerService {
             retryCount = 0
             pause()
             self.currentSeekID = nil
+            Task { @MainActor in
+                self.playbackError = error ?? NSError(domain: "AudioPlayerServiceErrorDomain", code: -1, userInfo: [NSLocalizedDescriptionKey: "Audio stream failed repeatedly."])
+            }
         }
     }
 
@@ -528,7 +532,12 @@ public class AudioPlayerService {
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 3_000_000_000)
             if self.isBuffering && self.isPlaying {
-                self.engine.play(rate: self.playbackRate)
+                if self.engine.currentItem == nil {
+                    self.playbackError = NSError(domain: "AudioPlayerServiceErrorDomain", code: -2, userInfo: [NSLocalizedDescriptionKey: "Audio stream stalled completely."])
+                    self.pause()
+                } else {
+                    self.engine.play(rate: self.playbackRate)
+                }
             }
         }
     }

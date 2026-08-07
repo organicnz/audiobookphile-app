@@ -19,5 +19,6 @@ let package = Package(
             .product(name: "SkipFuseUI", package: "skip-fuse-ui"),
             "AnyCodable"
         ], resources: [.process("Resources")]),
+        .testTarget(name: "AudiobookphileTests", dependencies: ["Audiobookphile"]),
     ]
 )
