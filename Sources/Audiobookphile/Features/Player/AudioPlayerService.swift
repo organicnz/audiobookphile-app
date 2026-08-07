@@ -268,31 +268,27 @@ public class AudioPlayerService {
         let trackInfo = findTrackIndexAndOffset(for: targetTime)
 
         #if !SKIP && !os(Android)
-        if trackInfo.index == currentTrackIndex {
-            if let item = engine.currentItem as? AVPlayerItem, item.status == .readyToPlay {
-                let cmTime = CMTime(seconds: trackInfo.offset, preferredTimescale: 600)
-                let wasPlaying = self.isPlaying
-                
-                let seekId = UUID()
-                self.currentSeekID = seekId
-                
-                if wasPlaying {
-                    engine.pause()
-                }
-                
-                engine.seek(to: cmTime) { [weak self] finished in
-                    Task { @MainActor in
-                        guard let self = self else { return }
-                        if self.currentSeekID == seekId {
-                            self.currentSeekID = nil
-                            if wasPlaying {
-                                self.play()
-                            }
+        if trackInfo.index == currentTrackIndex && engine.currentItem != nil {
+            let cmTime = CMTime(seconds: trackInfo.offset, preferredTimescale: 600)
+            let wasPlaying = self.isPlaying
+            
+            let seekId = UUID()
+            self.currentSeekID = seekId
+            
+            if wasPlaying {
+                engine.pause()
+            }
+            
+            engine.seek(to: cmTime) { [weak self] finished in
+                Task { @MainActor in
+                    guard let self = self else { return }
+                    if self.currentSeekID == seekId {
+                        self.currentSeekID = nil
+                        if wasPlaying {
+                            self.play()
                         }
                     }
                 }
-            } else {
-                loadQueue(from: trackInfo.index, seekTimeWithinTrack: trackInfo.offset, autoPlay: isPlaying)
             }
         } else {
             loadQueue(from: trackInfo.index, seekTimeWithinTrack: trackInfo.offset, autoPlay: isPlaying)
@@ -406,7 +402,7 @@ public class AudioPlayerService {
         }
         
         let token = AppState.shared.token
-        if !token.isEmpty {
+        if !token.isEmpty && !trimmedPath.hasPrefix("http") {
             var queryItems = components.queryItems ?? []
             if !queryItems.contains(where: { $0.name == "token" }) {
                 queryItems.append(URLQueryItem(name: "token", value: token))
