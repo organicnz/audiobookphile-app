@@ -70,9 +70,12 @@ public struct MiniPlayerView: View {
             .padding(.trailing, 4)
 
             Button {
-                audioPlayer.skipForward()
+                let secs = AppState.shared.settings.jumpForwardTime
+                audioPlayer.skipForward(secs)
             } label: {
-                Image(systemName: "goforward.15")
+                let secs = AppState.shared.settings.jumpForwardTime
+                let iconName = [5, 10, 15, 30, 45, 60, 75, 90].contains(secs) ? "goforward.\(secs)" : "goforward.30"
+                Image(systemName: iconName)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .padding(8)
