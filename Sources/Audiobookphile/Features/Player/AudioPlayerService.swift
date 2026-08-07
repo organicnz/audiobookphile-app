@@ -464,7 +464,7 @@ public class AudioPlayerService {
             self.pendingSeekTimeWithinTrack = nil
             
             // Capture the seekId to ensure we clear the correct one
-            let seekId = self.currentSeekID
+            let seekId = self.currentSeekID ?? UUID()
             
             if pendingSeek > 0.1 {
                 executeSeek(to: pendingSeek, seekId: seekId, wasPlaying: self.isPlaying)
