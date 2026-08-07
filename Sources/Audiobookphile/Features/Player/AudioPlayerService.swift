@@ -390,19 +390,30 @@ public class AudioPlayerService {
             return localURL
         }
 
+        var finalURLString = ""
         if trimmedPath.hasPrefix("http") {
-            if let url = URL(string: trimmedPath) { return url }
-            if let encoded = trimmedPath.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) { return URL(string: encoded) }
-        }
-
-        if trimmedPath.hasPrefix("/") {
+            finalURLString = trimmedPath
+        } else if trimmedPath.hasPrefix("/") {
             let base = UserDefaults.standard.string(forKey: "abp_serverURL") ?? ""
-            let full = base + trimmedPath
-            if let url = URL(string: full) { return url }
-            if let encoded = full.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) { return URL(string: encoded) }
+            finalURLString = base + trimmedPath
+        } else {
+            return nil
         }
-
-        return nil
+        
+        guard var components = URLComponents(string: finalURLString) ?? URLComponents(string: finalURLString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "") else {
+            return nil
+        }
+        
+        let token = AppState.shared.token
+        if !token.isEmpty {
+            var queryItems = components.queryItems ?? []
+            if !queryItems.contains(where: { $0.name == "token" }) {
+                queryItems.append(URLQueryItem(name: "token", value: token))
+            }
+            components.queryItems = queryItems
+        }
+        
+        return components.url
     }
 
     // MARK: - Callbacks
