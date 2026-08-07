@@ -269,26 +269,32 @@ public class AudioPlayerService {
 
         #if !SKIP && !os(Android)
         if trackInfo.index == currentTrackIndex && engine.currentItem != nil {
-            let cmTime = CMTime(seconds: trackInfo.offset, preferredTimescale: 600)
-            let wasPlaying = self.isPlaying
-            
-            let seekId = UUID()
-            self.currentSeekID = seekId
-            
-            if wasPlaying {
-                engine.pause()
-            }
-            
-            engine.seek(to: cmTime) { [weak self] finished in
-                Task { @MainActor in
-                    guard let self = self else { return }
-                    if self.currentSeekID == seekId {
-                        self.currentSeekID = nil
-                        if wasPlaying {
-                            self.play()
+            if let item = engine.currentItem as? AVPlayerItem, item.status == .readyToPlay {
+                let cmTime = CMTime(seconds: trackInfo.offset, preferredTimescale: 600)
+                let wasPlaying = self.isPlaying
+                
+                let seekId = UUID()
+                self.currentSeekID = seekId
+                
+                if wasPlaying {
+                    engine.pause()
+                }
+                
+                engine.seek(to: cmTime) { [weak self] finished in
+                    Task { @MainActor in
+                        guard let self = self else { return }
+                        if self.currentSeekID == seekId {
+                            self.currentSeekID = nil
+                            if wasPlaying {
+                                self.play()
+                            }
                         }
                     }
                 }
+            } else {
+                // Item is still loading, defer the seek until it is ready
+                self.currentSeekID = UUID()
+                self.pendingSeekTimeWithinTrack = trackInfo.offset
             }
         } else {
             loadQueue(from: trackInfo.index, seekTimeWithinTrack: trackInfo.offset, autoPlay: isPlaying)
