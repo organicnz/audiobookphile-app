@@ -485,6 +485,29 @@ public class AudioPlayerService {
     
     private func executeSeek(to targetTimeWithinTrack: TimeInterval, seekId: UUID, wasPlaying: Bool, retryCount: Int = 0) {
         let cmTime = CMTime(seconds: targetTimeWithinTrack, preferredTimescale: 600)
+        
+        #if !SKIP && !os(Android)
+        if let item = engine.currentItem as? AVPlayerItem {
+            if item.status == .failed {
+                if self.currentSeekID == seekId {
+                    self.currentSeekID = nil
+                }
+                return
+            }
+            if item.seekableTimeRanges.isEmpty {
+                if retryCount < 50 {
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 200_000_000)
+                        if self.currentSeekID == seekId {
+                            self.executeSeek(to: targetTimeWithinTrack, seekId: seekId, wasPlaying: wasPlaying, retryCount: retryCount + 1)
+                        }
+                    }
+                    return
+                }
+            }
+        }
+        #endif
+
         engine.seek(to: cmTime) { [weak self] finished in
             Task { @MainActor in
                 guard let self = self else { return }
@@ -494,7 +517,7 @@ public class AudioPlayerService {
                     self.currentSeekID = nil
                     if wasPlaying { self.play() }
                 } else {
-                    if retryCount < 10 {
+                    if retryCount < 50 {
                         // AVPlayer rejected the seek (likely because the stream is still buffering that byte range).
                         // Retry after a short delay.
                         Task {
