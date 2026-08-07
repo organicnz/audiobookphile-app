@@ -113,11 +113,11 @@ public class AudioPlayerViewModel {
     }
 
     public func jumpForward() {
-        AudioPlayerService.shared.skipForward()
+        AudioPlayerService.shared.skipForward(jumpForwardTime)
     }
 
     public func jumpBackward() {
-        AudioPlayerService.shared.skipBackward()
+        AudioPlayerService.shared.skipBackward(jumpBackwardTime)
     }
 
     public func jumpToChapterStart() {
