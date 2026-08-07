@@ -15,9 +15,17 @@ public struct GlassIconButton: View {
 
         var iconSize: CGFloat {
             switch self {
-            case .small: return 20
-            case .medium: return 24
-            case .large: return 32
+            case .small: return 18
+            case .medium: return 22
+            case .large: return 28
+            }
+        }
+
+        var frameSize: CGFloat {
+            switch self {
+            case .small: return 36
+            case .medium: return 48
+            case .large: return 60
             }
         }
     }
@@ -59,13 +67,40 @@ public struct GlassIconButton: View {
             action()
         } label: {
             Image(systemName: icon)
-                .font(.system(size: size.iconSize))
+                .font(.system(size: size.iconSize, weight: .semibold))
                 .symbolVariant(fill ? .fill : .none)
                 .foregroundStyle(color)
+                .frame(width: size.frameSize, height: size.frameSize)
+                .background {
+                    Circle()
+                        .fill(Color.white.opacity(0.14))
+                        .shadow(color: Color.black.opacity(0.12), radius: 6, x: 0, y: 3)
+                }
+                .overlay {
+                    Circle()
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [.white.opacity(0.4), .white.opacity(0.08)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                }
         }
+        .buttonStyle(ScaleButtonStyle())
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(label ?? defaultLabel))
         .accessibilityAddTraits(.isButton)
+    }
+}
+
+public struct ScaleButtonStyle: ButtonStyle {
+    public init() {}
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.90 : 1.0)
+            .animation(.spring(response: 0.2, dampingFraction: 0.6), value: configuration.isPressed)
     }
 }
 

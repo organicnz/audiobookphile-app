@@ -98,7 +98,7 @@ public struct PlaybackControlsView: View {
         } label: {
             ZStack {
                 Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 32))
+                    .font(.system(size: 32, weight: .bold))
                     .foregroundStyle(.black)
                     .applyPlayPauseSymbolEffect(isPlaying: viewModel.isPlaying)
                     .opacity(viewModel.isBuffering ? 0.3 : 1.0)
@@ -111,9 +111,21 @@ public struct PlaybackControlsView: View {
             .background {
                 Circle()
                     .fill(Color.white)
-                    .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 4)
+                    .shadow(color: Color.black.opacity(0.3), radius: 12, x: 0, y: 6)
+            }
+            .overlay {
+                Circle()
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [.white.opacity(0.6), .white.opacity(0.15)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1.5
+                    )
             }
         }
+        .buttonStyle(ScaleButtonStyle())
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(viewModel.isPlaying ? "Pause" : "Play"))
         .accessibilityAddTraits(.isButton)
