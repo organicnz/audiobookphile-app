@@ -361,7 +361,7 @@ public class AudioPlayerService {
             return nil
         }
         
-        let options: [String: Any] = [AVURLAssetPreferPreciseDurationAndTimingKey: true]
+        let options: [String: Any] = [AVURLAssetPreferPreciseDurationAndTimingKey: false]
         let asset = AVURLAsset(url: url, options: options)
         let item = AVPlayerItem(asset: asset)
         item.preferredForwardBufferDuration = 30.0
