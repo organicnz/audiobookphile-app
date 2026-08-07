@@ -364,7 +364,7 @@ public class AudioPlayerService {
         let options: [String: Any] = [AVURLAssetPreferPreciseDurationAndTimingKey: false]
         let asset = AVURLAsset(url: url, options: options)
         let item = AVPlayerItem(asset: asset)
-        item.preferredForwardBufferDuration = 30.0
+        item.preferredForwardBufferDuration = 60.0
         #if os(iOS)
         item.audioTimePitchAlgorithm = .spectral
         if #available(iOS 15.0, *) {

@@ -71,7 +71,9 @@ public class AudioPlayerEngine {
     public func initializePlayer() {
         #if !SKIP && !os(Android)
         if player == nil {
-            player = AVQueuePlayer()
+            let queuePlayer = AVQueuePlayer()
+            queuePlayer.automaticallyWaitsToMinimizeStalling = true
+            player = queuePlayer
             setupPlayerObservers()
         }
         player?.removeAllItems()
