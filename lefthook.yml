@@ -2,7 +2,7 @@ pre-commit:
   parallel: true
   commands:
     swiftlint-and-build:
-      glob: "*.swift"
+      glob: "*.{swift,json,yml}"
       run: ./scripts/pre-commit.sh {staged_files}
 
 commit-msg:
@@ -15,3 +15,15 @@ pre-push:
   commands:
     full-test-suite:
       run: swift test
+
+post-merge:
+  commands:
+    package-resolve:
+      glob: "Package.resolved"
+      run: swift package resolve
+
+post-checkout:
+  commands:
+    package-resolve:
+      glob: "Package.resolved"
+      run: swift package resolve
