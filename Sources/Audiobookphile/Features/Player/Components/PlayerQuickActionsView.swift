@@ -47,12 +47,13 @@ public struct PlayerQuickActionsView: View {
                     Label("View Bookmarks", systemImage: "list.bullet")
                 }
             } label: {
-                Image(systemName: viewModel.hasBookmarks ? "bookmark.fill" : "bookmark")
-                    .font(.title2)
-                    .foregroundStyle(coverIsLight ? .black : .white)
-                    .frame(width: 44, height: 44)
-                    .background(Color.white.opacity(0.1))
-                    .clipShape(Circle())
+                GlassIconButton(
+                    icon: viewModel.hasBookmarks ? "bookmark.fill" : "bookmark",
+                    fill: viewModel.hasBookmarks,
+                    color: coverIsLight ? .black : .white,
+                    action: {}
+                )
+                .allowsHitTesting(false)
             }
 
             Spacer()
@@ -73,8 +74,16 @@ public struct PlayerQuickActionsView: View {
             } label: {
                 Text("\(viewModel.playbackRate, specifier: "%.1f")×")
                     .font(.system(.body, design: .monospaced))
-                    .fontWeight(.medium)
+                    .fontWeight(.bold)
                     .foregroundStyle(coverIsLight ? .black : .white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(Color.white.opacity(0.12))
+                    .clipShape(Capsule())
+                    .overlay(
+                        Capsule()
+                            .strokeBorder(LinearGradient(colors: [.white.opacity(0.3), .white.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
+                    )
             }
 
             Spacer()
@@ -91,6 +100,14 @@ public struct PlayerQuickActionsView: View {
                     }
                 }
                 .foregroundStyle(viewModel.sleepTimerActive ? Color.appPrimary : (coverIsLight ? .black : .white))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(Color.white.opacity(0.12))
+                .clipShape(Capsule())
+                .overlay(
+                    Capsule()
+                        .strokeBorder(LinearGradient(colors: [.white.opacity(0.3), .white.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
+                )
             }
 
             Spacer()
