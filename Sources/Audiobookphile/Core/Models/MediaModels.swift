@@ -36,6 +36,14 @@ public struct Book: Identifiable, Codable, Hashable, Sendable {
         media.metadata.authorName
     }
 
+    public var displayAuthor: String {
+        author ?? "Unknown Author"
+    }
+
+    public var narrator: String? {
+        media.metadata.narratorName
+    }
+
     public var description: String? {
         media.metadata.description
     }
