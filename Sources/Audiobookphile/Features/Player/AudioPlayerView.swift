@@ -202,7 +202,7 @@ public struct AudioPlayerView: View {
                     showChapters: $showChapters,
                     showAIInsights: $showAIInsights
                 )
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, 20)
 
                 PlaybackScrubberView(
                     viewModel: viewModel,

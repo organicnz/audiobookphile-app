@@ -15,17 +15,17 @@ public struct GlassIconButton: View {
 
         var iconSize: CGFloat {
             switch self {
-            case .small: return 18
-            case .medium: return 22
-            case .large: return 28
+            case .small: return 16
+            case .medium: return 19
+            case .large: return 26
             }
         }
 
         var frameSize: CGFloat {
             switch self {
-            case .small: return 36
-            case .medium: return 48
-            case .large: return 60
+            case .small: return 32
+            case .medium: return 40
+            case .large: return 56
             }
         }
     }

@@ -53,13 +53,14 @@ public struct PlayerQuickActionsView: View {
                 GlassIconButton(
                     icon: viewModel.hasBookmarks ? "bookmark.fill" : "bookmark",
                     fill: viewModel.hasBookmarks,
+                    size: .medium,
                     color: coverIsLight ? .black : .white,
                     action: {}
                 )
                 .allowsHitTesting(false)
             }
 
-            Spacer()
+            Spacer(minLength: 2)
 
             // AI Insights Engine Button
             Button {
@@ -67,25 +68,37 @@ public struct PlayerQuickActionsView: View {
             } label: {
                 HStack(spacing: 4) {
                     Image(systemName: "sparkles")
+                        .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(.cyan)
                     Text("AI Insights")
-                        .font(.system(.caption, design: .rounded))
-                        .fontWeight(.bold)
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
                         .foregroundStyle(.cyan)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                 }
                 .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(Color.cyan.opacity(0.15))
+                .frame(height: 40)
+                .background(Color.cyan.opacity(0.18))
                 .clipShape(Capsule())
                 .overlay(
                     Capsule()
-                        .strokeBorder(Color.cyan.opacity(0.4), lineWidth: 1)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [.cyan.opacity(0.6), .cyan.opacity(0.2)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
                 )
+                .shadow(color: Color.cyan.opacity(0.18), radius: 6, x: 0, y: 3)
             }
+            .fixedSize(horizontal: true, vertical: false)
             .liquidPressable()
 
-            Spacer()
+            Spacer(minLength: 2)
 
+            // Playback Speed Menu
             Menu {
                 ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5], id: \.self) { rate in
                     Button {
@@ -101,62 +114,93 @@ public struct PlayerQuickActionsView: View {
                 }
             } label: {
                 Text("\(viewModel.playbackRate, specifier: "%.1f")×")
-                    .font(.system(.body, design: .monospaced))
-                    .fontWeight(.bold)
+                    .font(.system(size: 13, weight: .bold, design: .monospaced))
                     .foregroundStyle(coverIsLight ? .black : .white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                     .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(Color.white.opacity(0.12))
+                    .frame(height: 40)
+                    .background(Color.white.opacity(0.14))
                     .clipShape(Capsule())
                     .overlay(
                         Capsule()
-                            .strokeBorder(LinearGradient(colors: [.white.opacity(0.3), .white.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
+                            .strokeBorder(
+                                LinearGradient(colors: [.white.opacity(0.4), .white.opacity(0.08)], startPoint: .topLeading, endPoint: .bottomTrailing),
+                                lineWidth: 1
+                            )
                     )
+                    .shadow(color: Color.black.opacity(0.12), radius: 6, x: 0, y: 3)
             }
+            .fixedSize(horizontal: true, vertical: false)
 
-            Spacer()
+            Spacer(minLength: 2)
 
+            // Sleep Timer Button
             Button {
                 showSleepTimer = true
             } label: {
                 HStack(spacing: 4) {
                     Image(systemName: "moon")
+                        .font(.system(size: 15, weight: .semibold))
                         .symbolVariant(viewModel.sleepTimerActive ? .fill : .none)
                     if viewModel.sleepTimerActive {
                         Text(viewModel.sleepTimerRemainingPretty)
-                            .font(.system(.caption, design: .monospaced))
+                            .font(.system(size: 11, weight: .bold, design: .monospaced))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                     }
                 }
                 .foregroundStyle(viewModel.sleepTimerActive ? Color.appPrimary : (coverIsLight ? .black : .white))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(Color.white.opacity(0.12))
+                .padding(.horizontal, viewModel.sleepTimerActive ? 10 : 0)
+                .frame(width: viewModel.sleepTimerActive ? nil : 40, height: 40)
+                .background(
+                    viewModel.sleepTimerActive
+                    ? Color.appPrimary.opacity(0.2)
+                    : Color.white.opacity(0.14)
+                )
                 .clipShape(Capsule())
                 .overlay(
                     Capsule()
-                        .strokeBorder(LinearGradient(colors: [.white.opacity(0.3), .white.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: viewModel.sleepTimerActive
+                                    ? [Color.appPrimary.opacity(0.6), Color.appPrimary.opacity(0.2)]
+                                    : [.white.opacity(0.4), .white.opacity(0.08)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
                 )
+                .shadow(color: Color.black.opacity(0.12), radius: 6, x: 0, y: 3)
             }
+            .fixedSize(horizontal: true, vertical: false)
+            .liquidPressable()
 
-            Spacer()
+            Spacer(minLength: 2)
 
-            AirPlayButton(color: coverIsLight ? .black : .white)
+            // AirPlay Route Picker Button
+            AirPlayButton(color: coverIsLight ? .black : .white, size: 40)
 
-            Spacer()
+            Spacer(minLength: 2)
 
+            // Audio FX / Accessibility Button
             GlassIconButton(
                 icon: "waveform.path.badge.plus",
                 fill: false,
+                size: .medium,
                 color: coverIsLight ? .black : .white,
                 action: { showAudioAccessibilitySheet = true }
             )
             .accessibilityLabel("Audio & Hardware Accessibility")
 
-            Spacer()
+            Spacer(minLength: 2)
 
+            // Chapters List Button
             GlassIconButton(
                 icon: "list.bullet",
                 fill: false,
+                size: .medium,
                 color: coverIsLight ? .black : .white,
                 action: { showChapters = true }
             )

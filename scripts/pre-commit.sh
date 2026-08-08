@@ -138,7 +138,7 @@ if [ -n "$SWIFT_FILES" ]; then
         echo "⚠️ SwiftLint not installed, skipping..."
     else
         echo "🔍 [11/12] SwiftLint strict analysis..."
-        swiftlint lint --strict --paths $SWIFT_FILES
+        swiftlint lint --strict $SWIFT_FILES
         if [ $? -ne 0 ]; then
             echo "❌ SwiftLint violations found."
             exit 1

@@ -6,21 +6,23 @@ import AVKit
 /// A native AirPlay button utilizing AVRoutePickerView on iOS
 public struct AirPlayButton: View {
     let color: Color
+    let size: CGFloat
 
-    public init(color: Color = .primary) {
+    public init(color: Color = .primary, size: CGFloat = 40) {
         self.color = color
+        self.size = size
     }
 
     public var body: some View {
         #if os(iOS) && !SKIP
         AVRoutePickerViewWrapper(tintColor: UIColor(color))
-            .frame(width: 44, height: 44)
+            .frame(width: size, height: size)
         #else
         // Fallback for Android/Skip compilation
         Image(systemName: "airplayaudio")
             .font(.title2)
             .foregroundStyle(color)
-            .frame(width: 44, height: 44)
+            .frame(width: size, height: size)
             .opacity(0.5)
         #endif
     }
