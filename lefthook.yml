@@ -1,6 +1,17 @@
 pre-commit:
-  parallel: false
+  parallel: true
   commands:
-    swiftlint:
+    swiftlint-and-build:
       glob: "*.swift"
       run: ./scripts/pre-commit.sh {staged_files}
+
+commit-msg:
+  commands:
+    conventional-commit:
+      run: ./scripts/commit-msg.sh {1}
+
+pre-push:
+  parallel: false
+  commands:
+    full-test-suite:
+      run: swift test
