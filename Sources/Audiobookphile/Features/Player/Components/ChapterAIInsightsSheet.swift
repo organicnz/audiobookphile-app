@@ -1,5 +1,5 @@
 //
-//  PlayerAIInsightsSheet.swift
+//  ChapterAIInsightsSheet.swift
 //  Audiobookphile
 //
 
@@ -8,27 +8,27 @@ import SwiftUI
 import UIKit
 #endif
 
-public struct PlayerAIInsightsSheet: View {
-    public let bookId: String
+public struct ChapterAIInsightsSheet: View {
+    public let chapter: Chapter
     public let bookTitle: String
     public let bookAuthor: String?
     
-    @State private var insights: AudiobookphileAPI.BookAIInsights?
+    @State private var insights: AudiobookphileAPI.ChapterAIInsights?
     @State private var isLoading = true
     @State private var errorMessage: String?
-    @State private var copiedText: String? = nil
-    
+    @State private var copiedTakeaway: String? = nil
+
     @Environment(\.dismiss) var dismiss
 
-    public init(bookId: String, bookTitle: String, bookAuthor: String?) {
-        self.bookId = bookId
+    public init(chapter: Chapter, bookTitle: String, bookAuthor: String?) {
+        self.chapter = chapter
         self.bookTitle = bookTitle
         self.bookAuthor = bookAuthor
     }
 
     public var body: some View {
         ZStack {
-            // Adaptive Liquid Glass Background
+            // Adaptive Liquid Aura Background
             FluidAuraBackground()
 
             VStack(spacing: 16) {
@@ -38,28 +38,25 @@ public struct PlayerAIInsightsSheet: View {
                         Image(systemName: "sparkles")
                             .font(.title3.bold())
                             .foregroundStyle(.cyan)
-                        Text("AI Insights Engine")
+                        Text("Chapter AI Insights")
                             .font(.headline)
                             .foregroundStyle(.white)
                     }
 
                     Spacer()
 
-                    if let insights = insights {
+                    if let mood = insights?.mood, !mood.isEmpty {
                         HStack(spacing: 4) {
-                            Image(systemName: insights.isCached ? "externaldrive.fill" : "bolt.fill")
-                                .font(.caption2)
-                            Text(insights.isCached ? "DB Cached" : "Live AI Stream")
-                                .font(.caption2.bold())
+                            Image(systemName: "face.smiling.fill")
+                            Text(mood)
                         }
-                        .padding(.horizontal, 8)
+                        .font(.caption.bold())
+                        .padding(.horizontal, 10)
                         .padding(.vertical, 4)
-                        .background(insights.isCached ? Color.cyan.opacity(0.15) : Color.green.opacity(0.15))
-                        .foregroundStyle(insights.isCached ? Color.cyan : Color.green)
+                        .background(Color.purple.opacity(0.2))
+                        .foregroundStyle(.purple)
                         .clipShape(Capsule())
-                        .overlay(
-                            Capsule().strokeBorder((insights.isCached ? Color.cyan : Color.green).opacity(0.4), lineWidth: 1)
-                        )
+                        .overlay(Capsule().strokeBorder(Color.purple.opacity(0.4), lineWidth: 1))
                     }
 
                     Button {
@@ -73,15 +70,14 @@ public struct PlayerAIInsightsSheet: View {
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(bookTitle)
+                    Text("Chapter \(chapter.id): \(chapter.title)")
                         .font(.title3.bold())
                         .foregroundStyle(.white)
-                    
-                    if let author = bookAuthor, !author.isEmpty {
-                        Text("by \(author)")
-                            .font(.subheadline)
-                            .foregroundStyle(.white.opacity(0.7))
-                    }
+                        .lineLimit(2)
+
+                    Text(bookTitle)
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.7))
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -92,10 +88,10 @@ public struct PlayerAIInsightsSheet: View {
                         ProgressView()
                             .tint(.cyan)
                             .scaleEffect(1.2)
-                        Text("Compiling AI Book Insights...")
+                        Text("Analyzing Chapter Content...")
                             .font(.subheadline.bold())
                             .foregroundStyle(.white)
-                        Text("Querying vector database & generating executive summary")
+                        Text("Extracting key plot points and character insights")
                             .font(.caption)
                             .foregroundStyle(.white.opacity(0.7))
                     }
@@ -105,7 +101,7 @@ public struct PlayerAIInsightsSheet: View {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .font(.largeTitle)
                             .foregroundStyle(.yellow)
-                        Text("Insights Generation Failed")
+                        Text("Chapter Analysis Failed")
                             .font(.headline)
                             .foregroundStyle(.white)
                         Text(error)
@@ -114,7 +110,7 @@ public struct PlayerAIInsightsSheet: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
 
-                        Button("Retry AI Engine") {
+                        Button("Retry Chapter AI") {
                             loadInsights()
                         }
                         .buttonStyle(.borderedProminent)
@@ -125,40 +121,12 @@ public struct PlayerAIInsightsSheet: View {
                 } else if let insights = insights {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 18) {
-                            // Mood & Themes Badges
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 8) {
-                                    HStack(spacing: 6) {
-                                        Image(systemName: "face.smiling.fill")
-                                        Text(insights.mood)
-                                    }
-                                    .font(.caption.bold())
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(Color.purple.opacity(0.2))
-                                    .foregroundStyle(.purple)
-                                    .clipShape(Capsule())
-                                    .overlay(Capsule().strokeBorder(Color.purple.opacity(0.4), lineWidth: 1))
-
-                                    ForEach(insights.themes, id: \.self) { theme in
-                                        Text(theme)
-                                            .font(.caption.bold())
-                                            .padding(.horizontal, 12)
-                                            .padding(.vertical, 6)
-                                            .background(Color.cyan.opacity(0.15))
-                                            .foregroundStyle(.cyan)
-                                            .clipShape(Capsule())
-                                            .overlay(Capsule().strokeBorder(Color.cyan.opacity(0.3), lineWidth: 1))
-                                    }
-                                }
-                            }
-
-                            // Executive Summary Card
+                            // Chapter Summary Card
                             VStack(alignment: .leading, spacing: 10) {
                                 HStack {
-                                    Image(systemName: "text.quote")
+                                    Image(systemName: "doc.text.fill")
                                         .foregroundStyle(.cyan)
-                                    Text("Executive Summary")
+                                    Text("Chapter Summary")
                                         .font(.headline)
                                         .foregroundStyle(.cyan)
 
@@ -167,11 +135,12 @@ public struct PlayerAIInsightsSheet: View {
                                     Button {
                                         copyToClipboard(insights.summary)
                                     } label: {
-                                        Image(systemName: copiedText == insights.summary ? "checkmark" : "doc.on.doc")
+                                        Image(systemName: copiedTakeaway == insights.summary ? "checkmark" : "doc.on.doc")
                                             .font(.caption)
                                             .foregroundStyle(.white.opacity(0.7))
                                     }
                                 }
+
                                 Text(insights.summary)
                                     .font(.body)
                                     .foregroundStyle(.white)
@@ -179,13 +148,13 @@ public struct PlayerAIInsightsSheet: View {
                             }
                             .glassCard()
 
-                            // Key Lessons & Takeaways Card
+                            // Key Takeaways Card
                             if !insights.keyTakeaways.isEmpty {
                                 VStack(alignment: .leading, spacing: 12) {
                                     HStack {
                                         Image(systemName: "lightbulb.fill")
                                             .foregroundStyle(.yellow)
-                                        Text("Key Lessons & Takeaways")
+                                        Text("Key Highlights & Takeaways")
                                             .font(.headline)
                                             .foregroundStyle(.yellow)
                                     }
@@ -226,13 +195,14 @@ public struct PlayerAIInsightsSheet: View {
     private func loadInsights() {
         isLoading = true
         errorMessage = nil
-        
+
         Task {
             do {
-                let res = try await AudiobookphileAPI.shared.fetchBookAIInsights(
-                    bookId: bookId,
+                let res = try await AudiobookphileAPI.shared.fetchChapterAIInsights(
                     title: bookTitle,
-                    author: bookAuthor
+                    author: bookAuthor,
+                    chapterTitle: chapter.title,
+                    chapterIndex: chapter.id
                 )
                 await MainActor.run {
                     self.insights = res
@@ -253,12 +223,12 @@ public struct PlayerAIInsightsSheet: View {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
         #endif
-        copiedText = text
+        copiedTakeaway = text
         Task {
             try? await Task.sleep(nanoseconds: 2_000_000_000)
             await MainActor.run {
-                if copiedText == text {
-                    copiedText = nil
+                if copiedTakeaway == text {
+                    copiedTakeaway = nil
                 }
             }
         }

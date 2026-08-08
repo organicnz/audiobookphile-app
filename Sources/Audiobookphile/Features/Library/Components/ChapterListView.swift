@@ -11,9 +11,6 @@ public struct ChapterListView: View {
     @Environment(\.dismiss) var dismiss
 
     @State private var selectedChapterForAI: Chapter?
-    @State private var aiInsights: AudiobookphileAPI.ChapterAIInsights?
-    @State private var isLoadingAI = false
-    @State private var aiErrorMessage: String?
 
     public init(detailed: Book, viewModel: BookDetailViewModel) {
         self.detailed = detailed
@@ -59,7 +56,7 @@ public struct ChapterListView: View {
 
                         // AI Insights Button
                         Button {
-                            loadAIInsights(for: chapter)
+                            selectedChapterForAI = chapter
                         } label: {
                             Image(systemName: "sparkles")
                                 .font(.body)
@@ -80,38 +77,9 @@ public struct ChapterListView: View {
             ChapterAIInsightsSheet(
                 chapter: chapter,
                 bookTitle: detailed.title,
-                insights: aiInsights,
-                isLoading: isLoadingAI,
-                errorMessage: aiErrorMessage
+                bookAuthor: detailed.author
             )
             .presentationDetents([.medium, .large])
-        }
-    }
-
-    private func loadAIInsights(for chapter: Chapter) {
-        selectedChapterForAI = chapter
-        aiInsights = nil
-        aiErrorMessage = nil
-        isLoadingAI = true
-
-        Task {
-            do {
-                let res = try await AudiobookphileAPI.shared.fetchChapterAIInsights(
-                    title: detailed.title,
-                    author: detailed.author,
-                    chapterTitle: chapter.title,
-                    chapterIndex: chapter.id
-                )
-                await MainActor.run {
-                    self.aiInsights = res
-                    self.isLoadingAI = false
-                }
-            } catch {
-                await MainActor.run {
-                    self.aiErrorMessage = error.localizedDescription
-                    self.isLoadingAI = false
-                }
-            }
         }
     }
 }
