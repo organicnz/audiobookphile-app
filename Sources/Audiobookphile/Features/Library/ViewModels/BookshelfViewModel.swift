@@ -79,24 +79,26 @@ public class BookshelfViewModel {
         }
 
         do {
-            let response = try await service.fetchPaginatedLibraryItems(
+            async let itemsTask = service.fetchPaginatedLibraryItems(
                 libraryId: libraryId,
                 page: 0,
                 limit: pageSize,
                 sort: sort,
                 desc: desc
             )
+            async let continueTask = service.fetchContinueListening(libraryId: libraryId)
+
+            let (response, continueItems) = try await (itemsTask, continueTask)
+
             self.books = response.results
             self.filteredBooks = response.results
             self.totalBooksCount = response.total
             self.currentPage = 0
             self.hasMorePages = pageSize > 0 && self.books.count < response.total
+            self.continueListening = continueItems
             
             let cacheData = BookshelfCacheData(books: response.results, total: response.total, page: 0)
             await LocalCacheService.shared.save(cacheData, forKey: cacheKey)
-
-            // Continue Listening is server-driven
-            self.continueListening = try await service.fetchContinueListening(libraryId: libraryId)
         } catch {
             print("[BookshelfViewModel] Failed to load library items: \(error)")
             if books.isEmpty {
