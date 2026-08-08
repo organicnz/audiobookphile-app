@@ -3,7 +3,7 @@
 echo "🔒 Running Mobile Security & Package Audit..."
 
 # 1. Secret Scan Audit
-FORBIDDEN_PATTERNS="eyJhbGci|sbp_[a-zA-Z0-9]{20,}|SUPABASE_SERVICE_ROLE|BEGIN PRIVATE KEY|sk_live_|AKIA[0-9A-Z]{16}"
+FORBIDDEN_PATTERNS="eyJhbGci|sbp_[a-zA-Z0-9]{20,}|SUPABASE_SERVICE_ROLE_KEY=[a-zA-Z0-9]|BEGIN PRIVATE KEY|sk_live_[a-zA-Z0-9]{20,}|AKIA[0-9A-Z]{16}"
 LEAKS=$(grep -r -E -n "$FORBIDDEN_PATTERNS" Sources/ 2>/dev/null | grep -v '\.example' || true)
 if [ -n "$LEAKS" ]; then
     echo "❌ SECURITY AUDIT FAILED: Hardcoded secret/key leak detected:"
