@@ -52,43 +52,38 @@ public struct MiniPlayerView: View {
 
             Spacer()
 
-            Button {
-                audioPlayer.togglePlayPause()
-            } label: {
-                ZStack {
-                    Image(systemName: audioPlayer.isPlaying ? "pause.fill" : "play.fill")
-                        .font(.title3)
-                        .foregroundStyle(.primary)
-                        .applyPlayPauseSymbolEffect(isPlaying: audioPlayer.isPlaying)
-                        .opacity(audioPlayer.isBuffering ? 0.3 : 1.0)
-                    if audioPlayer.isBuffering {
-                        ProgressView()
-                    }
+            GlassIconButton(
+                icon: audioPlayer.isPlaying ? "pause.fill" : "play.fill",
+                fill: true,
+                size: .small,
+                color: .primary,
+                action: {
+                    audioPlayer.togglePlayPause()
                 }
-            }
-            .applySensoryFeedback(trigger: audioPlayer.isPlaying)
+            )
             .padding(.trailing, 4)
 
-            Button {
-                let secs = AppState.shared.settings.jumpForwardTime
-                audioPlayer.skipForward(secs)
-            } label: {
-                let secs = AppState.shared.settings.jumpForwardTime
-                let iconName = [5, 10, 15, 30, 45, 60, 75, 90].contains(secs) ? "goforward.\(secs)" : "goforward.30"
-                Image(systemName: iconName)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .padding(8)
-            }
+            GlassIconButton(
+                icon: [5, 10, 15, 30, 45, 60, 75, 90].contains(AppState.shared.settings.jumpForwardTime)
+                    ? "goforward.\(AppState.shared.settings.jumpForwardTime)"
+                    : "goforward.30",
+                fill: false,
+                size: .small,
+                color: .secondary,
+                action: {
+                    audioPlayer.skipForward(AppState.shared.settings.jumpForwardTime)
+                }
+            )
 
-            Button {
-                onClose()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.caption.bold())
-                    .foregroundStyle(.secondary)
-                    .padding(6)
-            }
+            GlassIconButton(
+                icon: "xmark",
+                fill: false,
+                size: .small,
+                color: .secondary,
+                action: {
+                    onClose()
+                }
+            )
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)

@@ -37,175 +37,117 @@ public struct PlayerQuickActionsView: View {
     }
 
     public var body: some View {
-        HStack(spacing: 0) {
-            Menu {
-                Button {
-                    showAddBookmark = true
-                } label: {
-                    Label("Add Bookmark", systemImage: "plus")
-                }
-                Button {
-                    showBookmarksList = true
-                } label: {
-                    Label("View Bookmarks", systemImage: "list.bullet")
-                }
-            } label: {
-                GlassIconButton(
-                    icon: viewModel.hasBookmarks ? "bookmark.fill" : "bookmark",
-                    fill: viewModel.hasBookmarks,
-                    size: .medium,
-                    color: coverIsLight ? .black : .white,
-                    action: {}
-                )
-                .allowsHitTesting(false)
-            }
-
-            Spacer(minLength: 2)
-
-            // AI Insights Engine Button
-            Button {
-                showAIInsights = true
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.cyan)
-                    Text("AI Insights")
-                        .font(.system(size: 12, weight: .bold, design: .rounded))
-                        .foregroundStyle(.cyan)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                }
-                .padding(.horizontal, 10)
-                .frame(height: 40)
-                .background(Color.cyan.opacity(0.18))
-                .clipShape(Capsule())
-                .overlay(
-                    Capsule()
-                        .strokeBorder(
-                            LinearGradient(
-                                colors: [.cyan.opacity(0.6), .cyan.opacity(0.2)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
-                )
-                .shadow(color: Color.cyan.opacity(0.18), radius: 6, x: 0, y: 3)
-            }
-            .fixedSize(horizontal: true, vertical: false)
-            .liquidPressable()
-
-            Spacer(minLength: 2)
-
-            // Playback Speed Menu
-            Menu {
-                ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5], id: \.self) { rate in
-                    Button {
-                        viewModel.setPlaybackRate(Float(rate))
-                    } label: {
-                        HStack {
-                            Text(String(format: "%.2f×", rate))
-                            if abs(viewModel.playbackRate - Float(rate)) < 0.05 {
-                                Image(systemName: "checkmark")
+        VStack(spacing: 12) {
+            // Tier 1: Primary Action Pills (Playback Speed, Sleep Timer, AI Insights)
+            HStack(spacing: 8) {
+                // Playback Speed Menu Pill
+                Menu {
+                    ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5], id: \.self) { rate in
+                        Button {
+                            viewModel.setPlaybackRate(Float(rate))
+                        } label: {
+                            HStack {
+                                Text(String(format: "%.2f×", rate))
+                                if abs(viewModel.playbackRate - Float(rate)) < 0.05 {
+                                    Image(systemName: "checkmark")
+                                }
                             }
                         }
                     }
-                }
-            } label: {
-                Text("\(viewModel.playbackRate, specifier: "%.1f")×")
-                    .font(.system(size: 13, weight: .bold, design: .monospaced))
-                    .foregroundStyle(coverIsLight ? .black : .white)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                    .padding(.horizontal, 10)
-                    .frame(height: 40)
-                    .background(Color.white.opacity(0.14))
-                    .clipShape(Capsule())
-                    .overlay(
-                        Capsule()
-                            .strokeBorder(
-                                LinearGradient(colors: [.white.opacity(0.4), .white.opacity(0.08)], startPoint: .topLeading, endPoint: .bottomTrailing),
-                                lineWidth: 1
-                            )
+                } label: {
+                    GlassPillButton(
+                        icon: "gauge.with.dots.needle.50percent",
+                        text: String(format: "%.1f×", viewModel.playbackRate),
+                        isMonospaced: true,
+                        isActive: abs(viewModel.playbackRate - 1.0) > 0.05,
+                        activeColor: Color.appPrimary,
+                        textColor: coverIsLight ? .black : .white,
+                        action: {}
                     )
-                    .shadow(color: Color.black.opacity(0.12), radius: 6, x: 0, y: 3)
-            }
-            .fixedSize(horizontal: true, vertical: false)
-
-            Spacer(minLength: 2)
-
-            // Sleep Timer Button
-            Button {
-                showSleepTimer = true
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "moon")
-                        .font(.system(size: 15, weight: .semibold))
-                        .symbolVariant(viewModel.sleepTimerActive ? .fill : .none)
-                    if viewModel.sleepTimerActive {
-                        Text(viewModel.sleepTimerRemainingPretty)
-                            .font(.system(size: 11, weight: .bold, design: .monospaced))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
-                    }
+                    .allowsHitTesting(false)
                 }
-                .foregroundStyle(viewModel.sleepTimerActive ? Color.appPrimary : (coverIsLight ? .black : .white))
-                .padding(.horizontal, viewModel.sleepTimerActive ? 10 : 0)
-                .frame(width: viewModel.sleepTimerActive ? nil : 40, height: 40)
-                .background(
-                    viewModel.sleepTimerActive
-                    ? Color.appPrimary.opacity(0.2)
-                    : Color.white.opacity(0.14)
+
+                Spacer(minLength: 0)
+
+                // Sleep Timer Pill
+                GlassPillButton(
+                    icon: "moon",
+                    text: viewModel.sleepTimerActive ? viewModel.sleepTimerRemainingPretty : "Sleep Timer",
+                    isMonospaced: viewModel.sleepTimerActive,
+                    isActive: viewModel.sleepTimerActive,
+                    activeColor: Color.appPrimary,
+                    textColor: coverIsLight ? .black : .white,
+                    action: { showSleepTimer = true }
                 )
-                .clipShape(Capsule())
-                .overlay(
-                    Capsule()
-                        .strokeBorder(
-                            LinearGradient(
-                                colors: viewModel.sleepTimerActive
-                                    ? [Color.appPrimary.opacity(0.6), Color.appPrimary.opacity(0.2)]
-                                    : [.white.opacity(0.4), .white.opacity(0.08)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
+
+                Spacer(minLength: 0)
+
+                // AI Insights Pill
+                GlassPillButton(
+                    icon: "sparkles",
+                    text: "AI Insights",
+                    isActive: true,
+                    activeColor: .cyan,
+                    textColor: .cyan,
+                    action: { showAIInsights = true }
                 )
-                .shadow(color: Color.black.opacity(0.12), radius: 6, x: 0, y: 3)
             }
-            .fixedSize(horizontal: true, vertical: false)
-            .liquidPressable()
 
-            Spacer(minLength: 2)
+            // Tier 2: Utility Glass Icon Bar (Bookmarks, Chapters, Audio FX, AirPlay)
+            HStack(spacing: 0) {
+                // Bookmarks Menu
+                Menu {
+                    Button {
+                        showAddBookmark = true
+                    } label: {
+                        Label("Add Bookmark", systemImage: "plus")
+                    }
+                    Button {
+                        showBookmarksList = true
+                    } label: {
+                        Label("View Bookmarks", systemImage: "list.bullet")
+                    }
+                } label: {
+                    GlassIconButton(
+                        icon: viewModel.hasBookmarks ? "bookmark.fill" : "bookmark",
+                        fill: viewModel.hasBookmarks,
+                        size: .medium,
+                        color: coverIsLight ? .black : .white,
+                        action: {}
+                    )
+                    .allowsHitTesting(false)
+                }
 
-            // AirPlay Route Picker Button
-            AirPlayButton(color: coverIsLight ? .black : .white, size: 40)
+                Spacer()
 
-            Spacer(minLength: 2)
+                // Chapters List Button
+                GlassIconButton(
+                    icon: "list.bullet",
+                    fill: false,
+                    size: .medium,
+                    color: coverIsLight ? .black : .white,
+                    action: { showChapters = true }
+                )
+                .opacity(viewModel.chapters.isEmpty ? 0.3 : 1.0)
+                .disabled(viewModel.chapters.isEmpty)
 
-            // Audio FX / Accessibility Button
-            GlassIconButton(
-                icon: "waveform.path.badge.plus",
-                fill: false,
-                size: .medium,
-                color: coverIsLight ? .black : .white,
-                action: { showAudioAccessibilitySheet = true }
-            )
-            .accessibilityLabel("Audio & Hardware Accessibility")
+                Spacer()
 
-            Spacer(minLength: 2)
+                // Audio FX / Accessibility Button
+                GlassIconButton(
+                    icon: "waveform.path.badge.plus",
+                    fill: false,
+                    size: .medium,
+                    color: coverIsLight ? .black : .white,
+                    action: { showAudioAccessibilitySheet = true }
+                )
+                .accessibilityLabel("Audio & Hardware Accessibility")
 
-            // Chapters List Button
-            GlassIconButton(
-                icon: "list.bullet",
-                fill: false,
-                size: .medium,
-                color: coverIsLight ? .black : .white,
-                action: { showChapters = true }
-            )
-            .opacity(viewModel.chapters.isEmpty ? 0.3 : 1.0)
-            .disabled(viewModel.chapters.isEmpty)
+                Spacer()
+
+                // AirPlay Route Picker Button
+                AirPlayButton(color: coverIsLight ? .black : .white, size: 40)
+            }
         }
     }
 }

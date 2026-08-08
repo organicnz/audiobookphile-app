@@ -95,6 +95,85 @@ public struct GlassIconButton: View {
     }
 }
 
+public struct GlassPillButton: View {
+    public var icon: String?
+    public var text: String
+    public var isMonospaced: Bool = false
+    public var isActive: Bool = false
+    public var activeColor: Color = Color.appPrimary
+    public var textColor: Color = .white
+    public var height: CGFloat = 38
+    public var action: () -> Void
+
+    public init(
+        icon: String? = nil,
+        text: String,
+        isMonospaced: Bool = false,
+        isActive: Bool = false,
+        activeColor: Color = Color.appPrimary,
+        textColor: Color = .white,
+        height: CGFloat = 38,
+        action: @escaping () -> Void
+    ) {
+        self.icon = icon
+        self.text = text
+        self.isMonospaced = isMonospaced
+        self.isActive = isActive
+        self.activeColor = activeColor
+        self.textColor = textColor
+        self.height = height
+        self.action = action
+    }
+
+    public var body: some View {
+        Button {
+            #if os(iOS) && !SKIP
+            let generator = UIImpactFeedbackGenerator(style: .light)
+            generator.impactOccurred()
+            #endif
+            action()
+        } label: {
+            HStack(spacing: 5) {
+                if let icon = icon {
+                    Image(systemName: icon)
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(isActive ? activeColor : textColor)
+                }
+                Text(text)
+                    .font(isMonospaced
+                        ? .system(size: 12, weight: .bold, design: .monospaced)
+                        : .system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundStyle(isActive ? activeColor : textColor)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .padding(.horizontal, 12)
+            .frame(height: height)
+            .background(
+                isActive
+                ? activeColor.opacity(0.18)
+                : Color.white.opacity(0.14)
+            )
+            .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: isActive
+                                ? [activeColor.opacity(0.6), activeColor.opacity(0.2)]
+                                : [.white.opacity(0.4), .white.opacity(0.08)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            )
+            .shadow(color: isActive ? activeColor.opacity(0.2) : Color.black.opacity(0.12), radius: 6, x: 0, y: 3)
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
+}
+
 public struct ScaleButtonStyle: ButtonStyle {
     public init() {}
     public func makeBody(configuration: Configuration) -> some View {
