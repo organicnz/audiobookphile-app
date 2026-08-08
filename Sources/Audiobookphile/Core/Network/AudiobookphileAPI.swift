@@ -72,12 +72,13 @@ public actor AudiobookphileAPI {
 
     private init() {
         let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 15
-        config.timeoutIntervalForResource = 300
-        config.waitsForConnectivity = true
+        config.timeoutIntervalForRequest = 10
+        config.timeoutIntervalForResource = 60
+        config.waitsForConnectivity = false
+        config.httpShouldUsePipelining = true
         config.urlCache = URLCache(
-            memoryCapacity: 50 * 1024 * 1024,
-            diskCapacity: 250 * 1024 * 1024,
+            memoryCapacity: 64 * 1024 * 1024,
+            diskCapacity: 500 * 1024 * 1024,
             diskPath: "audiobookphile_api_cache"
         )
         config.requestCachePolicy = .useProtocolCachePolicy
