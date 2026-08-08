@@ -105,12 +105,16 @@ public struct AdminDashboardView: View {
             }
             .padding(16)
             .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white.opacity(0.08))
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(.ultraThinMaterial)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.appPrimary.opacity(0.3), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .strokeBorder(
+                                LinearGradient(colors: [.white.opacity(0.3), Color.appPrimary.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing),
+                                lineWidth: 1
+                            )
                     )
+                    .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 4)
             )
         }
     }
@@ -151,12 +155,16 @@ public struct AdminDashboardView: View {
         }
         .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white.opacity(0.05))
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .strokeBorder(
+                            LinearGradient(colors: [.white.opacity(0.25), .white.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing),
+                            lineWidth: 1
+                        )
                 )
+                .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 4)
         )
     }
 
