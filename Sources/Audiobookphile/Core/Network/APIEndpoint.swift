@@ -13,6 +13,7 @@ public enum APIEndpoint {
     case getBatchItems
     case searchSemantic
     case chapterAI
+    case bookAI
     case getBookmarks(libraryItemId: String)
     case createBookmark
     case deleteBookmark(bookmarkId: String)
@@ -72,6 +73,7 @@ public enum APIEndpoint {
         case .getBatchItems: return "/api/items/batch"
         case .searchSemantic: return "/search-semantic"
         case .chapterAI: return "/chapter-ai"
+        case .bookAI: return "/api/ai/insights"
         case .getBookmarks(let libraryItemId): return "/api/me/bookmarks?libraryItemId=\(libraryItemId)"
         case .createBookmark: return "/api/me/bookmarks"
         case .deleteBookmark(let bookmarkId): return "/api/me/bookmarks/\(bookmarkId)"

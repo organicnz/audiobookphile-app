@@ -15,3 +15,13 @@ if [ $? -ne 0 ]; then
     echo "❌ SwiftLint failed. Please fix the errors before committing."
     exit 1
 fi
+
+echo "Running Swift compilation pre-commit check..."
+swift build --build-tests > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+    echo "❌ Swift compilation failed. Please fix compiler errors before committing."
+    swift build --build-tests
+    exit 1
+fi
+
+echo "✅ Pre-commit verification passed cleanly!"

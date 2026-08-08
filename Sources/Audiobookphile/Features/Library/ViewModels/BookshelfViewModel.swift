@@ -79,16 +79,14 @@ public class BookshelfViewModel {
         }
 
         do {
-            async let itemsTask = service.fetchPaginatedLibraryItems(
+            let response = try await service.fetchPaginatedLibraryItems(
                 libraryId: libraryId,
                 page: 0,
                 limit: pageSize,
                 sort: sort,
                 desc: desc
             )
-            async let continueTask = service.fetchContinueListening(libraryId: libraryId)
-
-            let (response, continueItems) = try await (itemsTask, continueTask)
+            let continueItems = try await service.fetchContinueListening(libraryId: libraryId)
 
             self.books = response.results
             self.filteredBooks = response.results

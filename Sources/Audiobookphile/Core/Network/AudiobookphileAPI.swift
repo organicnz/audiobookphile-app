@@ -637,6 +637,37 @@ public actor AudiobookphileAPI {
         return insights
     }
 
+    public struct BookAIInsights: Codable, Sendable {
+        public let bookId: String
+        public let title: String
+        public let author: String?
+        public let summary: String
+        public let keyTakeaways: [String]
+        public let mood: String
+        public let themes: [String]
+        public let isCached: Bool
+    }
+
+    /// Fetch compiled AI book insights persisted via dedicated Supabase Edge Function
+    public func fetchBookAIInsights(bookId: String, title: String, author: String?) async throws -> BookAIInsights {
+        guard let url = URL(string: APIEndpoint.bookAI.urlString(baseURL: self.baseURL)) else {
+            throw APIError.invalidResponse
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        var body: [String: Any] = [
+            "bookId": bookId,
+            "title": title
+        ]
+        if let author = author, !author.isEmpty { body["author"] = author }
+
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        return try await executeRequest(request, responseType: BookAIInsights.self)
+    }
+
     // MARK: - Bookmarks
 
     public func fetchBookmarks(libraryItemId: String) async throws -> [Bookmark] {

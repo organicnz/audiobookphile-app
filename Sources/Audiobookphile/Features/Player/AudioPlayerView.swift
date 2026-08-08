@@ -25,6 +25,7 @@ public struct AudioPlayerView: View {
     @State var showBookmarksList = false
     @State var showAddBookmark = false
     @State var showAudioAccessibilitySheet = false
+    @State var showAIInsights = false
     @State var newBookmarkTitle = ""
     @State var isAnimatingBackground = false
 
@@ -97,6 +98,14 @@ public struct AudioPlayerView: View {
         }
         .sheet(isPresented: $showAudioAccessibilitySheet) {
             AudioAccessibilityQuickSheet()
+        }
+        .sheet(isPresented: $showAIInsights) {
+            PlayerAIInsightsSheet(
+                bookId: viewModel.session.libraryItemId,
+                bookTitle: viewModel.title,
+                bookAuthor: viewModel.author
+            )
+            .presentationDetents([.medium, .large])
         }
         .confirmationDialog("Player Options", isPresented: $showMoreMenu, titleVisibility: .visible) {
             Button("Go to Sleep Timer") { showSleepTimer = true }
@@ -190,7 +199,8 @@ public struct AudioPlayerView: View {
                     showBookmarksList: $showBookmarksList,
                     showSleepTimer: $showSleepTimer,
                     showAudioAccessibilitySheet: $showAudioAccessibilitySheet,
-                    showChapters: $showChapters
+                    showChapters: $showChapters,
+                    showAIInsights: $showAIInsights
                 )
                     .padding(.horizontal, 24)
 

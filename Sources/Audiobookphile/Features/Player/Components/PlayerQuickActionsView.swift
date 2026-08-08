@@ -14,6 +14,7 @@ public struct PlayerQuickActionsView: View {
     @Binding var showSleepTimer: Bool
     @Binding var showAudioAccessibilitySheet: Bool
     @Binding var showChapters: Bool
+    @Binding var showAIInsights: Bool
 
     public init(
         viewModel: AudioPlayerViewModel,
@@ -22,7 +23,8 @@ public struct PlayerQuickActionsView: View {
         showBookmarksList: Binding<Bool>,
         showSleepTimer: Binding<Bool>,
         showAudioAccessibilitySheet: Binding<Bool>,
-        showChapters: Binding<Bool>
+        showChapters: Binding<Bool>,
+        showAIInsights: Binding<Bool>
     ) {
         self.viewModel = viewModel
         self.coverIsLight = coverIsLight
@@ -31,6 +33,7 @@ public struct PlayerQuickActionsView: View {
         self._showSleepTimer = showSleepTimer
         self._showAudioAccessibilitySheet = showAudioAccessibilitySheet
         self._showChapters = showChapters
+        self._showAIInsights = showAIInsights
     }
 
     public var body: some View {
@@ -55,6 +58,31 @@ public struct PlayerQuickActionsView: View {
                 )
                 .allowsHitTesting(false)
             }
+
+            Spacer()
+
+            // AI Insights Engine Button
+            Button {
+                showAIInsights = true
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "sparkles")
+                        .foregroundStyle(.cyan)
+                    Text("AI Insights")
+                        .font(.system(.caption, design: .rounded))
+                        .fontWeight(.bold)
+                        .foregroundStyle(.cyan)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(Color.cyan.opacity(0.15))
+                .clipShape(Capsule())
+                .overlay(
+                    Capsule()
+                        .strokeBorder(Color.cyan.opacity(0.4), lineWidth: 1)
+                )
+            }
+            .liquidPressable()
 
             Spacer()
 
