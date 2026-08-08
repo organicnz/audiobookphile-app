@@ -33,7 +33,7 @@ public actor AudiobookphileAPI {
     private let session: URLSession
     private var refreshTask: Task<Void, Error>?
 
-    private var defaultDecoder: JSONDecoder {
+    private let defaultDecoder: JSONDecoder = {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
@@ -68,12 +68,19 @@ public actor AudiobookphileAPI {
             return Date(timeIntervalSince1970: 0)
         }
         return decoder
-    }
+    }()
 
     private init() {
         let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 10
+        config.timeoutIntervalForRequest = 15
         config.timeoutIntervalForResource = 300
+        config.waitsForConnectivity = true
+        config.urlCache = URLCache(
+            memoryCapacity: 50 * 1024 * 1024,
+            diskCapacity: 250 * 1024 * 1024,
+            diskPath: "audiobookphile_api_cache"
+        )
+        config.requestCachePolicy = .useProtocolCachePolicy
         self.session = URLSession(configuration: config)
     }
 
