@@ -40,17 +40,10 @@ public struct BookshelfView: View {
                     // Main library grid
                     if selectedPill == .library {
                         libraryGridSection
+                    } else if selectedPill == .authors {
+                        authorsTabSection
                     } else {
-                        // Placeholder for Authors/Narrators
-                        VStack(spacing: 20) {
-                            Spacer().frame(height: 100)
-                            Image(systemName: "person.2.slash")
-                                .font(.largeTitle)
-                                .foregroundStyle(.secondary)
-                            Text("\(selectedPill.rawValue) Coming Soon")
-                                .font(.headline)
-                                .foregroundStyle(.secondary)
-                        }
+                        narratorsTabSection
                     }
                 }
                 .background(GeometryReader { proxy in
@@ -131,6 +124,122 @@ public struct BookshelfView: View {
 
     private var libraryGridSection: some View {
         BookshelfGridSection(viewModel: viewModel, selectedBookForDetails: $selectedBookForDetails)
+    }
+
+    // MARK: - Authors and Narrators Sections
+
+    private var authorsTabSection: some View {
+        let grouped = Dictionary(grouping: viewModel.books, by: { $0.displayAuthor.trimmingCharacters(in: .whitespacesAndNewlines) })
+            .filter { !$0.key.isEmpty }
+            .sorted { $0.key < $1.key }
+
+        return VStack(spacing: 12) {
+            if grouped.isEmpty {
+                VStack(spacing: 16) {
+                    Spacer().frame(height: 60)
+                    Image(systemName: "person.2")
+                        .font(.system(size: 44))
+                        .foregroundStyle(.secondary)
+                    Text("No Authors Found")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                ForEach(grouped, id: \.key) { author, books in
+                    GlassCard {
+                        HStack(spacing: 16) {
+                            Circle()
+                                .fill(Color.appPrimary.opacity(0.15))
+                                .frame(width: 44, height: 44)
+                                .overlay {
+                                    Image(systemName: "person.fill")
+                                        .foregroundStyle(Color.appPrimary)
+                                }
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(author)
+                                    .font(.headline)
+                                    .foregroundStyle(.primary)
+                                Text("\(books.count) \(books.count == 1 ? "Audiobook" : "Audiobooks")")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.caption.bold())
+                                .foregroundStyle(.tertiary)
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    .onTapGesture {
+                        if let firstBook = books.first {
+                            selectedBookForDetails = firstBook
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 12)
+    }
+
+    private var narratorsTabSection: some View {
+        let grouped = Dictionary(grouping: viewModel.books, by: { ($0.narrator ?? "Unknown Narrator").trimmingCharacters(in: .whitespacesAndNewlines) })
+            .filter { !$0.key.isEmpty }
+            .sorted { $0.key < $1.key }
+
+        return VStack(spacing: 12) {
+            if grouped.isEmpty {
+                VStack(spacing: 16) {
+                    Spacer().frame(height: 60)
+                    Image(systemName: "mic")
+                        .font(.system(size: 44))
+                        .foregroundStyle(.secondary)
+                    Text("No Narrators Found")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                ForEach(grouped, id: \.key) { narrator, books in
+                    GlassCard {
+                        HStack(spacing: 16) {
+                            Circle()
+                                .fill(Color.cyan.opacity(0.15))
+                                .frame(width: 44, height: 44)
+                                .overlay {
+                                    Image(systemName: "mic.fill")
+                                        .foregroundStyle(Color.cyan)
+                                }
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(narrator)
+                                    .font(.headline)
+                                    .foregroundStyle(.primary)
+                                Text("\(books.count) \(books.count == 1 ? "Audiobook" : "Audiobooks")")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.caption.bold())
+                                .foregroundStyle(.tertiary)
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    .onTapGesture {
+                        if let firstBook = books.first {
+                            selectedBookForDetails = firstBook
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 12)
     }
 
     // MARK: - Search Overlay
