@@ -165,11 +165,11 @@ public struct AdminInviteView: View {
                         .textContentType(.emailAddress)
                         .autocorrectionDisabled()
                         .padding(12)
-                        .background(.white.opacity(0.05))
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(.white.opacity(0.1), lineWidth: 1)
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .strokeBorder(.white.opacity(0.15), lineWidth: 1)
                         )
                         .foregroundStyle(.white)
                 }
@@ -188,11 +188,11 @@ public struct AdminInviteView: View {
                         #endif
                         .autocorrectionDisabled()
                         .padding(12)
-                        .background(.white.opacity(0.05))
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(.white.opacity(0.1), lineWidth: 1)
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .strokeBorder(.white.opacity(0.15), lineWidth: 1)
                         )
                         .foregroundStyle(.white)
                 }
@@ -233,7 +233,7 @@ public struct AdminInviteView: View {
                     Image(systemName: "paperplane.fill")
                 }
                 Text(viewModel.isLoading ? "Sending…" : "Send Invitation")
-                    .font(.headline)
+                    .font(.headline.weight(.bold))
             }
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
@@ -247,8 +247,19 @@ public struct AdminInviteView: View {
                     endPoint: .trailing
                 )
             )
-            .clipShape(RoundedRectangle(cornerRadius: 14))
-            .shadow(color: viewModel.isValidEmail ? .appPrimary.opacity(0.3) : .clear, radius: 12, y: 4)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: viewModel.isValidEmail ? [.white.opacity(0.4), .white.opacity(0.1)] : [.clear],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1.5
+                    )
+            )
+            .shadow(color: viewModel.isValidEmail ? .appPrimary.opacity(0.4) : .clear, radius: 12, y: 4)
         }
         .disabled(!viewModel.isValidEmail || viewModel.isLoading)
         .animation(.spring(response: 0.3), value: viewModel.isValidEmail)
