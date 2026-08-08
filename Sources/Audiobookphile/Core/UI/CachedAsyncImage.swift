@@ -14,7 +14,8 @@ class ImageMemoryCache {
     private let cache = NSCache<NSURL, UIImage>()
 
     init() {
-        cache.countLimit = 100 // Limit to 100 images
+        cache.countLimit = 500 // Store up to 500 cover art images in RAM
+        cache.totalCostLimit = 200 * 1024 * 1024 // 200 MB memory limit
     }
 
     func get(url: URL) -> UIImage? {
