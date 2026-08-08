@@ -17,6 +17,7 @@ public struct ChapterAIInsightsSheet: View {
     @State private var isLoading = true
     @State private var errorMessage: String?
     @State private var copiedTakeaway: String? = nil
+    @State private var colorLoader = DynamicColorLoader()
 
     @Environment(\.dismiss) var dismiss
 
@@ -28,8 +29,8 @@ public struct ChapterAIInsightsSheet: View {
 
     public var body: some View {
         ZStack {
-            // Adaptive Liquid Aura Background
-            FluidAuraBackground()
+            // Adaptive AI Mood Aura Background
+            FluidAuraBackground(baseColor: colorLoader.backgroundColor)
 
             VStack(spacing: 16) {
                 // Header Bar
@@ -207,6 +208,9 @@ public struct ChapterAIInsightsSheet: View {
                 await MainActor.run {
                     self.insights = res
                     self.isLoading = false
+                    if let mood = res.mood {
+                        self.colorLoader.loadColor(fromMood: mood)
+                    }
                 }
             } catch {
                 await MainActor.run {

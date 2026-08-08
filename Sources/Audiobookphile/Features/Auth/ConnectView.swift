@@ -420,15 +420,18 @@ struct RecentServerRow: View {
 }
 
 public struct FluidAuraBackground: View {
+    public let baseColor: Color?
     @Environment(\.colorScheme) var colorScheme
     @State private var animate = false
 
-    public init() {}
+    public init(baseColor: Color? = nil) {
+        self.baseColor = baseColor
+    }
 
     public var body: some View {
         ZStack {
-            // Base background based on system theme
-            (colorScheme == .dark ? Color.appBackground : Color(red: 250/255, green: 249/255, blue: 246/255))
+            // Base background based on system theme or custom mood aura color
+            (baseColor ?? (colorScheme == .dark ? Color.appBackground : Color(red: 250/255, green: 249/255, blue: 246/255)))
                 .ignoresSafeArea()
             
             // Glowing orbs

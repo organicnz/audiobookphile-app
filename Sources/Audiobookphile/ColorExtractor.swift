@@ -175,6 +175,39 @@ public class DynamicColorLoader {
             isLoaded = true
         }
     }
+
+    /// Map AI-detected mood strings to atmospheric dynamic ambient lighting palettes
+    public func loadColor(fromMood mood: String) {
+        let lower = mood.lowercased()
+        let primary: Color
+        let secondary: Color
+
+        if lower.contains("mysterious") || lower.contains("dark") || lower.contains("suspense") || lower.contains("thriller") {
+            primary = Color(red: 0.22, green: 0.08, blue: 0.35) // Deep Violet
+            secondary = Color(red: 0.08, green: 0.04, blue: 0.18)
+        } else if lower.contains("inspir") || lower.contains("growth") || lower.contains("warm") || lower.contains("hope") {
+            primary = Color(red: 0.35, green: 0.22, blue: 0.05) // Golden Amber
+            secondary = Color(red: 0.18, green: 0.10, blue: 0.02)
+        } else if lower.contains("sci-fi") || lower.contains("space") || lower.contains("future") || lower.contains("tech") {
+            primary = Color(red: 0.04, green: 0.25, blue: 0.32) // Deep Cyan
+            secondary = Color(red: 0.02, green: 0.12, blue: 0.16)
+        } else if lower.contains("energetic") || lower.contains("action") || lower.contains("dramatic") {
+            primary = Color(red: 0.32, green: 0.06, blue: 0.08) // Deep Crimson
+            secondary = Color(red: 0.16, green: 0.03, blue: 0.04)
+        } else if lower.contains("melancholic") || lower.contains("reflect") || lower.contains("philosoph") {
+            primary = Color(red: 0.12, green: 0.18, blue: 0.26) // Slate Midnight
+            secondary = Color(red: 0.06, green: 0.09, blue: 0.14)
+        } else {
+            primary = Color(red: 0.18, green: 0.18, blue: 0.22)
+            secondary = Color(red: 0.09, green: 0.09, blue: 0.12)
+        }
+
+        backgroundColor = primary
+        gradientColors = [primary, secondary]
+        textColor = .white
+        isLight = false
+        isLoaded = true
+    }
 }
 #else
 // Mock stub for non-iOS/non-Skip platforms (like macOS compiler tests under SPM)
@@ -209,5 +242,17 @@ public class DynamicColorLoader {
         isLoaded = true
     }
     #endif
+
+    public func loadColor(fromMood mood: String) {
+        let lower = mood.lowercased()
+        if lower.contains("mysterious") || lower.contains("dark") || lower.contains("suspense") || lower.contains("thriller") {
+            backgroundColor = Color(red: 0.22, green: 0.08, blue: 0.35)
+        } else if lower.contains("sci-fi") || lower.contains("space") {
+            backgroundColor = Color(red: 0.04, green: 0.25, blue: 0.32)
+        } else {
+            backgroundColor = Color(red: 0.18, green: 0.18, blue: 0.22)
+        }
+        isLoaded = true
+    }
 }
 #endif
