@@ -30,7 +30,7 @@ public struct SearchView: View {
         NavigationStack {
             ZStack {
                 // Background
-                Color.appBackground.ignoresSafeArea()
+                FluidAuraBackground()
 
                 // Content
                 ScrollView {

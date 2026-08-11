@@ -28,7 +28,7 @@ public struct SettingsView: View {
         NavigationStack {
             ZStack {
                 // Background
-                Color.appBackground.ignoresSafeArea()
+                FluidAuraBackground()
 
                 ScrollView {
                     VStack(spacing: 24) {

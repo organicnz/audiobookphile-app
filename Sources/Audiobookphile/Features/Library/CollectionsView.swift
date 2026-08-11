@@ -15,7 +15,7 @@ public struct CollectionsView: View {
 
     public var body: some View {
         ZStack {
-            Color.appBackground.ignoresSafeArea()
+            FluidAuraBackground()
 
             if viewModel.isLoading && viewModel.series.isEmpty && viewModel.collections.isEmpty && viewModel.playlists.isEmpty {
                 ProgressView()

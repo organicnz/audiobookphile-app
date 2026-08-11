@@ -113,7 +113,7 @@ public struct BookshelfView: View {
     // MARK: - Background Layer
 
     private var backgroundLayer: some View {
-        Color.appBackground.ignoresSafeArea()
+        FluidAuraBackground()
     }
 
     // MARK: - Navigation Pills removed in favor of Toolbar Picker

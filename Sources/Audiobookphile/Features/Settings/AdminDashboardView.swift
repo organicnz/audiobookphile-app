@@ -25,7 +25,7 @@ public struct AdminDashboardView: View {
 
     public var body: some View {
         ZStack {
-            Color.appBackground.ignoresSafeArea()
+            FluidAuraBackground()
 
             ScrollView {
                 VStack(spacing: 24) {

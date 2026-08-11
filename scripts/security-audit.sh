@@ -19,7 +19,15 @@ if [ -n "$HARDCODED" ]; then
     exit 1
 fi
 
-# 3. SPM Package Bounding Audit
+# 3. Cryptographic Token Security (Double.random)
+DOUBLE_RANDOM=$(grep -r -n -E 'Double\.random|Math\.random\(' Sources/ 2>/dev/null | grep -v 'GlassParticles' | grep -v 'LibraryService' || true)
+if [ -n "$DOUBLE_RANDOM" ]; then
+    echo "❌ SECURITY AUDIT FAILED: Insecure random number generator found:"
+    echo "$DOUBLE_RANDOM"
+    exit 1
+fi
+
+# 4. SPM Package Bounding Audit
 UNPINNED=$(grep -n 'branch:' Package.swift 2>/dev/null || true)
 if [ -n "$UNPINNED" ]; then
     echo "⚠️ PACKAGE AUDIT WARNING: Unpinned SPM branch dependency found in Package.swift:"

@@ -19,6 +19,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Security Audit
+        run: ./scripts/security-audit.sh
+
       - name: Resolve Package Dependencies
         run: swift package resolve
 

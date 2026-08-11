@@ -57,7 +57,7 @@ public struct HomeView: View {
     }
 
     private var backgroundLayer: some View {
-        Color.appBackground.ignoresSafeArea()
+        FluidAuraBackground()
     }
 
 
