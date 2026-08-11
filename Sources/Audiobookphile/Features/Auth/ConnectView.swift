@@ -105,7 +105,7 @@ public struct ConnectView: View {
                 appearPhase = 3
             }
             // Auto login in simulator/debug for rapid testing
-            #if targetEnvironment(simulator) || DEBUG
+            #if targetEnvironment(simulator)
             Task {
                 try? await Task.sleep(for: .seconds(1.0))
                 if !serverURL.isEmpty && !username.isEmpty && !password.isEmpty && !appState.isAuthenticated {
@@ -376,7 +376,7 @@ struct GlassSecureField: View {
             }
         }
         .padding(16)
-        .background(Color.white)
+        .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay {
             RoundedRectangle(cornerRadius: 12)

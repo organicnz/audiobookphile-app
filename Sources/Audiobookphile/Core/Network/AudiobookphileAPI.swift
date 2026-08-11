@@ -253,6 +253,25 @@ public actor AudiobookphileAPI {
     }
 
     public func logout() {
+        // Notify backend to invalidate server-side session (fire-and-forget)
+        if !baseURL.isEmpty && !accessToken.isEmpty {
+            let logoutURL = baseURL
+            let token = accessToken
+            let anonKey = EnvironmentConfig.supabaseAnonKey
+            Task.detached {
+                guard let url = URL(string: "\(logoutURL)/api/auth/logout") else { return }
+                var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+                request.timeoutInterval = 3
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+                if !anonKey.isEmpty {
+                    request.setValue(anonKey, forHTTPHeaderField: "apikey")
+                }
+                _ = try? await URLSession.shared.data(for: request)
+            }
+        }
+
         accessToken = ""
         refreshToken = ""
         currentUser = nil
