@@ -7,7 +7,9 @@
 //
 
 import Foundation
+#if canImport(OSLog)
 import OSLog
+#endif
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif

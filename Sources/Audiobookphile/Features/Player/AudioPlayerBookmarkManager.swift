@@ -1,5 +1,7 @@
 import Foundation
+#if canImport(OSLog)
 import OSLog
+#endif
 
 @MainActor
 public class AudioPlayerBookmarkManager {

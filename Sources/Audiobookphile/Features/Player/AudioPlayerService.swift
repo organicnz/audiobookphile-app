@@ -1,5 +1,7 @@
 import Foundation
+#if canImport(OSLog)
 import OSLog
+#endif
 import Observation
 import SwiftUI
 #if !SKIP && !os(Android)

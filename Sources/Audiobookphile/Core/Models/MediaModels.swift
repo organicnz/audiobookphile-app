@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import CoreGraphics
 
 // MARK: - Media Type
 public enum MediaType: String, Codable, Sendable {

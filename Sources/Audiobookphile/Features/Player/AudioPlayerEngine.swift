@@ -1,5 +1,7 @@
 import Foundation
+#if canImport(OSLog)
 import OSLog
+#endif
 #if !SKIP && !os(Android)
 import AVFoundation
 #if os(iOS)
