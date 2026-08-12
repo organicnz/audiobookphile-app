@@ -1,7 +1,4 @@
 import SwiftUI
-#if os(iOS) && !SKIP
-import LocalAuthentication
-#endif
 
 public struct TwoFactorChallengeView: View {
     @Environment(AppState.self) private var appState
@@ -309,30 +306,14 @@ public struct TwoFactorChallengeView: View {
     }
 
     private func triggerBiometric() async {
-        #if os(iOS) && !SKIP
-        let context = LAContext()
-        var error: NSError?
-        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
-            do {
-                let success = try await context.evaluatePolicy(
-                    .deviceOwnerAuthenticationWithBiometrics,
-                    localizedReason: "Authenticate to sign in to your Audiobookphile account."
-                )
-                if success {
-                    isVerifying = true
-                    errorMessage = nil
-                    try await appState.verify2FAChallenge(code: "biometric", method: "biometric")
-                    dismiss()
-                }
-            } catch {
-                errorMessage = "Biometric authentication cancelled or failed. You may use PIN Code or TOTP."
-                isVerifying = false
-            }
-        } else {
-            errorMessage = "Biometric authentication is not available on this device."
+        isVerifying = true
+        errorMessage = nil
+        do {
+            try await appState.verify2FAPasskey()
+            dismiss()
+        } catch {
+            errorMessage = error.localizedDescription
+            isVerifying = false
         }
-        #else
-        errorMessage = "Biometric authentication is not supported in this environment."
-        #endif
     }
 }

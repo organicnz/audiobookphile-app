@@ -518,13 +518,41 @@ public struct TwoFactorSettingsView: View {
         isSubmitting = true
         errorMessage = nil
         do {
-            let res = try await AudiobookphileAPI.shared.enroll2FABiometric(deviceId: "ios-app")
+            #if os(iOS) && !SKIP
+            let options = try await AudiobookphileAPI.shared.webauthnRegisterOptions()
+
+            guard let rp = options.rp, let user = options.user,
+                  let challengeData = WebAuthnCodec.base64urlDecode(options.challenge),
+                  let userIDData = WebAuthnCodec.base64urlDecode(user.id) else {
+                throw WebAuthnError.invalidChallenge
+            }
+
+            let registration = try await WebAuthnManager.requestRegistration(
+                request: PasskeyRegistrationRequest(
+                    challenge: challengeData,
+                    rpId: rp.id,
+                    rpName: rp.name,
+                    userID: userIDData,
+                    userName: user.name,
+                    displayName: user.displayName,
+                    excludeCredentialIds: (options.excludeCredentials ?? []).compactMap { WebAuthnCodec.base64urlDecode($0.id) },
+                    userVerification: options.authenticatorSelection?.userVerification ?? "preferred"
+                )
+            )
+
+            let res = try await AudiobookphileAPI.shared.webauthnRegisterVerify(
+                registration: registration,
+                deviceName: UIDevice.current.name
+            )
             if res.success == true {
                 is2faEnabled = true
-                successMessage = "Facial 2FA / Biometric sign-in enabled successfully."
+                successMessage = "Facial 2FA / Biometric passkey enabled successfully on this device."
             } else {
-                errorMessage = res.error ?? "Failed to enable Biometric sign-in."
+                errorMessage = res.error ?? "Failed to enable passkey sign-in."
             }
+            #else
+            errorMessage = "Passkeys are not supported on this device. Use TOTP or PIN Code instead."
+            #endif
         } catch {
             errorMessage = error.localizedDescription
         }

@@ -102,6 +102,10 @@ public class AppState {
         try await AuthManager.shared.verify2FAChallenge(code: code, method: method, appState: self)
     }
 
+        public func verify2FAPasskey() async throws {
+        try await AuthManager.shared.verify2FAPasskey(appState: self)
+    }
+
         public func cancel2FAChallenge() {
         self.requires2FAChallenge = false
         self.pending2FAUserId = nil

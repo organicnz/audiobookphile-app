@@ -206,6 +206,70 @@ public class AuthManager {
         appState.isLoading = false
     }
 
+    /// Completes a 2FA challenge using a native passkey (WebAuthn assertion).
+    public func verify2FAPasskey(appState: AppState) async throws {
+        guard let userId = appState.pending2FAUserId, let tempToken = appState.pending2FATempToken, let serverURL = appState.pending2FAServerURL else {
+            return
+        }
+        #if os(iOS) && !SKIP
+        appState.isLoading = true
+        do {
+            let options = try await AudiobookphileAPI.shared.webauthnLoginOptions(
+                userId: userId,
+                tempToken: tempToken
+            )
+
+            guard let challengeData = WebAuthnCodec.base64urlDecode(options.challenge) else {
+                throw WebAuthnError.invalidChallenge
+            }
+
+            let assertion = try await WebAuthnManager.requestAssertion(
+                challenge: challengeData,
+                rpId: options.rpId,
+                allowCredentials: options.allowCredentials ?? [],
+                userVerification: options.userVerification ?? "preferred"
+            )
+
+            let loginResponse = try await AudiobookphileAPI.shared.webauthnLoginVerify(
+                userId: userId,
+                tempToken: tempToken,
+                assertion: assertion
+            )
+            guard let user = loginResponse.user else {
+                throw APIError.invalidResponse
+            }
+            appState.serverURL = serverURL
+            appState.token = user.token
+            appState.currentUser = user
+            appState.isAuthenticated = true
+            appState.requires2FAChallenge = false
+            appState.pending2FAUserId = nil
+            appState.pending2FATempToken = nil
+            appState.pending2FAServerURL = nil
+            appState.pending2FAMethods = nil
+
+            SocketService.shared.connect(
+                serverAddress: serverURL,
+                token: user.token
+            )
+
+            do {
+                appState.settings = try await AudiobookphileAPI.shared.getPreferences()
+            } catch {
+                print("[AuthManager] Failed to fetch preferences after passkey login: \(error)")
+            }
+
+            await appState.fetchLibraries()
+        } catch {
+            appState.isLoading = false
+            throw error
+        }
+        appState.isLoading = false
+        #else
+        throw WebAuthnError.unsupportedPlatform
+        #endif
+    }
+
     public func logout(appState: AppState) {
         Task {
             await AudiobookphileAPI.shared.logout()

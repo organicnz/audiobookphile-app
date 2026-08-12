@@ -234,9 +234,100 @@ public actor AudiobookphileAPI {
     }
 
     /// Enroll Biometric 2FA
+    /// NOTE: Real passkey enrollment must go through WebAuthn (register/options
+    /// + register/verify). This legacy flag-only endpoint is retained only for
+    /// backward compatibility and is never called by the app.
+    @available(*, deprecated, message: "Use webauthnRegisterOptions/webauthnRegisterVerify instead")
     public func enroll2FABiometric(deviceId: String) async throws -> TwoFactorActionResponse {
         let body = try JSONEncoder().encode(["deviceId": deviceId])
         return try await executeRequest(try createAuthRequest(path: "/api/auth/2fa/enroll-biometric", method: "POST", body: body), responseType: TwoFactorActionResponse.self)
+    }
+
+    /// Fetch WebAuthn passkey sign-in options (public, tempToken-scoped)
+    public func webauthnLoginOptions(userId: String, tempToken: String) async throws -> WebAuthnLoginOptionsResponse {
+        guard let url = URL(string: "\(baseURL)/api/auth/2fa/webauthn/login/options") else {
+            throw APIError.invalidResponse
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let body: [String: String] = ["userId": userId, "tempToken": tempToken]
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (data, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        guard (200...299).contains(httpResponse.statusCode) else {
+            if let errorResponse = try? JSONDecoder().decode(APIErrorResponse.self, from: data), let msg = errorResponse.parsedMessage {
+                throw APIError.serverError(statusCode: httpResponse.statusCode, message: msg, code: nil)
+            }
+            throw APIError.serverError(statusCode: httpResponse.statusCode, message: "Passkey sign-in is unavailable for this account", code: nil)
+        }
+        return try defaultDecoder.decode(WebAuthnLoginOptionsResponse.self, from: data)
+    }
+
+    /// Submit a WebAuthn assertion to complete 2FA sign-in (public, tempToken-scoped)
+    public func webauthnLoginVerify(
+        userId: String,
+        tempToken: String,
+        assertion: PasskeyAssertion
+    ) async throws -> LoginResponse {
+        guard let url = URL(string: "\(baseURL)/api/auth/2fa/webauthn/login/verify") else {
+            throw APIError.invalidResponse
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let body: [String: String] = [
+            "userId": userId,
+            "tempToken": tempToken,
+            "credentialId": assertion.credentialId,
+            "clientDataJSON": assertion.clientDataJSON,
+            "authenticatorData": assertion.authenticatorData,
+            "signature": assertion.signature,
+        ]
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (data, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        guard (200...299).contains(httpResponse.statusCode) else {
+            if let errorResponse = try? JSONDecoder().decode(APIErrorResponse.self, from: data), let msg = errorResponse.parsedMessage {
+                throw APIError.serverError(statusCode: httpResponse.statusCode, message: msg, code: nil)
+            }
+            throw APIError.serverError(statusCode: httpResponse.statusCode, message: "Passkey verification failed", code: nil)
+        }
+        return try defaultDecoder.decode(LoginResponse.self, from: data)
+    }
+
+    /// Fetch WebAuthn passkey registration options (requires session)
+    public func webauthnRegisterOptions(excludeCredentialIds: [String] = []) async throws -> WebAuthnRegisterOptionsResponse {
+        let body = excludeCredentialIds.isEmpty
+            ? nil
+            : try JSONEncoder().encode(["excludeCredentials": excludeCredentialIds])
+        return try await executeRequest(
+            try createAuthRequest(path: "/api/auth/2fa/webauthn/register/options", method: "POST", body: body),
+            responseType: WebAuthnRegisterOptionsResponse.self
+        )
+    }
+
+    /// Submit a WebAuthn registration attestation to enroll a passkey (requires session)
+    public func webauthnRegisterVerify(
+        registration: PasskeyRegistration,
+        deviceName: String = "iOS Device"
+    ) async throws -> WebAuthnActionResponse {
+        let body = try JSONEncoder().encode([
+            "id": registration.id,
+            "clientDataJSON": registration.clientDataJSON,
+            "attestationObject": registration.attestationObject,
+            "deviceName": deviceName,
+        ])
+        return try await executeRequest(
+            try createAuthRequest(path: "/api/auth/2fa/webauthn/register/verify", method: "POST", body: body),
+            responseType: WebAuthnActionResponse.self
+        )
     }
 
     private func createAuthRequest(path: String, method: String, body: Data? = nil) throws -> URLRequest {
@@ -1172,6 +1263,61 @@ public struct TwoFactorEnrollResponse: Codable, Sendable {
 
 public struct TwoFactorActionResponse: Codable, Sendable {
     public let success: Bool?
+    public let error: String?
+}
+
+// MARK: - WebAuthn (passkeys)
+
+public struct WebAuthnAllowedCredential: Codable, Sendable {
+    public let type: String?
+    public let id: String
+    public let transports: [String]?
+
+    public init(type: String? = nil, id: String, transports: [String]? = nil) {
+        self.type = type
+        self.id = id
+        self.transports = transports
+    }
+}
+
+public struct WebAuthnLoginOptionsResponse: Codable, Sendable {
+    public let challenge: String
+    public let rpId: String
+    public let origin: String?
+    public let timeout: Int?
+    public let allowCredentials: [WebAuthnAllowedCredential]?
+    public let userVerification: String?
+}
+
+public struct WebAuthnRp: Codable, Sendable {
+    public let name: String
+    public let id: String
+}
+
+public struct WebAuthnUser: Codable, Sendable {
+    public let id: String
+    public let name: String
+    public let displayName: String
+}
+
+public struct WebAuthnAuthenticatorSelection: Codable, Sendable {
+    public let residentKey: String?
+    public let userVerification: String?
+}
+
+public struct WebAuthnRegisterOptionsResponse: Codable, Sendable {
+    public let rp: WebAuthnRp?
+    public let user: WebAuthnUser?
+    public let challenge: String
+    public let excludeCredentials: [WebAuthnAllowedCredential]?
+    public let authenticatorSelection: WebAuthnAuthenticatorSelection?
+    public let attestation: String?
+}
+
+public struct WebAuthnActionResponse: Codable, Sendable {
+    public let success: Bool?
+    public let enrolled: String?
+    public let credentialId: String?
     public let error: String?
 }
 
