@@ -41,19 +41,8 @@ jobs:
           curl -Ls "https://get.maestro.mobile.dev" | bash
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
 
-      - name: Build App for Simulator
-        run: |
-          xcodebuild build \
-            -workspace Project.xcworkspace \
-            -scheme "Audiobookphile App" \
-            -configuration Debug \
-            -destination "generic/platform=iOS Simulator" \
-            -derivedDataPath .build/e2e-dd \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGN_IDENTITY="" \
-            -quiet
-
-      - name: Boot Simulator and Install App
+      - name: Pick Available iPhone Simulator
+        id: device
         run: |
           DEVICE_ID=$(xcrun simctl list devices available -j | python3 -c "
             import json, sys
@@ -70,10 +59,26 @@ jobs:
                 sys.exit('No available iPhone simulator found')
             print(udid)
           ")
+          echo "DEVICE_ID=$DEVICE_ID" >> "$GITHUB_ENV"
+          echo "Picked simulator: $DEVICE_ID"
+
+      - name: Build App for Simulator
+        run: |
+          xcodebuild build \
+            -workspace Project.xcworkspace \
+            -scheme "Audiobookphile App" \
+            -configuration Debug \
+            -destination "platform=iOS Simulator,id=$DEVICE_ID" \
+            -derivedDataPath .build/e2e-dd \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            -quiet
+
+      - name: Boot Simulator and Install App
+        run: |
           xcrun simctl boot "$DEVICE_ID" 2>/dev/null || true
           xcrun simctl bootstatus "$DEVICE_ID" -b
           xcrun simctl install "$DEVICE_ID" .build/e2e-dd/Build/Products/Debug-iphonesimulator/Audiobookphile.app
-          echo "DEVICE_ID=$DEVICE_ID" >> "$GITHUB_ENV"
 
       - name: Run Maestro Flows
         env:
