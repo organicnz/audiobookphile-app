@@ -10,16 +10,31 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
-      
+      - name: Checkout Repository
+        id: checkout
+        uses: actions/checkout@v4
+
       - name: Setup Java
+        id: java
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '17'
-          
+
       - name: Install Skip
-        run: brew install skiptools/skip/skip
-        
+        id: install
+        run: |
+          . .github/scripts/step-tree.sh
+          step_tree "Skip Check" install \
+            "checkout:Checkout Repository|java:Setup Java|install:Install Skip|verify:Skip Verify" \
+            "checkout=${{ steps.checkout.outcome }};java=${{ steps.java.outcome }}"
+          brew install skiptools/skip/skip
+
       - name: Skip Verify
-        run: skip verify
+        id: verify
+        run: |
+          . .github/scripts/step-tree.sh
+          step_tree "Skip Check" verify \
+            "checkout:Checkout Repository|java:Setup Java|install:Install Skip|verify:Skip Verify" \
+            "checkout=${{ steps.checkout.outcome }};java=${{ steps.java.outcome }};install=${{ steps.install.outcome }}"
+          skip verify

@@ -10,8 +10,22 @@ jobs:
   lint:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        id: checkout
+        uses: actions/checkout@v4
       - name: Install SwiftLint
-        run: brew install swiftlint
+        id: install
+        run: |
+          . .github/scripts/step-tree.sh
+          step_tree "SwiftLint" install \
+            "checkout:Checkout Repository|install:Install SwiftLint|lint:Run SwiftLint" \
+            "checkout=${{ steps.checkout.outcome }}"
+          brew install swiftlint
       - name: Run SwiftLint
-        run: swiftlint --strict
+        id: lint
+        run: |
+          . .github/scripts/step-tree.sh
+          step_tree "SwiftLint" lint \
+            "checkout:Checkout Repository|install:Install SwiftLint|lint:Run SwiftLint" \
+            "checkout=${{ steps.checkout.outcome }};install=${{ steps.install.outcome }}"
+          swiftlint --strict

@@ -17,16 +17,35 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout Repository
+        id: checkout
         uses: actions/checkout@v4
 
       - name: Security Audit
-        run: ./scripts/security-audit.sh
+        id: audit
+        run: |
+          . .github/scripts/step-tree.sh
+          step_tree "Verify Swift iOS Package" audit \
+            "checkout:Checkout Repository|audit:Security Audit|resolve:Resolve Package Dependencies|build:Build & Typecheck Package" \
+            "checkout=${{ steps.checkout.outcome }}"
+          ./scripts/security-audit.sh
 
       - name: Resolve Package Dependencies
-        run: swift package resolve
+        id: resolve
+        run: |
+          . .github/scripts/step-tree.sh
+          step_tree "Verify Swift iOS Package" resolve \
+            "checkout:Checkout Repository|audit:Security Audit|resolve:Resolve Package Dependencies|build:Build & Typecheck Package" \
+            "checkout=${{ steps.checkout.outcome }};audit=${{ steps.audit.outcome }}"
+          swift package resolve
 
       - name: Build & Typecheck Package
-        run: swift build
+        id: build
+        run: |
+          . .github/scripts/step-tree.sh
+          step_tree "Verify Swift iOS Package" build \
+            "checkout:Checkout Repository|audit:Security Audit|resolve:Resolve Package Dependencies|build:Build & Typecheck Package" \
+            "checkout=${{ steps.checkout.outcome }};audit=${{ steps.audit.outcome }};resolve=${{ steps.resolve.outcome }}"
+          swift build
 
   deploy-mobile:
     name: Deploy iOS & macOS App (TestFlight / Xcode Cloud)
@@ -35,16 +54,21 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout Repository
+        id: checkout
         uses: actions/checkout@v4
 
       - name: Check Apple Distribution Secrets & Trigger Deployment
+        id: deploy
         env:
           APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
         run: |
+          . .github/scripts/step-tree.sh
+          step_tree "Deploy iOS & macOS App (TestFlight / Xcode Cloud)" deploy \
+            "checkout:Checkout Repository|deploy:Check Apple Distribution Secrets & Trigger Deployment" \
+            "checkout=${{ steps.checkout.outcome }}"
           if [ -z "$APP_STORE_CONNECT_API_KEY" ]; then
             echo "No App Store Connect API key configured in secrets. Relying on Xcode Cloud / native Git integration for TestFlight release."
             exit 0
           fi
           echo "Executing Apple App Store Connect / TestFlight deployment pipeline..."
           # Future fastlane / xcodebuild release commands go here when secrets are set
-
