@@ -112,6 +112,73 @@ public class AuthManager {
         }
     }
 
+    /// Completes a magic-link sign-in: the web callback bounced the GoTrue
+    /// session to us via the `audiobookphile://` URL scheme.
+    public func completeMagicLinkSession(
+        accessToken: String,
+        refreshToken: String?,
+        userId: String,
+        serverURL: String?,
+        appState: AppState
+    ) async throws {
+        appState.isLoading = true
+
+        do {
+            var resolvedServer = serverURL?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if resolvedServer.isEmpty,
+               let stored = try? KeychainManager.shared.loadCredentials(),
+               !stored.serverURL.isEmpty {
+                resolvedServer = stored.serverURL
+            }
+            if resolvedServer.isEmpty {
+                resolvedServer = EnvironmentConfig.serverURL
+            }
+            guard !resolvedServer.isEmpty, !accessToken.isEmpty else {
+                throw APIError.invalidResponse
+            }
+
+            let refresh = refreshToken ?? ""
+            await AudiobookphileAPI.shared.configure(
+                serverURL: resolvedServer,
+                token: accessToken,
+                refreshToken: refresh
+            )
+            try await KeychainManager.shared.saveCredentials(
+                serverURL: resolvedServer,
+                token: accessToken,
+                refreshToken: refresh
+            )
+
+            appState.serverURL = resolvedServer
+            appState.token = accessToken
+            appState.isAuthenticated = true
+
+            SocketService.shared.connect(
+                serverAddress: resolvedServer,
+                token: accessToken
+            )
+
+            do {
+                appState.currentUser = try await AudiobookphileAPI.shared.getCurrentUserProfile()
+            } catch {
+                print("[AuthManager] Failed to fetch current user profile after magic link: \(error)")
+            }
+
+            do {
+                appState.settings = try await AudiobookphileAPI.shared.getPreferences()
+            } catch {
+                print("[AuthManager] Failed to fetch preferences after magic link: \(error)")
+            }
+
+            await appState.fetchLibraries()
+        } catch {
+            appState.isLoading = false
+            throw error
+        }
+
+        appState.isLoading = false
+    }
+
     public func login(serverURL: String, username: String, password: String, appState: AppState) async throws {
         appState.isLoading = true
 

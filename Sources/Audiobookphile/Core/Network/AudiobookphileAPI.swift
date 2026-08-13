@@ -97,6 +97,38 @@ public actor AudiobookphileAPI {
         self.isAuthenticated = !token.isEmpty
     }
 
+    /// Send a magic link sign-in email for the iOS client
+    public func sendMagicLink(email: String, client: String = "ios", serverURL: String? = nil) async throws {
+        if let serverURL {
+            self.baseURL = serverURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        }
+        guard let url = URL(string: "\(baseURL)/api/auth/magic-link") else {
+            throw APIError.invalidResponse
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let anonKey = EnvironmentConfig.supabaseAnonKey
+        if !anonKey.isEmpty {
+            request.setValue(anonKey, forHTTPHeaderField: "apikey")
+        }
+
+        let body: [String: String] = ["email": email, "client": client, "server": baseURL]
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (data, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        guard (200...299).contains(httpResponse.statusCode) else {
+            if let errorResponse = try? JSONDecoder().decode(APIErrorResponse.self, from: data), let msg = errorResponse.parsedMessage {
+                throw APIError.serverError(statusCode: httpResponse.statusCode, message: msg, code: nil)
+            }
+            throw APIError.serverError(statusCode: httpResponse.statusCode, message: "Failed to send magic link", code: nil)
+        }
+    }
+
     // MARK: - Authentication
 
     /// Authenticate with username and password
@@ -212,6 +244,11 @@ public actor AudiobookphileAPI {
         return loginResponse
     }
 
+    /// Fetch 2FA status for the authenticated user
+    public func get2FAStatus() async throws -> TwoFactorStatusResponse {
+        return try await executeRequest(try createAuthRequest(path: "/api/auth/2fa/status", method: "GET"), responseType: TwoFactorStatusResponse.self)
+    }
+
     /// Enroll in 2FA (generate secret and QR URI)
     public func enroll2FA() async throws -> TwoFactorEnrollResponse {
         return try await executeRequest(try createAuthRequest(path: "/api/auth/2fa/enroll", method: "POST"), responseType: TwoFactorEnrollResponse.self)
@@ -224,9 +261,16 @@ public actor AudiobookphileAPI {
     }
 
     /// Disable 2FA
-    public func disable2FA(code: String) async throws -> TwoFactorActionResponse {
-        let body = try JSONEncoder().encode(["code": code])
-        return try await executeRequest(try createAuthRequest(path: "/api/auth/2fa/disable", method: "POST", body: body), responseType: TwoFactorActionResponse.self)
+    public func disable2FA(code: String = "", pinCode: String = "") async throws -> TwoFactorActionResponse {
+        var body: [String: String] = [:]
+        if !code.isEmpty {
+            body["code"] = code
+        }
+        if !pinCode.isEmpty {
+            body["pinCode"] = pinCode
+        }
+        let payload = body.isEmpty ? nil : try JSONEncoder().encode(body)
+        return try await executeRequest(try createAuthRequest(path: "/api/auth/2fa/disable", method: "POST", body: payload), responseType: TwoFactorActionResponse.self)
     }
 
     /// Enroll PIN Code 2FA
@@ -301,7 +345,24 @@ public actor AudiobookphileAPI {
             }
             throw APIError.serverError(statusCode: httpResponse.statusCode, message: "Passkey verification failed", code: nil)
         }
-        return try defaultDecoder.decode(LoginResponse.self, from: data)
+
+        let loginResponse = try defaultDecoder.decode(LoginResponse.self, from: data)
+        guard let user = loginResponse.user else {
+            throw APIError.invalidResponse
+        }
+
+        self.accessToken = user.token
+        self.refreshToken = user.refreshToken ?? ""
+        self.currentUser = user
+        self.isAuthenticated = true
+
+        try KeychainManager.shared.saveCredentials(
+            serverURL: baseURL,
+            token: accessToken,
+            refreshToken: refreshToken
+        )
+
+        return loginResponse
     }
 
     /// Fetch WebAuthn passkey registration options (requires session)
@@ -1266,6 +1327,23 @@ public struct TwoFactorEnrollResponse: Codable, Sendable {
 public struct TwoFactorActionResponse: Codable, Sendable {
     public let success: Bool?
     public let error: String?
+}
+
+public struct TwoFactorStatusResponse: Codable, Sendable {
+    public let enabled: Bool
+    public let totpEnrolled: Bool?
+    public let pinEnrolled: Bool?
+    public let biometricEnrolled: Bool?
+    public let passkeys: [TwoFactorPasskeyInfo]?
+    public let methods: [String]?
+}
+
+public struct TwoFactorPasskeyInfo: Codable, Sendable {
+    public let id: String
+    public let credentialId: String?
+    public let deviceName: String?
+    public let createdAt: String?
+    public let lastUsedAt: String?
 }
 
 // MARK: - WebAuthn (passkeys)

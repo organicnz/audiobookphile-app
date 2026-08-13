@@ -9,6 +9,7 @@ public struct TwoFactorSettingsView: View {
     @State private var uri: String = ""
     @State private var verificationCode: String = ""
     @State private var disableCode: String = ""
+    @State private var disablePin: String = ""
     @State private var pinInput: String = ""
     @State private var is2faEnabled: Bool = false
     @State private var isLoading: Bool = true
@@ -379,7 +380,7 @@ public struct TwoFactorSettingsView: View {
 
     private var disablingCard: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Enter a 6-digit code from your authenticator (or leave empty) to disable all 2FA methods:")
+            Text("Enter a 6-digit authenticator code and/or your PIN to disable all 2FA methods:")
                 .font(.subheadline)
                 .foregroundStyle(.white.opacity(0.8))
 
@@ -403,11 +404,32 @@ public struct TwoFactorSettingsView: View {
                     errorMessage = nil
                 }
 
+            TextField("•••• (Optional)", text: $disablePin)
+                .font(.system(size: 24, weight: .bold, design: .monospaced))
+                .multilineTextAlignment(.center)
+                #if os(iOS) || SKIP
+                .keyboardType(.numberPad)
+                .textContentType(.password)
+                #endif
+                .padding()
+                .background(Color.white.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .onChange(of: disablePin) { _, newValue in
+                    let filtered = newValue.filter { $0.isNumber }
+                    if filtered.count > 8 {
+                        disablePin = String(filtered.prefix(8))
+                    } else {
+                        disablePin = filtered
+                    }
+                    errorMessage = nil
+                }
+
             HStack(spacing: 12) {
                 Button("Cancel") {
                     withAnimation {
                         mode = .idle
                         disableCode = ""
+                        disablePin = ""
                         errorMessage = nil
                     }
                 }
@@ -448,8 +470,8 @@ public struct TwoFactorSettingsView: View {
     private func loadStatus() async {
         isLoading = true
         do {
-            let user = try await AudiobookphileAPI.shared.getCurrentUserProfile()
-            is2faEnabled = user.id.isEmpty ? false : is2faEnabled
+            let status = try await AudiobookphileAPI.shared.get2FAStatus()
+            is2faEnabled = status.enabled
         } catch {
             print("[TwoFactorSettings] Failed to check status: \(error)")
         }
@@ -563,11 +585,12 @@ public struct TwoFactorSettingsView: View {
         isSubmitting = true
         errorMessage = nil
         do {
-            let res = try await AudiobookphileAPI.shared.disable2FA(code: disableCode)
+            let res = try await AudiobookphileAPI.shared.disable2FA(code: disableCode, pinCode: disablePin)
             if res.success == true {
                 is2faEnabled = false
                 mode = .idle
                 disableCode = ""
+                disablePin = ""
                 successMessage = "All 2FA methods disabled successfully."
             } else {
                 errorMessage = res.error ?? "Failed to disable 2FA."

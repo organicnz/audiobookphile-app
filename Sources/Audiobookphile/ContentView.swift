@@ -60,6 +60,40 @@ public struct ContentView: View {
                     }
                 }
             }
+            .onOpenURL { url in
+                handleDeepLink(url)
+            }
+    }
+
+    private func handleDeepLink(_ url: URL) {
+        guard url.scheme == "audiobookphile", url.host == "auth" || url.path.hasPrefix("/auth") else {
+            print("[ContentView] Ignoring unknown deep link: \(url.absoluteString)")
+            return
+        }
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            return
+        }
+        let params = components.queryItems?.reduce(into: [String: String]()) { result, item in
+            result[item.name] = item.value
+        } ?? [:]
+        guard let accessToken = params["accessToken"], !accessToken.isEmpty else {
+            print("[ContentView] Magic link callback missing access token")
+            return
+        }
+
+        Task {
+            do {
+                try await AuthManager.shared.completeMagicLinkSession(
+                    accessToken: accessToken,
+                    refreshToken: params["refreshToken"],
+                    userId: params["userId"] ?? "",
+                    serverURL: params["server"],
+                    appState: appState
+                )
+            } catch {
+                print("[ContentView] Magic link session completion failed: \(error)")
+            }
+        }
     }
 }
 

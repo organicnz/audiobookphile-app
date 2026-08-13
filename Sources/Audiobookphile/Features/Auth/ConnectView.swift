@@ -34,8 +34,16 @@ public struct ConnectView: View {
     @State var showPassword = false
     @State var isAnimating = false
     @State var appearPhase = 0
+    @State var magicLinkStatus: MagicLinkStatus = .idle
 
     public init() {}
+
+    enum MagicLinkStatus: Equatable {
+        case idle
+        case sending
+        case sent
+        case failed(String)
+    }
 
     public var body: some View {
         @Bindable var appState = appState
@@ -223,6 +231,8 @@ public struct ConnectView: View {
             }
             .disabled(!isFormValid || appState.isLoading)
             .padding(.top, 8)
+
+            magicLinkSection
         }
         .padding(24)
         .background(.ultraThinMaterial)
@@ -242,6 +252,78 @@ public struct ConnectView: View {
                     ),
                     lineWidth: 1
                 )
+        }
+    }
+
+    // MARK: - Magic Link Section
+
+    private var magicLinkSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Divider()
+                .overlay(Color.white.opacity(0.2))
+
+            Text("Or sign in with a magic link")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color.secondary)
+
+            Button {
+                Task { await sendMagicLink() }
+            } label: {
+                HStack {
+                    if magicLinkStatus == .sending {
+                        ProgressView().tint(.white)
+                            .padding(.trailing, 8)
+                    }
+                    Text("Email me a sign-in link")
+                        .bold()
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .foregroundStyle(.white)
+                .background(Color.white.opacity(0.12))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(Color.white.opacity(0.25), lineWidth: 1)
+                }
+            }
+            .disabled(magicLinkStatus == .sending || username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            .accessibilityIdentifier("abp_magic_link_send")
+
+            switch magicLinkStatus {
+            case .idle:
+                Text("We'll email you a link that opens the app and signs you in.")
+                    .font(.caption)
+                    .foregroundStyle(Color.secondary)
+            case .sending:
+                Text("Sending your link...")
+                    .font(.caption)
+                    .foregroundStyle(Color.secondary)
+            case .sent:
+                Text("Magic link sent! Check your email and open the link on this device to sign in.")
+                    .font(.caption)
+                    .foregroundStyle(.green)
+            case .failed(let message):
+                Text(message)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+        }
+    }
+
+    private func sendMagicLink() async {
+        let trimmedURL = serverURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedEmail = username.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedURL.isEmpty, !trimmedEmail.isEmpty else {
+            magicLinkStatus = .failed("Enter your server address and email first.")
+            return
+        }
+        magicLinkStatus = .sending
+        do {
+            try await AudiobookphileAPI.shared.sendMagicLink(email: trimmedEmail, serverURL: trimmedURL)
+            magicLinkStatus = .sent
+        } catch {
+            magicLinkStatus = .failed(error.localizedDescription)
         }
     }
 
