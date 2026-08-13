@@ -63,6 +63,7 @@ jobs:
           echo "Picked simulator: $DEVICE_ID"
 
       - name: Build App for Simulator
+        id: build
         run: |
           xcodebuild build \
             -workspace Project.xcworkspace \
@@ -70,21 +71,19 @@ jobs:
             -configuration Debug \
             -destination "platform=iOS Simulator,id=$DEVICE_ID" \
             -derivedDataPath .build/e2e-dd \
+            -skipPackagePluginValidation \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY="" \
             2>&1 | tee .build/xcodebuild.log
-          echo "BUILD_LOG_EXIT=${PIPESTATUS[0]}" >> "$GITHUB_ENV"
-        continue-on-error: true
+          test ${PIPESTATUS[0]} -eq 0
 
       - name: Boot Simulator and Install App
-        if: env.BUILD_LOG_EXIT == '0'
         run: |
           xcrun simctl boot "$DEVICE_ID" 2>/dev/null || true
           xcrun simctl bootstatus "$DEVICE_ID" -b
           xcrun simctl install "$DEVICE_ID" .build/e2e-dd/Build/Products/Debug-iphonesimulator/Audiobookphile.app
 
       - name: Run Maestro Flows
-        if: env.BUILD_LOG_EXIT == '0'
         env:
           MAESTRO_CLI_NO_ANALYTICS: "true"
         run: |
@@ -100,11 +99,10 @@ jobs:
           fi
 
       - name: Show Build Failure
-        if: env.BUILD_LOG_EXIT != '0'
+        if: failure() && steps.build.conclusion == 'failure'
         run: |
-          echo "=== xcodebuild exit code: $BUILD_LOG_EXIT ==="
-          grep -E "error:|warning: .*(failed|cannot|unable)|PhaseScriptExecution|Validate plug-in" .build/xcodebuild.log | head -40
-          exit 1
+          grep -E "error:|warning: .*(failed|cannot|unable)|Validate plug-in" .build/xcodebuild.log | head -40
+        shell: bash
 
       - name: Upload Test Reports
         if: always()
