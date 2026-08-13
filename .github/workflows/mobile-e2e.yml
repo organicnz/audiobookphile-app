@@ -47,7 +47,7 @@ jobs:
             -workspace Project.xcworkspace \
             -scheme "Audiobookphile App" \
             -configuration Debug \
-            -destination "platform=iOS Simulator,name=iPhone 16" \
+            -destination "generic/platform=iOS Simulator" \
             -derivedDataPath .build/e2e-dd \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY="" \
@@ -59,15 +59,15 @@ jobs:
             import json, sys
             data = json.load(sys.stdin)
             udid = None
-            for runtime in data.get('devices', {}).values():
-                for device in runtime:
-                    if device.get('name') == 'iPhone 16' and device.get('isAvailable'):
+            for runtime in sorted(data.get('devices', {}).keys(), reverse=True):
+                for device in data['devices'][runtime]:
+                    if device.get('name', '').startswith('iPhone') and device.get('isAvailable'):
                         udid = device['udid']
                         break
                 if udid:
                     break
             if not udid:
-                sys.exit('No available iPhone 16 simulator found')
+                sys.exit('No available iPhone simulator found')
             print(udid)
           ")
           xcrun simctl boot "$DEVICE_ID" 2>/dev/null || true
