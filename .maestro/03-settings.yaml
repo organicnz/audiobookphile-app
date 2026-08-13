@@ -22,22 +22,23 @@ name: Settings Opens and Shows App Sections
 - extendedWaitUntil:
     visible: "Settings"
     timeout: 10000
-- scrollUntilVisible:
-    element:
-      text: "Theme"
-    direction: DOWN
-    timeout: 20000
-- assertVisible: "Theme"
-- scrollUntilVisible:
-    element:
-      text: "Haptic Feedback"
-    direction: DOWN
-    timeout: 20000
+# App-section rows sit below the fold; swipe explicitly (repeated swipes
+# are more reliable than scrollUntilVisible across simulator sizes/OSes).
+- swipe:
+    start: 50%, 80%
+    end: 50%, 30%
+    duration: 600
+- swipe:
+    start: 50%, 80%
+    end: 50%, 30%
+    duration: 600
+- swipe:
+    start: 50%, 80%
+    end: 50%, 30%
+    duration: 600
+- extendedWaitUntil:
+    visible: "Theme"
+    timeout: 10000
 - assertVisible: "Haptic Feedback"
-- scrollUntilVisible:
-    element:
-      text: "Version"
-    direction: DOWN
-    timeout: 20000
 - assertVisible: "Version"
 - takeScreenshot: settings
