@@ -1,0 +1,102 @@
+name: Mobile E2E (Maestro)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Sources/**'
+      - 'Package.swift'
+      - '.maestro/**'
+      - '.github/workflows/mobile-e2e.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'Sources/**'
+      - 'Package.swift'
+      - '.maestro/**'
+      - '.github/workflows/mobile-e2e.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: mobile-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  maestro-ios:
+    name: Maestro UI Tests (iOS Simulator)
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17 (Maestro runtime)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Maestro
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Build App for Simulator
+        working-directory: audiobookphile-app
+        run: |
+          xcodebuild build \
+            -workspace Project.xcworkspace \
+            -scheme "Audiobookphile App" \
+            -configuration Debug \
+            -destination "platform=iOS Simulator,name=iPhone 16" \
+            -derivedDataPath .build/e2e-dd \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            -quiet
+
+      - name: Boot Simulator and Install App
+        working-directory: audiobookphile-app
+        run: |
+          DEVICE_ID=$(xcrun simctl list devices available -j | python3 -c "
+            import json, sys
+            data = json.load(sys.stdin)
+            udid = None
+            for runtime in data.get('devices', {}).values():
+                for device in runtime:
+                    if device.get('name') == 'iPhone 16' and device.get('isAvailable'):
+                        udid = device['udid']
+                        break
+                if udid:
+                    break
+            if not udid:
+                sys.exit('No available iPhone 16 simulator found')
+            print(udid)
+          ")
+          xcrun simctl boot "$DEVICE_ID" 2>/dev/null || true
+          xcrun simctl bootstatus "$DEVICE_ID" -b
+          xcrun simctl install "$DEVICE_ID" .build/e2e-dd/Build/Products/Debug-iphonesimulator/Audiobookphile.app
+          echo "DEVICE_ID=$DEVICE_ID" >> "$GITHUB_ENV"
+
+      - name: Run Maestro Flows
+        working-directory: audiobookphile-app
+        env:
+          MAESTRO_CLI_NO_ANALYTICS: "true"
+        run: |
+          set +e
+          maestro test .maestro \
+            --format junit \
+            --output .maestro-results/
+          STATUS=$?
+          if [ $STATUS -ne 0 ]; then
+            echo "Maestro failures:"
+            find .maestro-results -name '*.xml' -exec cat {} +
+            exit $STATUS
+          fi
+
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-results
+          path: audiobookphile-app/.maestro-results/
+          if-no-files-found: ignore

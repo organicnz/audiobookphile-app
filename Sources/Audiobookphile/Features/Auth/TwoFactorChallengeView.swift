@@ -41,17 +41,26 @@ public struct TwoFactorChallengeView: View {
                             .padding(.horizontal, 24)
                     }
 
-                    if methodCount > 1 {
+                    if true {
                         HStack(spacing: 10) {
-                            if appState.pending2FAMethods?.biometric == true {
-                                methodButton(title: "Biometric", method: "biometric", icon: "faceid")
-                            }
-                            if appState.pending2FAMethods?.pin == true {
-                                methodButton(title: "PIN Code", method: "pin", icon: "lock")
-                            }
-                            if appState.pending2FAMethods?.totp == true || appState.pending2FAMethods == nil {
-                                methodButton(title: "TOTP", method: "totp", icon: "candybarphone")
-                            }
+                            methodButton(
+                                title: "Biometric",
+                                method: "biometric",
+                                icon: "faceid",
+                                enrolled: isEnrolled("biometric")
+                            )
+                            methodButton(
+                                title: "PIN Code",
+                                method: "pin",
+                                icon: "lock",
+                                enrolled: isEnrolled("pin")
+                            )
+                            methodButton(
+                                title: "TOTP",
+                                method: "totp",
+                                icon: "candybarphone",
+                                enrolled: isEnrolled("totp")
+                            )
                         }
                         .padding(4)
                         .background(Color.white.opacity(0.1))
@@ -60,7 +69,19 @@ public struct TwoFactorChallengeView: View {
                     }
 
                     VStack(spacing: 16) {
-                        if selectedMethod == "biometric" {
+                        if !isEnrolled(selectedMethod) {
+                            VStack(spacing: 12) {
+                                Text(notSetupHint)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.white.opacity(0.75))
+                                    .multilineTextAlignment(.center)
+
+                                Text("Enable it in Settings → Security")
+                                    .font(.caption)
+                                    .foregroundStyle(.white.opacity(0.55))
+                            }
+                            .padding(.vertical, 24)
+                        } else if selectedMethod == "biometric" {
                             Button {
                                 Task {
                                     await triggerBiometric()
@@ -203,21 +224,16 @@ public struct TwoFactorChallengeView: View {
             }
         }
         .onAppear {
-            if let methods = appState.pending2FAMethods {
-                if methods.biometric == true {
-                    selectedMethod = "biometric"
-                    Task {
-                        await triggerBiometric()
-                    }
-                } else if methods.pin == true {
-                    selectedMethod = "pin"
-                    isInputFocused = true
-                } else {
-                    selectedMethod = "totp"
-                    isInputFocused = true
-                }
-            } else {
+            // Prefer TOTP whenever it is set up. A method that is merely
+            // suggested (not enrolled) must never be auto-selected.
+            if isEnrolled("totp") {
                 selectedMethod = "totp"
+            } else if isEnrolled("pin") {
+                selectedMethod = "pin"
+            } else {
+                selectedMethod = "biometric"
+            }
+            if selectedMethod != "biometric" {
                 isInputFocused = true
             }
         }
@@ -245,16 +261,30 @@ public struct TwoFactorChallengeView: View {
         }
     }
 
-    private var methodCount: Int {
-        var count = 0
-        if appState.pending2FAMethods?.totp == true || appState.pending2FAMethods == nil { count += 1 }
-        if appState.pending2FAMethods?.pin == true { count += 1 }
-        if appState.pending2FAMethods?.biometric == true { count += 1 }
-        return count
+    private var notSetupHint: String {
+        switch selectedMethod {
+        case "biometric":
+            return "Biometric 2FA is not set up yet."
+        case "pin":
+            return "A PIN code is not set up yet."
+        default:
+            return "TOTP 2FA is not set up yet."
+        }
+    }
+
+    private func isEnrolled(_ method: String) -> Bool {
+        switch method {
+        case "biometric":
+            return appState.pending2FAMethods?.biometric == true
+        case "pin":
+            return appState.pending2FAMethods?.pin == true
+        default:
+            return appState.pending2FAMethods?.totp == true || appState.pending2FAMethods == nil
+        }
     }
 
     @ViewBuilder
-    private func methodButton(title: String, method: String, icon: String) -> some View {
+    private func methodButton(title: String, method: String, icon: String, enrolled: Bool) -> some View {
         Button {
             withAnimation(.easeInOut(duration: 0.2)) {
                 selectedMethod = method
@@ -269,12 +299,17 @@ public struct TwoFactorChallengeView: View {
                     .font(.caption)
                 Text(title)
                     .font(.caption.bold())
+                if !enrolled {
+                    Text("Set up")
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.6))
+                }
             }
             .padding(.vertical, 8)
             .padding(.horizontal, 12)
             .frame(maxWidth: .infinity)
             .background(selectedMethod == method ? Color.accentColor : Color.clear)
-            .foregroundStyle(.white)
+            .foregroundStyle(selectedMethod == method ? .white : (enrolled ? .white : .white.opacity(0.55)))
             .clipShape(RoundedRectangle(cornerRadius: 10))
         }
     }

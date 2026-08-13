@@ -484,6 +484,15 @@ public struct SettingsView: View {
                 title: "Lock Orientation",
                 isOn: $viewModel.lockOrientation
             )
+
+            // Crash reporting (only shown when a DSN is configured)
+            if TelemetryService.shared.isConfigured {
+                SettingsToggleRow(
+                    icon: "exclamationmark.triangle",
+                    title: "Crash & Error Reporting",
+                    isOn: $viewModel.crashReportingEnabled
+                )
+            }
         }
     }
 
@@ -651,6 +660,16 @@ public class SettingsViewModel {
             var s = AppState.shared.settings
             s.lockOrientation = newValue
             AppState.shared.updateSettings(s)
+        }
+    }
+
+    public var crashReportingEnabled: Bool {
+        get { AppState.shared.settings.crashReportingEnabled }
+        set {
+            var s = AppState.shared.settings
+            s.crashReportingEnabled = newValue
+            AppState.shared.updateSettings(s)
+            TelemetryService.shared.isEnabled = newValue
         }
     }
 

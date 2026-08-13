@@ -6,6 +6,9 @@
 //
 
 import Foundation
+#if canImport(SwiftUI)
+import SwiftUI
+#endif
 
 #if canImport(CoreGraphics)
 import CoreGraphics
@@ -81,6 +84,9 @@ public struct AppSettings: Codable, Sendable {
     public var theme: AppTheme = .system
     public var bookCoverAspectRatio: BookCoverAspectRatio = .square
 
+    // Privacy
+    public var crashReportingEnabled: Bool = true
+
     // UI Settings
     public var autoResume: Bool = true
     public var hapticsEnabled: Bool = true
@@ -110,6 +116,7 @@ public struct AppSettings: Codable, Sendable {
         sleepTimerDefaultTime = try container.decodeIfPresent(Int.self, forKey: .sleepTimerDefaultTime) ?? 900
         theme = try container.decodeIfPresent(AppTheme.self, forKey: .theme) ?? .system
         bookCoverAspectRatio = try container.decodeIfPresent(BookCoverAspectRatio.self, forKey: .bookCoverAspectRatio) ?? .square
+        crashReportingEnabled = try container.decodeIfPresent(Bool.self, forKey: .crashReportingEnabled) ?? true
         autoResume = try container.decodeIfPresent(Bool.self, forKey: .autoResume) ?? true
         hapticsEnabled = try container.decodeIfPresent(Bool.self, forKey: .hapticsEnabled) ?? true
         lockOrientation = try container.decodeIfPresent(Bool.self, forKey: .lockOrientation) ?? false
@@ -135,6 +142,7 @@ public struct AppSettings: Codable, Sendable {
         case sleepTimerDefaultTime
         case theme
         case bookCoverAspectRatio
+        case crashReportingEnabled
         case autoResume
         case hapticsEnabled
         case lockOrientation
@@ -154,6 +162,17 @@ public enum AppTheme: String, Codable, Sendable {
     case light
     case dark
     case system
+
+    #if canImport(SwiftUI)
+    /// Maps the user preference to a SwiftUI color scheme. `nil` = follow the system.
+    public var colorScheme: SwiftUI.ColorScheme? {
+        switch self {
+        case .light: return .light
+        case .dark: return .dark
+        case .system: return nil
+        }
+    }
+    #endif
 }
 
 public enum BookCoverAspectRatio: Int, Codable, Sendable {

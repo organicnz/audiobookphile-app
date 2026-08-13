@@ -23,6 +23,11 @@ public enum EnvironmentConfig {
     public static var supabaseAnonKey: String {
         Bundle.main.object(forInfoDictionaryKey: "SupabaseAnonKey") as? String ?? ""
     }
+
+    /// Sentry DSN for crash/error reporting. Empty disables telemetry entirely.
+    public static var sentryDSN: String {
+        Bundle.main.object(forInfoDictionaryKey: "SentryDSN") as? String ?? ""
+    }
 }
 
 // MARK: - API Constants
@@ -117,18 +122,20 @@ public enum StorageKeys {
 }
 
 // MARK: - App Colors
+// Values come from the shared design system: design-system/tokens.json
+// (regenerate with `bun design-system/sync-design-tokens.mjs`).
 
 extension Color {
-    public static let appBackground = Color(red: 55/255, green: 56/255, blue: 56/255) // #373838 Audiobookshelf dark background
-    public static let appSecondaryBackground = Color(red: 35/255, green: 35/255, blue: 35/255) // #232323 Audiobookshelf dark surface
+    public static let appBackground = DesignTokens.Color.background // Audiobookshelf dark background
+    public static let appSecondaryBackground = DesignTokens.Color.surface // Audiobookshelf dark surface
 
-    public static let appPrimary = Color(red: 0.97, green: 0.45, blue: 0.09) // AudioBooth Orange #f97316
-    public static let appSecondary = Color(red: 0.91, green: 0.35, blue: 0.05)
-    public static let appAccent = Color(red: 0.98, green: 0.55, blue: 0.15)
+    public static let appPrimary = DesignTokens.Color.accent // AudioBooth Orange
+    public static let appSecondary = DesignTokens.Color.accentSecondary
+    public static let appAccent = DesignTokens.Color.accentHighlight
 
-    public static let appSuccess = Color.green
-    public static let appWarning = Color.orange
-    public static let appError = Color.red
+    public static let appSuccess = DesignTokens.Color.success
+    public static let appWarning = DesignTokens.Color.warning
+    public static let appError = DesignTokens.Color.error
 
     public static let textPrimary = Color.primary
     public static let textSecondary = Color.secondary

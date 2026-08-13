@@ -39,7 +39,7 @@ public struct BookDetailView: View {
                 .padding(.horizontal, 20)
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(appState.settings.theme.colorScheme)
         .alert("Playback Error", isPresented: $viewModel.showPlaybackError) {
             Button("OK", role: .cancel) { }
         } message: {

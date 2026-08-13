@@ -1,0 +1,28 @@
+appId: club.foodshare.audiobookphile
+name: Settings Opens and Shows App Sections
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+- extendedWaitUntil:
+    visible: "Audiobookphile"
+    timeout: 20000
+- runFlow:
+    when:
+      visible:
+        id: "abp_connect_dismiss"
+    commands:
+      - tapOn:
+          id: "abp_connect_dismiss"
+- extendedWaitUntil:
+    visible: "Home"
+    timeout: 10000
+- tapOn:
+    id: "abp_settings_button"
+- extendedWaitUntil:
+    visible: "Settings"
+    timeout: 10000
+- assertVisible: "Theme"
+- assertVisible: "Haptic Feedback"
+- assertVisible: "Version"
+- takeScreenshot: settings

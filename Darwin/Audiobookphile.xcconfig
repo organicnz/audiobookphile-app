@@ -66,6 +66,7 @@ CODE_SIGNING_ALLOWED[sdk=macosx*] = NO
 INFOPLIST_KEY_ServerURL = $(API_SERVER_URL)
 INFOPLIST_KEY_SupabaseURL = $(NEXT_PUBLIC_SUPABASE_URL)
 INFOPLIST_KEY_SupabaseAnonKey = $(NEXT_PUBLIC_SUPABASE_ANON_KEY)
+INFOPLIST_KEY_SentryDSN = $(SENTRY_DSN)
 
 // SKIP_INSTALL = YES is the correct default for the xcconfig base.
 // The app target overrides this to NO at the pbxproj target level (both Debug and Release).

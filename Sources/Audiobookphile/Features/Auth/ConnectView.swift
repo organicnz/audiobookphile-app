@@ -55,6 +55,7 @@ public struct ConnectView: View {
                     .foregroundStyle(Color.white.opacity(0.6))
                     .padding(20)
             }
+            .accessibilityIdentifier("abp_connect_dismiss")
             .zIndex(100)
 
             ScrollView {

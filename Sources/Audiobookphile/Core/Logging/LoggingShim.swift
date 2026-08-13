@@ -32,7 +32,9 @@ public struct Logger: Sendable {
     }
 
     public func error(_ message: @autoclosure () -> String) {
-        emit("error", message())
+        let text = message()
+        emit("error", text)
+        TelemetryService.shared.captureMessage(text, level: .error)
     }
 }
 #endif

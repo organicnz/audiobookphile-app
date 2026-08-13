@@ -132,6 +132,7 @@ public class AudioPlayerSyncManager {
             onSyncComplete()
         } catch {
             logger.error("Progress sync failed: \(error). Queueing for later.")
+            TelemetryService.shared.captureError(error, tags: ["area": "progress_sync"])
             let item = ProgressSyncQueueItem(sessionId: session.id, episodeId: session.episodeId, currentTime: currentTime, duration: duration, timeListened: timeListenedToSync)
             queueOfflineProgress(item: item)
             onSyncComplete()

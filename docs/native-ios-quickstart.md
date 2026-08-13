@@ -366,12 +366,25 @@ AudioPlayerServiceTests.swift
 
 ### UI Tests
 
-```swift
-// Test critical flows
-AuthenticationUITests.swift
-LibraryBrowsingUITests.swift
-AudioPlaybackUITests.swift
+E2E UI tests run with [Maestro](https://maestro.mobile.dev) — cross-platform (iOS simulator + Android emulator) and independent of the Xcode project. Flows live in `.maestro/` and run in CI via `.github/workflows/mobile-e2e.yml`.
+
+```bash
+# Build for a simulator, then run the flows
+xcodebuild build -workspace Project.xcworkspace -scheme "Audiobookphile App" \
+  -destination "platform=iOS Simulator,name=iPhone 16" -derivedDataPath .build/e2e \
+  CODE_SIGNING_ALLOWED=NO
+xcrun simctl boot "iPhone 16" && open -a Simulator
+maestro test .maestro
 ```
+
+Key elements are marked with `accessibilityIdentifier` (`abp_*` prefix) so flows stay stable across platforms.
+
+To run individual flows: `maestro test .maestro/03-settings.yaml`
+
+Critical flows to add as the backend test server matures:
+- Authentication flow (server connect → sign-in)
+- Library browsing / book detail
+- Audio playback (play → seek → chapter skip)
 
 ### Performance Tests
 

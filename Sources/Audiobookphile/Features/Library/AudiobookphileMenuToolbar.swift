@@ -159,6 +159,7 @@ public func audiobookphileTrailingToolbarItems(
                 Image(systemName: "gear")
                     .font(.subheadline)
             }
+            .accessibilityIdentifier("abp_settings_button")
             .tint(.primary)
         }
     }

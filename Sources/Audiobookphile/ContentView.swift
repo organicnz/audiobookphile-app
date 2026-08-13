@@ -17,7 +17,7 @@ public struct ContentView: View {
     public var body: some View {
         @Bindable var bindableAppState = appState
         return MainTabView()
-            .preferredColorScheme(.dark)
+            .preferredColorScheme(appState.settings.theme.colorScheme)
             .sheet(isPresented: Bindable(bindableAppState.navigation).showingConnectModal) {
                 ConnectView()
             }

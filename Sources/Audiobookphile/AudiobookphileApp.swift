@@ -48,6 +48,12 @@ public final class AudiobookphileAppDelegate: Sendable {
         migrateLegacyKeys()
 
         #if !SKIP && os(iOS)
+        CrashReporter.install()
+        #endif
+        TelemetryService.shared.configure()
+        TelemetryService.shared.handlePendingCrashReport()
+
+        #if !SKIP && os(iOS)
         BGTaskScheduler.shared.register(
             forTaskWithIdentifier: "club.foodshare.audiobookphile.progress-sync",
             using: nil

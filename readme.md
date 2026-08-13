@@ -64,8 +64,25 @@ To ensure your TestFlight builds are properly code-signed and connected to the c
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase publishable anonymous key |
 | `TEAM_ID` | Your 10-character Apple Developer Team ID (Required for code signing) |
 | `PRODUCT_BUNDLE_IDENTIFIER` | Your app's Bundle ID (e.g. `club.yourdomain.audiobookphile`) |
+| `SENTRY_DSN` | Optional. Enables crash/error reporting (Settings → opt-out toggle). Leave unset to ship without telemetry. |
 
 If these are not set, the build will use generic fallback values which will cause code signing to fail.
+
+## UI Tests (Maestro)
+
+E2E UI tests live in `.maestro/` and run on the iOS simulator (CI: `.github/workflows/mobile-e2e.yml`). Run locally:
+
+```bash
+xcodebuild build -workspace Project.xcworkspace -scheme "Audiobookphile App" \
+  -destination "platform=iOS Simulator,name=iPhone 16" -derivedDataPath .build/e2e \
+  CODE_SIGNING_ALLOWED=NO
+xcrun simctl boot "iPhone 16" && open -a Simulator
+maestro test .maestro
+```
+
+## Design Tokens
+
+The shared design system lives at the monorepo root: `design-system/tokens.json` — edit and run `bun design-system/sync-design-tokens.mjs` to regenerate `Sources/Audiobookphile/Core/Design/DesignTokens.swift` and the web's `tokens.generated.css`. See `docs/design-tokens.md`.
 
 ## Contributing
 

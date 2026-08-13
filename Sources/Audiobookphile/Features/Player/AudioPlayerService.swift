@@ -351,6 +351,7 @@ public class AudioPlayerService {
                 engine.insertItem(item)
             } else {
                 logger.error("Failed to create AVPlayerItem for track index \(nextIndex)")
+                TelemetryService.shared.captureMessage("Failed to create AVPlayerItem for track index \(nextIndex)", level: .warning, tags: ["area": "player"])
             }
         }
         #endif
