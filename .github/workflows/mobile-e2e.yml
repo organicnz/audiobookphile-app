@@ -42,7 +42,6 @@ jobs:
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
 
       - name: Build App for Simulator
-        working-directory: audiobookphile-app
         run: |
           xcodebuild build \
             -workspace Project.xcworkspace \
@@ -55,7 +54,6 @@ jobs:
             -quiet
 
       - name: Boot Simulator and Install App
-        working-directory: audiobookphile-app
         run: |
           DEVICE_ID=$(xcrun simctl list devices available -j | python3 -c "
             import json, sys
@@ -78,7 +76,6 @@ jobs:
           echo "DEVICE_ID=$DEVICE_ID" >> "$GITHUB_ENV"
 
       - name: Run Maestro Flows
-        working-directory: audiobookphile-app
         env:
           MAESTRO_CLI_NO_ANALYTICS: "true"
         run: |
@@ -98,5 +95,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: maestro-results
-          path: audiobookphile-app/.maestro-results/
+          path: .maestro-results/
           if-no-files-found: ignore

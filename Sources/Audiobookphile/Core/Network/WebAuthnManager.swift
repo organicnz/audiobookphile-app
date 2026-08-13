@@ -64,14 +64,14 @@ public enum WebAuthnCodec {
 
 // MARK: - Results
 
-public struct PasskeyAssertion {
+public struct PasskeyAssertion: Sendable {
     public let credentialId: String
     public let clientDataJSON: String
     public let authenticatorData: String
     public let signature: String
 }
 
-public struct PasskeyRegistration {
+public struct PasskeyRegistration: Sendable {
     public let id: String
     public let clientDataJSON: String
     public let attestationObject: String
@@ -121,10 +121,23 @@ public enum WebAuthnManager {
         allowCredentials: [WebAuthnAllowedCredential],
         userVerification: String = "preferred"
     ) async throws -> PasskeyAssertion {
+#if compiler(>=6.4)
+        let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(relyingPartyIdentifier: rpId)
+#else
         let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(rpID: rpId)
+#endif
 
         let request = provider.createCredentialAssertionRequest(challenge: challenge)
 
+#if compiler(>=6.4)
+        let verification: ASAuthorizationPublicKeyCredentialUserVerificationPreference
+        switch userVerification {
+        case "required": verification = .required
+        case "discouraged": verification = .discouraged
+        default: verification = .preferred
+        }
+        request.userVerificationPreference = verification
+#else
         let verification: ASCredentialRequestUserVerification
         switch userVerification {
         case "required": verification = .required
@@ -132,8 +145,17 @@ public enum WebAuthnManager {
         default: verification = .preferred
         }
         request.userVerification = verification
+#endif
 
         if !allowCredentials.isEmpty {
+#if compiler(>=6.4)
+            request.allowedCredentials = allowCredentials.map { credential in
+                guard let idData = WebAuthnCodec.base64urlDecode(credential.id) else {
+                    return nil
+                }
+                return ASAuthorizationPlatformPublicKeyCredentialDescriptor(credentialID: idData)
+            }.compactMap { $0 }
+#else
             request.allowedCredentialDescriptors = allowCredentials.map { credential in
                 guard let idData = WebAuthnCodec.base64urlDecode(credential.id) else {
                     return nil
@@ -146,6 +168,7 @@ public enum WebAuthnManager {
                     transports: transports
                 )
             }.compactMap { $0 }
+#endif
         }
 
         let controller = ASAuthorizationController(authorizationRequests: [request])
@@ -157,7 +180,11 @@ public enum WebAuthnManager {
     public static func requestRegistration(
         request: PasskeyRegistrationRequest
     ) async throws -> PasskeyRegistration {
+#if compiler(>=6.4)
+        let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(relyingPartyIdentifier: request.rpId)
+#else
         let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(rpID: request.rpId)
+#endif
 
         let registrationRequest = provider.createCredentialRegistrationRequest(
             challenge: request.challenge,
@@ -165,6 +192,27 @@ public enum WebAuthnManager {
             userID: request.userID
         )
         registrationRequest.displayName = request.displayName
+#if compiler(>=6.4)
+        registrationRequest.attestationPreference = ASAuthorizationPublicKeyCredentialAttestationKind.none
+
+        let verification: ASAuthorizationPublicKeyCredentialUserVerificationPreference
+        switch request.userVerification {
+        case "required": verification = .required
+        case "discouraged": verification = .discouraged
+        default: verification = .preferred
+        }
+        registrationRequest.userVerificationPreference = verification
+#elseif compiler(>=6.2)
+        registrationRequest.attestationPreference = .none
+
+        let verification: ASAuthorizationPublicKeyCredentialUserVerificationPreference
+        switch request.userVerification {
+        case "required": verification = .required
+        case "discouraged": verification = .discouraged
+        default: verification = .preferred
+        }
+        registrationRequest.userVerificationPreference = verification
+#else
         registrationRequest.attestationPreference = .none
 
         let verification: ASCredentialRegistrationUserVerification
@@ -174,11 +222,20 @@ public enum WebAuthnManager {
         default: verification = .preferred
         }
         registrationRequest.userVerification = verification
+#endif
 
         if !request.excludeCredentialIds.isEmpty {
+#if compiler(>=6.4)
+            if #available(iOS 17.4, *) {
+                registrationRequest.excludedCredentials = request.excludeCredentialIds.map {
+                    ASAuthorizationPlatformPublicKeyCredentialDescriptor(credentialID: $0)
+                }
+            }
+#else
             registrationRequest.excludedCredentialDescriptors = request.excludeCredentialIds.map {
                 ASPublicKeyCredentialDescriptor(credentialID: $0, transports: [])
             }
+#endif
         }
 
         let controller = ASAuthorizationController(authorizationRequests: [registrationRequest])
@@ -187,6 +244,7 @@ public enum WebAuthnManager {
 
     // MARK: - Async bridge
 
+    @MainActor
     private static func perform(_ controller: ASAuthorizationController) async throws -> PasskeyAssertion {
         let bridge = PasskeyAssertionBridge()
         controller.delegate = bridge
@@ -195,6 +253,7 @@ public enum WebAuthnManager {
         return try await bridge.result()
     }
 
+    @MainActor
     private static func perform(_ controller: ASAuthorizationController) async throws -> PasskeyRegistration {
         let bridge = PasskeyRegistrationBridge()
         controller.delegate = bridge
@@ -215,8 +274,7 @@ private final class PasskeyAssertionBridge: NSObject, ASAuthorizationControllerD
     }
 
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
-        guard case .platformPublicKeyCredential(let assertion) = authorization.credential,
-              let platformAssertion = assertion as? ASAuthorizationPlatformPublicKeyCredentialAssertion else {
+        guard let platformAssertion = authorization.credential as? ASAuthorizationPlatformPublicKeyCredentialAssertion else {
             continuation?.resume(throwing: WebAuthnError.assertionFailed)
             continuation = nil
             return
@@ -258,8 +316,8 @@ private final class PasskeyRegistrationBridge: NSObject, ASAuthorizationControll
     }
 
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
-        guard case .platformPublicKeyCredential(let registration) = authorization.credential,
-              let platformRegistration = registration as? ASAuthorizationPlatformPublicKeyCredentialRegistration else {
+        guard let platformRegistration = authorization.credential as? ASAuthorizationPlatformPublicKeyCredentialRegistration,
+              let rawAttestationObject = platformRegistration.rawAttestationObject else {
             continuation?.resume(throwing: WebAuthnError.registrationFailed)
             continuation = nil
             return
@@ -267,7 +325,7 @@ private final class PasskeyRegistrationBridge: NSObject, ASAuthorizationControll
         let result = PasskeyRegistration(
             id: WebAuthnCodec.base64urlEncode(platformRegistration.credentialID),
             clientDataJSON: WebAuthnCodec.base64urlEncode(platformRegistration.rawClientDataJSON),
-            attestationObject: WebAuthnCodec.base64urlEncode(platformRegistration.rawAttestationObject)
+            attestationObject: WebAuthnCodec.base64urlEncode(rawAttestationObject)
         )
         continuation?.resume(returning: result)
         continuation = nil
@@ -299,6 +357,10 @@ private func keyWindow() -> UIWindow? {
     return nil
 }
 
+#if compiler(>=6.4)
+// The iOS 26.4+ SDK removed ASCredentialTransport and platform credential
+// descriptors no longer carry transport lists (platform passkeys are fixed).
+#else
 private extension ASCredentialTransport {
     static func transport(from value: String) -> ASCredentialTransport? {
         switch value {
@@ -311,4 +373,5 @@ private extension ASCredentialTransport {
         }
     }
 }
+#endif
 #endif

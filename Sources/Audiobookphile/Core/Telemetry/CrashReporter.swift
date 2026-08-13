@@ -30,7 +30,7 @@ enum CrashReporter {
     static let maxStackSymbols = 32
 
     private static let fatalSignals: [Int32] = [SIGABRT, SIGBUS, SIGFPE, SIGILL, SIGSEGV, SIGTRAP]
-    private static let signalNames: [Int32: String] = [
+    static let signalNames: [Int32: String] = [
         SIGABRT: "SIGABRT",
         SIGBUS: "SIGBUS",
         SIGFPE: "SIGFPE",
@@ -39,7 +39,7 @@ enum CrashReporter {
         SIGTRAP: "SIGTRAP",
     ]
 
-    private static let reportLock = NSLock()
+    static let reportLock = NSLock()
 
     static func install() {
         installExceptionHandler()
@@ -49,37 +49,16 @@ enum CrashReporter {
     // MARK: - Uncaught exceptions
 
     private static func installExceptionHandler() {
-        NSSetUncaughtExceptionHandler { exception in
-            let symbols = Array(exception.callStackSymbols.prefix(maxStackSymbols))
-            let payload: [String: Any] = [
-                "kind": "NSException",
-                "name": exception.name.rawValue,
-                "reason": exception.reason ?? "Unknown reason",
-                "stack": symbols,
-                "timestamp": Int(Date().timeIntervalSince1970),
-            ]
-            writeReport(payload, signal: nil)
-        }
+        NSSetUncaughtExceptionHandler(abpExceptionHandler)
     }
 
     // MARK: - Fatal signals
 
     private static func installSignalHandlers() {
         var action = sigaction()
-        action.__sigaction_u.__sa_sigaction = { signalNumber, _, _ in
-            let payload: [String: Any] = [
-                "kind": signalNames[signalNumber] ?? "Signal \(signalNumber)",
-                "signal": Int32(signalNumber),
-                "timestamp": Int(Date().timeIntervalSince1970),
-            ]
-            writeReport(payload, signal: signalNumber)
-            // Restore the default handler and re-raise so the OS still produces
-            // its native crash log (and debugger detach behaves normally).
-            signal(signalNumber, SIG_DFL)
-            raise(signalNumber)
-        }
+        action.__sigaction_u.__sa_handler = abpSignalHandler
         action.sa_mask = sigset_t()
-        action.sa_flags = SA_SIGINFO | SA_NODEFER
+        action.sa_flags = 0
         for signalNumber in fatalSignals {
             sigaction(signalNumber, &action, nil)
         }
@@ -90,13 +69,6 @@ enum CrashReporter {
     private static func reportURL() -> URL {
         let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first ?? FileManager.default.temporaryDirectory
         return caches.appendingPathComponent(reportFileName)
-    }
-
-    private static func writeReport(_ payload: [String: Any], signal: Int32?) {
-        reportLock.lock()
-        defer { reportLock.unlock() }
-        guard let data = try? JSONSerialization.data(withJSONObject: payload, options: []) else { return }
-        try? data.write(to: reportURL(), options: .atomic)
     }
 
     /// Reads and deletes any crash report from a previous session.
@@ -121,6 +93,43 @@ enum CrashReporter {
             stackSymbols: json["stack"] as? [String]
         )
     }
+}
+
+// C-conformant handler functions: @convention(c) callbacks cannot capture
+// context, so the payloads are built here against global-only state.
+
+private func abpWriteReport(_ payload: [String: Any], signal: Int32?) {
+    CrashReporter.reportLock.lock()
+    defer { CrashReporter.reportLock.unlock() }
+    let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first ?? FileManager.default.temporaryDirectory
+    let url = caches.appendingPathComponent(CrashReporter.reportFileName)
+    guard let data = try? JSONSerialization.data(withJSONObject: payload, options: []) else { return }
+    try? data.write(to: url, options: .atomic)
+}
+
+private func abpExceptionHandler(_ exception: NSException) {
+    let symbols = Array(exception.callStackSymbols.prefix(CrashReporter.maxStackSymbols))
+    let payload: [String: Any] = [
+        "kind": "NSException",
+        "name": exception.name.rawValue,
+        "reason": exception.reason ?? "Unknown reason",
+        "stack": symbols,
+        "timestamp": Int(Date().timeIntervalSince1970),
+    ]
+    abpWriteReport(payload, signal: nil)
+}
+
+private func abpSignalHandler(_ signalNumber: Int32) {
+    let payload: [String: Any] = [
+        "kind": CrashReporter.signalNames[signalNumber] ?? "Signal \(signalNumber)",
+        "signal": Int32(signalNumber),
+        "timestamp": Int(Date().timeIntervalSince1970),
+    ]
+    abpWriteReport(payload, signal: signalNumber)
+    // Restore the default handler and re-raise so the OS still produces
+    // its native crash log (and debugger detach behaves normally).
+    signal(signalNumber, SIG_DFL)
+    raise(signalNumber)
 }
 #else
 /// Compile-time placeholder so callers outside iOS stay source-compatible.
