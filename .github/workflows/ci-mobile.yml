@@ -3,21 +3,13 @@ name: CI Mobile Verification (Skip & Swift)
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'Sources/**'
-      - 'Package.swift'
-      - '.github/workflows/ci-mobile.yml'
   pull_request:
     branches: [ main ]
-    paths:
-      - 'Sources/**'
-      - 'Package.swift'
-      - '.github/workflows/ci-mobile.yml'
   workflow_dispatch:
 
 concurrency:
   group: ci-mobile-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   lint-swift:
@@ -119,6 +111,9 @@ jobs:
     needs: [lint-swift, skip-verify, verify-swift]
     if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: macos-latest
+    concurrency:
+      group: ci-mobile-deploy-${{ github.ref }}
+      cancel-in-progress: false
     steps:
       - name: Checkout Repository
         id: checkout
