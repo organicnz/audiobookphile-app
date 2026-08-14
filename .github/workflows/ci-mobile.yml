@@ -9,9 +9,76 @@ on:
       - '.github/workflows/ci-mobile.yml'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'Sources/**'
+      - 'Package.swift'
+      - '.github/workflows/ci-mobile.yml'
   workflow_dispatch:
 
+concurrency:
+  group: ci-mobile-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  lint-swift:
+    name: SwiftLint
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Repository
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Install SwiftLint
+        id: install
+        run: |
+          . .github/scripts/step-tree.sh
+          step_tree "SwiftLint" install \
+            "checkout:Checkout Repository|install:Install SwiftLint|lint:Run SwiftLint" \
+            "checkout=${{ steps.checkout.outcome }}"
+          brew install swiftlint
+
+      - name: Run SwiftLint
+        id: lint
+        run: |
+          . .github/scripts/step-tree.sh
+          step_tree "SwiftLint" lint \
+            "checkout:Checkout Repository|install:Install SwiftLint|lint:Run SwiftLint" \
+            "checkout=${{ steps.checkout.outcome }};install=${{ steps.install.outcome }}"
+          swiftlint --strict
+
+  skip-verify:
+    name: Skip Cross-Platform Verify
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Repository
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        id: java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Install Skip
+        id: install
+        run: |
+          . .github/scripts/step-tree.sh
+          step_tree "Skip Cross-Platform Verify" install \
+            "checkout:Checkout Repository|java:Setup Java|install:Install Skip|verify:Skip Verify" \
+            "checkout=${{ steps.checkout.outcome }};java=${{ steps.java.outcome }}"
+          brew install skiptools/skip/skip
+
+      - name: Skip Verify
+        id: verify
+        run: |
+          . .github/scripts/step-tree.sh
+          step_tree "Skip Cross-Platform Verify" verify \
+            "checkout:Checkout Repository|java:Setup Java|install:Install Skip|verify:Skip Verify" \
+            "checkout=${{ steps.checkout.outcome }};java=${{ steps.java.outcome }};install=${{ steps.install.outcome }}"
+          skip verify
+
   verify-swift:
     name: Verify Swift iOS Package
     runs-on: macos-latest
@@ -49,7 +116,7 @@ jobs:
 
   deploy-mobile:
     name: Deploy iOS & macOS App (TestFlight / Xcode Cloud)
-    needs: verify-swift
+    needs: [lint-swift, skip-verify, verify-swift]
     if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: macos-latest
     steps:
