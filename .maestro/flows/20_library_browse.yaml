@@ -1,0 +1,22 @@
+appId: club.foodshare.audiobookphile
+name: Library tab navigation
+tags:
+  - e2e
+  - browse
+---
+- runFlow: _login.yaml
+# The Library tab is asserted via its Filter toolbar button ("Filter",
+# line.3.horizontal.decrease.circle), which exists only on the BookshelfView
+# toolbar. The segmented Library/Authors/Narrators picker is not usable from
+# flows: iOS exposes only the selected segment ("Library") to the accessibility
+# tree, and the tab label "Library" itself repeats on the tab bar.
+- tapOn: "Library"
+- extendedWaitUntil:
+    visible: "Filter"
+    timeout: 15000
+- tapOn: "Search"
+- extendedWaitUntil:
+    visible: "Search"
+    timeout: 10000
+- tapOn: "Home"
+- assertVisible: "Recently Added"

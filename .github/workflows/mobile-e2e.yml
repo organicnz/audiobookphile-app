@@ -86,10 +86,7 @@ jobs:
             -configuration Debug \
             -destination "platform=iOS Simulator,id=$DEVICE_ID" \
             -derivedDataPath .build/e2e-dd \
-            -skipPackagePluginValidation \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGN_IDENTITY=""
-        continue-on-error: true
+            -skipPackagePluginValidation
 
       - name: Boot Simulator and Install App
         id: boot
@@ -101,19 +98,35 @@ jobs:
           ls -d .build/e2e-dd/Build/Products/Debug-iphonesimulator/Audiobookphile.app
           xcrun simctl boot "$DEVICE_ID" 2>/dev/null || true
           xcrun simctl bootstatus "$DEVICE_ID" -b
+          # Keychain items survive app uninstall on the simulator: a session
+          # saved by an earlier flow would otherwise auto-sign-in and skip the
+          # connect form. Reset so every run starts logged out.
+          xcrun simctl keychain "$DEVICE_ID" reset
           xcrun simctl install "$DEVICE_ID" .build/e2e-dd/Build/Products/Debug-iphonesimulator/Audiobookphile.app
 
       - name: Run Maestro Flows
         id: flows
         env:
           MAESTRO_CLI_NO_ANALYTICS: "true"
+          SERVER_URL: ${{ secrets.MAESTRO_SERVER_URL || 'https://audiobookphile.vercel.app' }}
+          TEST_EMAIL: ${{ secrets.MAESTRO_TEST_EMAIL }}
+          TEST_PASSWORD: ${{ secrets.MAESTRO_TEST_PASSWORD }}
         run: |
           . .github/scripts/step-tree.sh
           step_tree "Mobile E2E (Maestro)" flows \
             "checkout:Checkout Repository|java:Set up Java 17 (Maestro runtime)|maestro:Install Maestro|device:Pick Available iPhone Simulator|build:Build App for Simulator|boot:Boot Simulator and Install App|flows:Run Maestro Flows|upload:Upload Test Reports" \
             "checkout=${{ steps.checkout.outcome }};java=${{ steps.java.outcome }};maestro=${{ steps.maestro.outcome }};device=${{ steps.device.outcome }};build=${{ steps.build.outcome }};boot=${{ steps.boot.outcome }}"
           set +e
-          maestro test .maestro \
+          # CI set: smoke + e2e tags from flows/ only. Auth-only flows (magic
+          # link request) and the deeplink flow are excluded — the deeplink
+          # needs a fresh single-use MAGIC_LINK_URL minted per run.
+          # Flow env vars must be forwarded via -e flags: Maestro resolves
+          # ${VAR} only from CLI flags, not from the process environment.
+          maestro test .maestro/flows \
+            --include-tags smoke,e2e \
+            -e SERVER_URL="${SERVER_URL}" \
+            -e TEST_EMAIL="${TEST_EMAIL}" \
+            -e TEST_PASSWORD="${TEST_PASSWORD}" \
             --format junit \
             --output .maestro-results/
           STATUS=$?

@@ -19,7 +19,7 @@ public class BookshelfViewModel {
 
     // Pagination State
     public var currentPage: Int = 0
-    public var pageSize: Int = 0 // 0 means unlimited by default from backend
+    public var pageSize: Int = 48 // Slim list payloads arrive in pages; 0 = unlimited (slow for large libraries)
     public var totalBooksCount: Int = 0
     public var hasMorePages: Bool = false
     public var isLoadingNextPage: Bool = false

@@ -1,0 +1,9 @@
+appId: club.foodshare.audiobookphile
+name: Password login reaches the library home
+tags:
+  - auth
+  - e2e
+---
+- runFlow: _login.yaml
+- assertVisible: "Home"
+- assertVisible: "Library"

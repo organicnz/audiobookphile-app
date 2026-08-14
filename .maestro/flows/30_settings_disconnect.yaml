@@ -1,0 +1,43 @@
+# The settings sheet opens from the gear icon in the toolbar menu. The gear is
+# an unlabeled SF Symbol but carries the abp_settings_button
+# accessibilityIdentifier (AudiobookphileMenuToolbar), so tap by id — no
+# screen-point tuning per device.
+appId: club.foodshare.audiobookphile
+name: Settings sheet and disconnect
+tags:
+  - e2e
+  - settings
+---
+- runFlow: _login.yaml
+- tapOn:
+    id: "abp_settings_button"
+- extendedWaitUntil:
+    visible: "Settings"
+    timeout: 10000
+# Disconnect sits at the bottom of a ~3-page settings list. scrollUntilVisible
+# times out here: its 100%-visibility check never passes for the row clipped by
+# the sheet edge. Explicit swipes (finger up) then a direct tap are reliable.
+- swipe:
+    start: 50%, 70%
+    end: 50%, 30%
+    duration: 400
+- swipe:
+    start: 50%, 70%
+    end: 50%, 30%
+    duration: 400
+- swipe:
+    start: 50%, 70%
+    end: 50%, 30%
+    duration: 400
+- swipe:
+    start: 50%, 70%
+    end: 50%, 30%
+    duration: 400
+- swipe:
+    start: 50%, 70%
+    end: 50%, 30%
+    duration: 400
+- tapOn: "Disconnect"
+- extendedWaitUntil:
+    visible: "Server URL"
+    timeout: 20000

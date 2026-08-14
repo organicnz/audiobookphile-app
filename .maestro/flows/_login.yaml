@@ -1,0 +1,48 @@
+# Shared subflow: ensures the app is signed in and waiting on the post-login
+# home. Not a standalone test (no tags) — invoked via runFlow from other flows.
+# Handles both states: fresh install (connect form) and warm simulator keychain
+# (auto-sign-in on launch, since keychain items survive app uninstall).
+appId: club.foodshare.audiobookphile
+name: Sign in with password
+---
+- launchApp:
+    clearState: true
+# With a warm keychain the app auto-signs-in after reinstall, so the connect
+# form may never appear — wait briefly and skip the form when already signed in.
+- extendedWaitUntil:
+    visible: "Sign In"
+    timeout: 15000
+    optional: true
+- runFlow:
+    when:
+      visible: "Sign In"
+    commands:
+      # Tap by accessibilityIdentifier: text selectors are ambiguous (e.g.
+      # "Password" regex-matches the keyboard's "Passwords" QuickType bar,
+      # stealing the tap and leaving the password typed into the email field).
+      - tapOn:
+          id: "abp_server_url_field"
+      - inputText: ${SERVER_URL}
+      - tapOn:
+          id: "abp_email_field"
+      - inputText: ${TEST_EMAIL}
+      # Dismiss the keyboard: its "Passwords" QuickType bar covers the password
+      # field below, so a tap on the field hits the bar instead of focusing it.
+      - pressKey: Enter
+      - tapOn:
+          id: "abp_password_field"
+      - inputText: ${TEST_PASSWORD}
+      - pressKey: Enter
+      - tapOn: "Sign In"
+      # The iOS password-autofill system sheet ("Save Password?") covers the app
+      # after sign-in and blocks the accessibility tree — dismiss it if it shows.
+      - runFlow:
+          when:
+            visible: "Save Password?"
+          commands:
+            - tapOn: "Not Now"
+# Post-login home: the tab bar is the only content guaranteed to render for a
+# fresh account with an empty shelf, so assert on distinctive tab labels.
+- extendedWaitUntil:
+    visible: "Collections"
+    timeout: 30000

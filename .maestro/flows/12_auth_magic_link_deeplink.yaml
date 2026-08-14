@@ -1,0 +1,17 @@
+# Verifies the prod magic-link journey end-to-end on device: GoTrue emails a
+# link, the web /auth/callback bounces the session to the app via the
+# audiobookphile:// scheme, and the app signs in from the URL parameters.
+# Mint a fresh link (they are single-use) and pass it via MAGIC_LINK_URL.
+appId: club.foodshare.audiobookphile
+name: Magic-link deep link completes sign-in
+tags:
+  - auth
+  - deeplink
+---
+- launchApp:
+    clearState: true
+- openLink: ${MAGIC_LINK_URL}
+- extendedWaitUntil:
+    visible: "Collections"
+    timeout: 20000
+- assertVisible: "Home"

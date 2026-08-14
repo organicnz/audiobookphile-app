@@ -169,7 +169,8 @@ public struct ConnectView: View {
                 text: $serverURL,
                 placeholder: "Server URL",
                 icon: "server.rack",
-                autocapitalize: false
+                autocapitalize: false,
+                identifier: "abp_server_url_field"
             )
 
             // Username / Email
@@ -177,7 +178,8 @@ public struct ConnectView: View {
                 text: $username,
                 placeholder: "Email address",
                 icon: "envelope.fill",
-                autocapitalize: false
+                autocapitalize: false,
+                identifier: "abp_email_field"
             )
 
             // Password
@@ -185,7 +187,8 @@ public struct ConnectView: View {
                 text: $password,
                 placeholder: "Password",
                 icon: "lock.fill",
-                showPassword: $showPassword
+                showPassword: $showPassword,
+                identifier: "abp_password_field"
             )
 
             // Connect button
@@ -400,6 +403,7 @@ struct GlassTextField: View {
     let placeholder: String
     let icon: String
     var autocapitalize: Bool = true
+    var identifier: String? = nil
 
     var body: some View {
         HStack(spacing: 12) {
@@ -410,6 +414,7 @@ struct GlassTextField: View {
             TextField(placeholder, text: $text)
                 .textFieldStyle(.plain)
                 .foregroundStyle(Color.primary)
+                .accessibilityIdentifier(identifier ?? "")
                 #if os(iOS) || SKIP
                 .textInputAutocapitalization(autocapitalize ? .sentences : .none)
                 #endif
@@ -430,6 +435,7 @@ struct GlassSecureField: View {
     let placeholder: String
     let icon: String
     @Binding var showPassword: Bool
+    var identifier: String? = nil
 
     var body: some View {
         HStack(spacing: 12) {
@@ -441,6 +447,7 @@ struct GlassSecureField: View {
                 TextField(placeholder, text: $text)
                     .textFieldStyle(.plain)
                     .foregroundStyle(Color.primary)
+                    .accessibilityIdentifier(identifier ?? "")
                     #if os(iOS) || SKIP
                     .textInputAutocapitalization(.none)
                     #endif
@@ -449,6 +456,7 @@ struct GlassSecureField: View {
                 SecureField(placeholder, text: $text)
                     .textFieldStyle(.plain)
                     .foregroundStyle(Color.primary)
+                    .accessibilityIdentifier(identifier ?? "")
             }
 
             Button {

@@ -38,44 +38,20 @@ public class AuthManager {
                 refreshToken: credentials.refreshToken
             )
 
-            do {
-                appState.currentUser = try await AudiobookphileAPI.shared.getCurrentUserProfile()
-            } catch {
-                print("[AuthManager] Failed to fetch current user profile: \(error)")
-                appState.currentUser = User(
-                    id: "local_user",
-                    username: "audiobookphile",
-                    email: nil,
-                    type: "admin",
-                    token: credentials.token,
-                    refreshToken: credentials.refreshToken,
-                    mediaProgress: [],
-                    seriesHideFromContinueListening: [],
-                    bookmarks: [],
-                    isActive: true,
-                    isLocked: false,
-                    lastSeen: nil,
-                    createdAt: Date(),
-                    permissions: UserPermissions(download: true, update: true, delete: true, upload: true, accessAllLibraries: true, accessAllTags: true, accessExplicitContent: true, createEreader: true, selectedTagsNotAccessible: nil),
-                    librariesAccessible: [],
-                    itemTagsAccessible: [],
-                    hasOpenIDLink: nil,
-                    isOldToken: nil
-                )
-            }
+            // Auth state is established — drop the loading flag before the
+            // data hydration below. The three fetches run concurrently
+            // (previously sequential), and the UI shouldn't sit on a spinner
+            // while they finish.
+            appState.isLoading = false
 
-            do {
-                appState.settings = try await AudiobookphileAPI.shared.getPreferences()
-            } catch {
-                print("[AuthManager] Failed to fetch preferences on launch: \(error)")
-            }
-
-            await appState.fetchLibraries()
+            async let profile: () = hydrateCurrentUser(appState: appState)
+            async let preferences: () = hydratePreferences(appState: appState)
+            async let libraries: () = appState.fetchLibraries()
+            _ = await (profile, preferences, libraries)
         } else {
             appState.isAuthenticated = false
+            appState.isLoading = false
         }
-
-        appState.isLoading = false
     }
 
     public func refreshSessionIfNeeded(appState: AppState) async {
@@ -158,25 +134,21 @@ public class AuthManager {
                 token: accessToken
             )
 
-            do {
-                appState.currentUser = try await AudiobookphileAPI.shared.getCurrentUserProfile()
-            } catch {
-                print("[AuthManager] Failed to fetch current user profile after magic link: \(error)")
-            }
+            // Sign-in is complete: the session is trusted and persisted. Drop
+            // the loading flag now — profile/preferences/libraries hydrate in
+            // the background and must not keep the connect sheet on
+            // "Signing in..." (they were three sequential awaited calls that
+            // gated the whole sign-in on the slowest one).
+            appState.isLoading = false
 
-            do {
-                appState.settings = try await AudiobookphileAPI.shared.getPreferences()
-            } catch {
-                print("[AuthManager] Failed to fetch preferences after magic link: \(error)")
-            }
-
-            await appState.fetchLibraries()
+            async let profile: () = hydrateCurrentUser(appState: appState)
+            async let preferences: () = hydratePreferences(appState: appState)
+            async let libraries: () = appState.fetchLibraries()
+            _ = await (profile, preferences, libraries)
         } catch {
             appState.isLoading = false
             throw error
         }
-
-        appState.isLoading = false
     }
 
     public func login(serverURL: String, username: String, password: String, appState: AppState) async throws {
@@ -213,13 +185,9 @@ public class AuthManager {
                 token: user.token
             )
 
-            do {
-                appState.settings = try await AudiobookphileAPI.shared.getPreferences()
-            } catch {
-                print("[AuthManager] Failed to fetch preferences on login: \(error)")
-            }
-
-            await appState.fetchLibraries()
+            async let preferences: () = hydratePreferences(appState: appState)
+            async let libraries: () = appState.fetchLibraries()
+            _ = await (preferences, libraries)
         } catch {
             appState.isAuthenticated = false
             appState.isLoading = false
@@ -259,13 +227,9 @@ public class AuthManager {
                 token: user.token
             )
 
-            do {
-                appState.settings = try await AudiobookphileAPI.shared.getPreferences()
-            } catch {
-                print("[AuthManager] Failed to fetch preferences after 2FA login: \(error)")
-            }
-
-            await appState.fetchLibraries()
+            async let preferences: () = hydratePreferences(appState: appState)
+            async let libraries: () = appState.fetchLibraries()
+            _ = await (preferences, libraries)
         } catch {
             appState.isLoading = false
             throw error
@@ -320,13 +284,9 @@ public class AuthManager {
                 token: user.token
             )
 
-            do {
-                appState.settings = try await AudiobookphileAPI.shared.getPreferences()
-            } catch {
-                print("[AuthManager] Failed to fetch preferences after passkey login: \(error)")
-            }
-
-            await appState.fetchLibraries()
+            async let preferences: () = hydratePreferences(appState: appState)
+            async let libraries: () = appState.fetchLibraries()
+            _ = await (preferences, libraries)
         } catch {
             appState.isLoading = false
             throw error
@@ -355,5 +315,43 @@ public class AuthManager {
         appState.pending2FAServerURL = nil
         appState.pending2FAMethods = nil
         UserDefaults.standard.removeObject(forKey: StorageKeys.lastLibraryId)
+    }
+
+    // MARK: - Hydration helpers (non-throwing so they can run as `async let`)
+
+    private func hydrateCurrentUser(appState: AppState) async {
+        do {
+            appState.currentUser = try await AudiobookphileAPI.shared.getCurrentUserProfile()
+        } catch {
+            print("[AuthManager] Failed to fetch current user profile: \(error)")
+            appState.currentUser = User(
+                id: "local_user",
+                username: "audiobookphile",
+                email: nil,
+                type: "admin",
+                token: appState.token,
+                refreshToken: nil,
+                mediaProgress: [],
+                seriesHideFromContinueListening: [],
+                bookmarks: [],
+                isActive: true,
+                isLocked: false,
+                lastSeen: nil,
+                createdAt: Date(),
+                permissions: UserPermissions(download: true, update: true, delete: true, upload: true, accessAllLibraries: true, accessAllTags: true, accessExplicitContent: true, createEreader: true, selectedTagsNotAccessible: nil),
+                librariesAccessible: [],
+                itemTagsAccessible: [],
+                hasOpenIDLink: nil,
+                isOldToken: nil
+            )
+        }
+    }
+
+    private func hydratePreferences(appState: AppState) async {
+        do {
+            appState.settings = try await AudiobookphileAPI.shared.getPreferences()
+        } catch {
+            print("[AuthManager] Failed to fetch preferences: \(error)")
+        }
     }
 }

@@ -70,14 +70,12 @@ If these are not set, the build will use generic fallback values which will caus
 
 ## UI Tests (Maestro)
 
-E2E UI tests live in `.maestro/` and run on the iOS simulator (CI: `.github/workflows/mobile-e2e.yml`). Run locally:
+E2E UI tests live in `.maestro/flows/` and run on the iOS simulator (CI: `.github/workflows/mobile-e2e.yml`). See [docs/MAESTRO.md](docs/MAESTRO.md) for setup, credentials, and flow inventory. Run locally:
 
 ```bash
-xcodebuild build -workspace Project.xcworkspace -scheme "Audiobookphile App" \
-  -destination "platform=iOS Simulator,name=iPhone 16" -derivedDataPath .build/e2e \
-  CODE_SIGNING_ALLOWED=NO
-xcrun simctl boot "iPhone 16" && open -a Simulator
-maestro test .maestro
+.maestro/run.sh smoke            # launch smoke tests (no credentials)
+.maestro/run.sh e2e              # login + library + settings (needs .maestro/.env)
+.maestro/run.sh                  # smoke + e2e (the CI set)
 ```
 
 ## Design Tokens

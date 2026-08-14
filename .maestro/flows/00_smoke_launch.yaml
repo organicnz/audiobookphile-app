@@ -1,0 +1,22 @@
+appId: club.foodshare.audiobookphile
+name: Cold launch shows the connection screen
+tags:
+  - smoke
+---
+- launchApp:
+    clearState: true
+# A fresh install normally shows the connect sheet over the tab view — but the
+# simulator keychain survives app uninstall, so a session saved by an earlier
+# flow auto-signs-in and the sheet never appears. Smoke the connect sheet when
+# it shows; otherwise the launch itself is the smoke check.
+- runFlow:
+    when:
+      visible: "Sign In"
+    commands:
+      - assertVisible: "Server URL"
+      - scrollUntilVisible:
+          element:
+            text: "Email me a sign-in link"
+          direction: DOWN
+          timeout: 10000
+      - assertVisible: "Email me a sign-in link"

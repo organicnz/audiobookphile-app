@@ -76,7 +76,7 @@ public actor AudiobookphileAPI {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 10
         config.timeoutIntervalForResource = 60
-        config.waitsForConnectivity = false
+        config.waitsForConnectivity = true
         config.httpShouldUsePipelining = true
         config.urlCache = URLCache(
             memoryCapacity: 64 * 1024 * 1024,
@@ -539,7 +539,7 @@ public actor AudiobookphileAPI {
         }
 
         var attempts = 0
-        let maxAttempts = isRetry ? 1 : 4
+        let maxAttempts = isRetry ? 1 : 3
 
         while true {
             attempts += 1
@@ -563,10 +563,9 @@ public actor AudiobookphileAPI {
                     return try await handleUnauthorized(originalRequest: request, responseType: responseType)
                 }
 
-                // If 5xx server error, attempt retry with exponential backoff
+                // If 5xx server error, attempt retry with jittered backoff
                 if (500...599).contains(httpResponse.statusCode) && attempts < maxAttempts {
-                    let delayNano = UInt64(Double(1 << (attempts - 1)) * 1_000_000_000)
-                    try? await Task.sleep(nanoseconds: delayNano)
+                    try? await Task.sleep(nanoseconds: retryDelay(forAttempt: attempts))
                     continue
                 }
 
@@ -604,13 +603,22 @@ public actor AudiobookphileAPI {
                 throw error
             } catch {
                 if attempts < maxAttempts {
-                    let delayNano = UInt64(Double(1 << (attempts - 1)) * 1_000_000_000)
-                    try? await Task.sleep(nanoseconds: delayNano)
+                    try? await Task.sleep(nanoseconds: retryDelay(forAttempt: attempts))
                     continue
                 }
                 throw APIError.networkError(underlying: error)
             }
         }
+    }
+
+    /// Full-jitter exponential backoff (AWS recommendation): random in
+    /// [0, base] where base doubles per attempt (0.5s, 1s, 2s). Jitter avoids
+    /// retry-stampedes of concurrent requests, and the tighter budget
+    /// (3 attempts vs the previous 4 × 1/2/4s) bounds the worst-case wait
+    /// (~33s incl. timeouts) instead of ~47s.
+    private func retryDelay(forAttempt attempt: Int) -> UInt64 {
+        let base = 0.5 * pow(2.0, Double(attempt - 1))
+        return UInt64(Double.random(in: 0...base) * 1_000_000_000)
     }
 
     /// Handle 401 unauthorized - refresh token and retry

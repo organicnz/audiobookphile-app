@@ -91,3 +91,6 @@ Darwin/*.log
 
 # Export options (contains Team ID)
 exportOptions.plist
+
+# Maestro e2e local credentials
+.maestro/.env
