@@ -102,7 +102,7 @@ public actor AudiobookphileAPI {
         if let serverURL {
             self.baseURL = serverURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         }
-        guard let url = URL(string: "\(baseURL)/api/auth/magic-link") else {
+        guard let url = URL(string: APIEndpoint.custom(path: "/api/auth/magic-link").urlString(baseURL: baseURL)) else {
             throw APIError.invalidResponse
         }
         var request = URLRequest(url: url)
@@ -197,7 +197,7 @@ public actor AudiobookphileAPI {
 
     /// Complete 2FA challenge during login
     public func verify2FALogin(userId: String, tempToken: String, code: String, method: String? = nil) async throws -> LoginResponse {
-        guard let url = URL(string: "\(baseURL)/api/auth/2fa/verify-login") else {
+        guard let url = URL(string: APIEndpoint.custom(path: "/api/auth/2fa/verify-login").urlString(baseURL: baseURL)) else {
             throw APIError.invalidResponse
         }
         var request = URLRequest(url: url)
@@ -260,14 +260,18 @@ public actor AudiobookphileAPI {
         return try await executeRequest(try createAuthRequest(path: "/api/auth/2fa/verify", method: "POST", body: body), responseType: TwoFactorActionResponse.self)
     }
 
-    /// Disable 2FA
-    public func disable2FA(code: String = "", pinCode: String = "") async throws -> TwoFactorActionResponse {
+    /// Disable 2FA. Requires proof of ownership: a TOTP code, the PIN, or the
+    /// account password (the backend accepts any one of the three).
+    public func disable2FA(code: String = "", pinCode: String = "", password: String = "") async throws -> TwoFactorActionResponse {
         var body: [String: String] = [:]
         if !code.isEmpty {
             body["code"] = code
         }
         if !pinCode.isEmpty {
             body["pinCode"] = pinCode
+        }
+        if !password.isEmpty {
+            body["password"] = password
         }
         let payload = body.isEmpty ? nil : try JSONEncoder().encode(body)
         return try await executeRequest(try createAuthRequest(path: "/api/auth/2fa/disable", method: "POST", body: payload), responseType: TwoFactorActionResponse.self)
@@ -291,7 +295,7 @@ public actor AudiobookphileAPI {
 
     /// Fetch WebAuthn passkey sign-in options (public, tempToken-scoped)
     public func webauthnLoginOptions(userId: String, tempToken: String) async throws -> WebAuthnLoginOptionsResponse {
-        guard let url = URL(string: "\(baseURL)/api/auth/2fa/webauthn/login/options") else {
+        guard let url = URL(string: APIEndpoint.custom(path: "/api/auth/2fa/webauthn/login/options").urlString(baseURL: baseURL)) else {
             throw APIError.invalidResponse
         }
         var request = URLRequest(url: url)
@@ -319,7 +323,7 @@ public actor AudiobookphileAPI {
         tempToken: String,
         assertion: PasskeyAssertion
     ) async throws -> LoginResponse {
-        guard let url = URL(string: "\(baseURL)/api/auth/2fa/webauthn/login/verify") else {
+        guard let url = URL(string: APIEndpoint.custom(path: "/api/auth/2fa/webauthn/login/verify").urlString(baseURL: baseURL)) else {
             throw APIError.invalidResponse
         }
         var request = URLRequest(url: url)

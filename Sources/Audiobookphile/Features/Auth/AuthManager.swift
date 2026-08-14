@@ -349,6 +349,11 @@ public class AuthManager {
         appState.serverURL = ""
         appState.token = ""
         appState.settings = AppSettings()
+        appState.requires2FAChallenge = false
+        appState.pending2FAUserId = nil
+        appState.pending2FATempToken = nil
+        appState.pending2FAServerURL = nil
+        appState.pending2FAMethods = nil
         UserDefaults.standard.removeObject(forKey: StorageKeys.lastLibraryId)
     }
 }

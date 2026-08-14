@@ -41,26 +41,16 @@ public struct TwoFactorChallengeView: View {
                             .padding(.horizontal, 24)
                     }
 
-                    if true {
+                    if !enrolledMethods.isEmpty {
                         HStack(spacing: 10) {
-                            methodButton(
-                                title: "Biometric",
-                                method: "biometric",
-                                icon: "faceid",
-                                enrolled: isEnrolled("biometric")
-                            )
-                            methodButton(
-                                title: "PIN Code",
-                                method: "pin",
-                                icon: "lock",
-                                enrolled: isEnrolled("pin")
-                            )
-                            methodButton(
-                                title: "TOTP",
-                                method: "totp",
-                                icon: "candybarphone",
-                                enrolled: isEnrolled("totp")
-                            )
+                            ForEach(enrolledMethods, id: \.self) { method in
+                                methodButton(
+                                    title: methodTitle(method),
+                                    method: method,
+                                    icon: methodIcon(method),
+                                    enrolled: true
+                                )
+                            }
                         }
                         .padding(4)
                         .background(Color.white.opacity(0.1))
@@ -69,7 +59,20 @@ public struct TwoFactorChallengeView: View {
                     }
 
                     VStack(spacing: 16) {
-                        if !isEnrolled(selectedMethod) {
+                        if !hasAnyEnrolledMethod {
+                            VStack(spacing: 12) {
+                                Text("No two-factor methods are configured for this account.")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.white.opacity(0.75))
+                                    .multilineTextAlignment(.center)
+
+                                Text("Sign in with your password instead, then reconfigure 2FA in Settings.")
+                                    .font(.caption)
+                                    .foregroundStyle(.white.opacity(0.55))
+                                    .multilineTextAlignment(.center)
+                            }
+                            .padding(.vertical, 24)
+                        } else if !isEnrolled(selectedMethod) {
                             VStack(spacing: 12) {
                                 Text(notSetupHint)
                                     .font(.subheadline)
@@ -230,16 +233,19 @@ public struct TwoFactorChallengeView: View {
                 selectedMethod = "totp"
             } else if isEnrolled("pin") {
                 selectedMethod = "pin"
-            } else {
+            } else if isEnrolled("biometric") {
                 selectedMethod = "biometric"
+            } else {
+                selectedMethod = ""
             }
-            if selectedMethod != "biometric" {
+            if selectedMethod != "biometric" && hasAnyEnrolledMethod {
                 isInputFocused = true
             }
         }
     }
 
     private var methodIconName: String {
+        guard hasAnyEnrolledMethod else { return "shield.slash" }
         switch selectedMethod {
         case "biometric":
             return "faceid"
@@ -251,6 +257,9 @@ public struct TwoFactorChallengeView: View {
     }
 
     private var methodDescription: String {
+        guard hasAnyEnrolledMethod else {
+            return "No two-factor methods are configured for this account."
+        }
         switch selectedMethod {
         case "biometric":
             return "Verify your identity using Face ID or Touch ID."
@@ -279,7 +288,37 @@ public struct TwoFactorChallengeView: View {
         case "pin":
             return appState.pending2FAMethods?.pin == true
         default:
-            return appState.pending2FAMethods?.totp == true || appState.pending2FAMethods == nil
+            // Fail closed: a method the server does not explicitly report as
+            // enrolled must never be auto-selected or presented.
+            return appState.pending2FAMethods?.totp == true
+        }
+    }
+
+    private var hasAnyEnrolledMethod: Bool {
+        isEnrolled("totp") || isEnrolled("pin") || isEnrolled("biometric")
+    }
+
+    private var enrolledMethods: [String] {
+        var methods: [String] = []
+        if isEnrolled("totp") { methods.append("totp") }
+        if isEnrolled("pin") { methods.append("pin") }
+        if isEnrolled("biometric") { methods.append("biometric") }
+        return methods
+    }
+
+    private func methodTitle(_ method: String) -> String {
+        switch method {
+        case "biometric": return "Biometric"
+        case "pin": return "PIN Code"
+        default: return "TOTP"
+        }
+    }
+
+    private func methodIcon(_ method: String) -> String {
+        switch method {
+        case "biometric": return "faceid"
+        case "pin": return "lock"
+        default: return "candybarphone"
         }
     }
 

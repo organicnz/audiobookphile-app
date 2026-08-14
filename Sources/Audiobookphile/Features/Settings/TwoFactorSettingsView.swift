@@ -10,6 +10,7 @@ public struct TwoFactorSettingsView: View {
     @State private var verificationCode: String = ""
     @State private var disableCode: String = ""
     @State private var disablePin: String = ""
+    @State private var disablePassword: String = ""
     @State private var pinInput: String = ""
     @State private var is2faEnabled: Bool = false
     @State private var isLoading: Bool = true
@@ -380,7 +381,7 @@ public struct TwoFactorSettingsView: View {
 
     private var disablingCard: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Enter a 6-digit authenticator code and/or your PIN to disable all 2FA methods:")
+            Text("Enter a 6-digit authenticator code, your PIN, or your account password to disable all 2FA methods:")
                 .font(.subheadline)
                 .foregroundStyle(.white.opacity(0.8))
 
@@ -424,12 +425,23 @@ public struct TwoFactorSettingsView: View {
                     errorMessage = nil
                 }
 
+            SecureField("Account password (Optional)", text: $disablePassword)
+                .font(.system(size: 20, weight: .bold, design: .monospaced))
+                .textContentType(.password)
+                .padding()
+                .background(Color.white.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .onChange(of: disablePassword) { _, _ in
+                    errorMessage = nil
+                }
+
             HStack(spacing: 12) {
                 Button("Cancel") {
                     withAnimation {
                         mode = .idle
                         disableCode = ""
                         disablePin = ""
+                        disablePassword = ""
                         errorMessage = nil
                     }
                 }
@@ -585,12 +597,13 @@ public struct TwoFactorSettingsView: View {
         isSubmitting = true
         errorMessage = nil
         do {
-            let res = try await AudiobookphileAPI.shared.disable2FA(code: disableCode, pinCode: disablePin)
+            let res = try await AudiobookphileAPI.shared.disable2FA(code: disableCode, pinCode: disablePin, password: disablePassword)
             if res.success == true {
                 is2faEnabled = false
                 mode = .idle
                 disableCode = ""
                 disablePin = ""
+                disablePassword = ""
                 successMessage = "All 2FA methods disabled successfully."
             } else {
                 errorMessage = res.error ?? "Failed to disable 2FA."
