@@ -44,7 +44,7 @@ public struct BookshelfGridSection: View {
             if viewModel.isLoadingNextPage {
                 HStack(spacing: 12) {
                     ProgressView()
-                        .tint(.cyan)
+                        .tint(DesignTokens.Color.accentSecondary)
                     Text("Loading more audiobooks...")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
@@ -60,7 +60,7 @@ public struct BookshelfGridSection: View {
                         .foregroundStyle(.yellow)
                     Text("Connection Failed")
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DesignTokens.Color.foreground)
                     Text(errorMessage)
                         .font(.caption)
                         .foregroundStyle(.secondary)

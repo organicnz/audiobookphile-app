@@ -27,7 +27,7 @@ public struct BookDetailStatsRow: View {
             Text(value)
                 .font(.subheadline)
                 .fontWeight(.bold)
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
             Text(label)
                 .font(.caption2)
                 .foregroundStyle(.secondary)

@@ -33,14 +33,14 @@ public struct AccountView: View {
                                 .overlay {
                                     Text(String(user.username.prefix(1)).uppercased())
                                         .font(.system(size: 40, weight: .bold))
-                                        .foregroundStyle(.white)
+                                        .foregroundStyle(DesignTokens.Color.foreground)
                                 }
                                 .shadow(color: .appPrimary.opacity(0.3), radius: 20)
 
                             Text(user.username)
                                 .font(.title)
                                 .fontWeight(.bold)
-                                .foregroundStyle(.white)
+                                .foregroundStyle(DesignTokens.Color.foreground)
 
                             Text("Account Type: \(user.type.capitalized)")
                                 .font(.subheadline)
@@ -60,7 +60,7 @@ public struct AccountView: View {
                                     .foregroundStyle(Color.appPrimary)
                                     .frame(width: 28)
                                 Text("Listening Stats")
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(DesignTokens.Color.foreground)
                                 Spacer()
                                 Image(systemName: "chevron.right")
                                     .font(.caption)

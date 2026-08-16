@@ -12,7 +12,7 @@ public struct BookDetailSimilarBooksSection: View {
             Text("Similar Books")
                 .font(.title3)
                 .bold()
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             ScrollView(.horizontal, showsIndicators: false) {

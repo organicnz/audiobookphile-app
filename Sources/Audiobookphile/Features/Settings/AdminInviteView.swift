@@ -128,13 +128,13 @@ public struct AdminInviteView: View {
 
                     Image(systemName: "person.badge.plus")
                         .font(.title3.weight(.semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DesignTokens.Color.foreground)
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Email Invitation")
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DesignTokens.Color.foreground)
 
                     Text("Send an invite link to add a new member")
                         .font(.caption)
@@ -171,7 +171,7 @@ public struct AdminInviteView: View {
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
                                 .strokeBorder(.white.opacity(0.15), lineWidth: 1)
                         )
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DesignTokens.Color.foreground)
                 }
 
                 Divider().background(.white.opacity(0.1))
@@ -194,7 +194,7 @@ public struct AdminInviteView: View {
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
                                 .strokeBorder(.white.opacity(0.15), lineWidth: 1)
                         )
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DesignTokens.Color.foreground)
                 }
 
                 Divider().background(.white.opacity(0.1))
@@ -235,7 +235,7 @@ public struct AdminInviteView: View {
                 Text(viewModel.isLoading ? "Sending…" : "Send Invitation")
                     .font(.headline.weight(.bold))
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(DesignTokens.Color.foreground)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
             .background(

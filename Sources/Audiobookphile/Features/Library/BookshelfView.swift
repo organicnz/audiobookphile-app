@@ -206,11 +206,11 @@ public struct BookshelfView: View {
                     GlassCard {
                         HStack(spacing: 16) {
                             Circle()
-                                .fill(Color.cyan.opacity(0.15))
+                                .fill(DesignTokens.Color.surface.opacity(0.15))
                                 .frame(width: 44, height: 44)
                                 .overlay {
                                     Image(systemName: "mic.fill")
-                                        .foregroundStyle(Color.cyan)
+                                        .foregroundStyle(DesignTokens.Color.accentSecondary)
                                 }
 
                             VStack(alignment: .leading, spacing: 4) {

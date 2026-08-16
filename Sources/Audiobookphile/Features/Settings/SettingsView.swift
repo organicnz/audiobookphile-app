@@ -120,13 +120,13 @@ public struct SettingsView: View {
 
                     Text("Return to Library")
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DesignTokens.Color.foreground)
 
                     Spacer()
 
                     Image(systemName: "books.vertical")
                         .font(.caption)
-                        .foregroundStyle(.white.opacity(0.4))
+                        .foregroundStyle(DesignTokens.Color.foreground.opacity(0.4))
                 }
                 .padding(14)
                 .background(
@@ -156,7 +156,7 @@ public struct SettingsView: View {
 
                         Image(systemName: "chevron.right")
                             .font(.caption)
-                            .foregroundStyle(.white.opacity(0.4))
+                            .foregroundStyle(DesignTokens.Color.foreground.opacity(0.4))
                     }
                     .padding(14)
                     .background(
@@ -188,17 +188,17 @@ public struct SettingsView: View {
                     .overlay {
                         Text(String(user.username.prefix(1)).uppercased())
                             .font(.title2.weight(.bold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(DesignTokens.Color.foreground)
                     }
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(user.username)
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DesignTokens.Color.foreground)
 
                     Text(user.type.capitalized)
                         .font(.caption)
-                        .foregroundStyle(.white.opacity(0.6))
+                        .foregroundStyle(DesignTokens.Color.foreground.opacity(0.6))
                 }
 
                 Spacer()
@@ -219,14 +219,14 @@ public struct SettingsView: View {
                         .frame(width: 24)
 
                     Text("Two-Factor Authentication (2FA)")
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DesignTokens.Color.foreground)
                         .font(.subheadline.weight(.semibold))
 
                     Spacer()
 
                     Image(systemName: "chevron.right")
                         .font(.caption)
-                        .foregroundStyle(.white.opacity(0.4))
+                        .foregroundStyle(DesignTokens.Color.foreground.opacity(0.4))
                 }
                 .padding(.vertical, 8)
             }
@@ -241,11 +241,11 @@ public struct SettingsView: View {
                 if let lStats = viewModel.libraryStats {
                     HStack(spacing: 0) {
                         statCell(label: "Books", value: "\(lStats.totalBooks)", icon: "book.fill")
-                        Divider().frame(height: 32).background(.white.opacity(0.15))
+                        Divider().frame(height: 32).background(DesignTokens.Color.surface.opacity(0.15))
                         statCell(label: "Authors", value: "\(lStats.totalAuthors)", icon: "person.fill")
-                        Divider().frame(height: 32).background(.white.opacity(0.15))
+                        Divider().frame(height: 32).background(DesignTokens.Color.surface.opacity(0.15))
                         statCell(label: "Series", value: "\(lStats.totalSeries)", icon: "books.vertical.fill")
-                        Divider().frame(height: 32).background(.white.opacity(0.15))
+                        Divider().frame(height: 32).background(DesignTokens.Color.surface.opacity(0.15))
                         statCell(label: "Hours", value: "\(Int(lStats.totalDuration / 3600))h", icon: "clock.fill")
                     }
                     .padding(.vertical, 8)
@@ -256,7 +256,7 @@ public struct SettingsView: View {
                         ProgressView().tint(.appPrimary)
                         Text("Loading stats…")
                             .font(.caption)
-                            .foregroundStyle(.white.opacity(0.6))
+                            .foregroundStyle(DesignTokens.Color.foreground.opacity(0.6))
                     }
                     .padding(8)
 
@@ -272,14 +272,14 @@ public struct SettingsView: View {
                             .frame(width: 24)
 
                         Text("Full Stats & Listening Analytics")
-                            .foregroundStyle(.white)
+                            .foregroundStyle(DesignTokens.Color.foreground)
                             .font(.subheadline.weight(.semibold))
 
                         Spacer()
 
                         Image(systemName: "chevron.right")
                             .font(.caption)
-                            .foregroundStyle(.white.opacity(0.4))
+                            .foregroundStyle(DesignTokens.Color.foreground.opacity(0.4))
                     }
                     .padding(.vertical, 4)
                 }
@@ -296,11 +296,11 @@ public struct SettingsView: View {
                     .foregroundStyle(Color.appPrimary)
                 Text(value)
                     .font(.callout.bold())
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
             }
             Text(label)
                 .font(.caption2)
-                .foregroundStyle(.white.opacity(0.6))
+                .foregroundStyle(DesignTokens.Color.foreground.opacity(0.6))
         }
         .frame(maxWidth: .infinity)
     }
@@ -528,14 +528,14 @@ public struct SettingsView: View {
                             .frame(width: 28)
 
                         Text("Open Admin Dashboard")
-                            .foregroundStyle(.white)
+                            .foregroundStyle(DesignTokens.Color.foreground)
                             .font(.subheadline.weight(.semibold))
 
                         Spacer()
 
                         Image(systemName: "chevron.right")
                             .font(.caption)
-                            .foregroundStyle(.white.opacity(0.4))
+                            .foregroundStyle(DesignTokens.Color.foreground.opacity(0.4))
                     }
                     .padding(12)
                 }
@@ -552,14 +552,14 @@ public struct SettingsView: View {
                             .frame(width: 28)
 
                         Text("Invite User by Email")
-                            .foregroundStyle(.white)
+                            .foregroundStyle(DesignTokens.Color.foreground)
                             .font(.subheadline.weight(.semibold))
 
                         Spacer()
 
                         Image(systemName: "chevron.right")
                             .font(.caption)
-                            .foregroundStyle(.white.opacity(0.4))
+                            .foregroundStyle(DesignTokens.Color.foreground.opacity(0.4))
                     }
                     .padding(12)
                 }
@@ -835,7 +835,7 @@ public struct SettingsSection<Content: View>: View {
             if let title = title {
                 Text(title.uppercased())
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.6))
+                    .foregroundStyle(DesignTokens.Color.foreground.opacity(0.6))
                     .padding(.leading, 4)
             }
 
@@ -882,16 +882,16 @@ public struct SettingsRow: View {
                     .frame(width: 28)
 
                 Text(title)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
 
                 Spacer()
 
                 Text(value)
-                    .foregroundStyle(.white.opacity(0.6))
+                    .foregroundStyle(DesignTokens.Color.foreground.opacity(0.6))
 
                 Image(systemName: "chevron.right")
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.4))
+                    .foregroundStyle(DesignTokens.Color.foreground.opacity(0.4))
             }
             .padding(12)
         }
@@ -916,7 +916,7 @@ public struct SettingsToggleRow: View {
                 .frame(width: 28)
 
             Text(title)
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
 
             Spacer()
 

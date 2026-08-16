@@ -24,7 +24,7 @@ public struct BookActionRow: View {
             } label: {
                 HStack(spacing: 8) {
                     if viewModel.isStartingPlayback {
-                        ProgressView().tint(.white)
+                        ProgressView().tint(DesignTokens.Color.foreground)
                         Text("Starting...")
                             .fontWeight(.bold)
                     } else {
@@ -36,7 +36,7 @@ public struct BookActionRow: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .foregroundStyle((detailed.isMissing == true || viewModel.isStartingPlayback) ? .white.opacity(0.5) : .white)
+                .foregroundStyle(detailed.isMissing == true || viewModel.isStartingPlayback ? DesignTokens.Color.foreground : DesignTokens.Color.background)
                 .background(
                     (detailed.isMissing == true || viewModel.isStartingPlayback) ?
                     LinearGradient(colors: [.gray.opacity(0.3), .gray.opacity(0.2)], startPoint: .leading, endPoint: .trailing) :
@@ -54,9 +54,9 @@ public struct BookActionRow: View {
                 } label: {
                     Image(systemName: "exclamationmark.triangle")
                         .font(.title3)
-                        .foregroundStyle(.white.opacity(0.5))
+                        .foregroundStyle(DesignTokens.Color.foreground.opacity(0.5))
                         .padding()
-                        .background(.white.opacity(0.05))
+                        .background(DesignTokens.Color.surface.opacity(0.05))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .disabled(true)
@@ -73,11 +73,11 @@ public struct BookActionRow: View {
                             CircularDownloadProgressBadge(status: .pending)
                             Text("Pending...")
                                 .font(.caption.bold())
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(DesignTokens.Color.warning)
                         }
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
-                        .background(.white.opacity(0.1))
+                        .background(DesignTokens.Color.surface.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
 
@@ -91,7 +91,7 @@ public struct BookActionRow: View {
                         CircularDownloadProgressBadge(progress: download.progress, status: .downloading)
                             .frame(width: 32, height: 32)
                             .padding(8)
-                            .background(.white.opacity(0.1))
+                            .background(DesignTokens.Color.surface.opacity(0.1))
                             .clipShape(Circle())
                     }
 
@@ -105,7 +105,7 @@ public struct BookActionRow: View {
                         CircularDownloadProgressBadge(status: .completed)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 10)
-                            .background(.white.opacity(0.1))
+                            .background(DesignTokens.Color.surface.opacity(0.1))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
 
@@ -121,7 +121,7 @@ public struct BookActionRow: View {
                         CircularDownloadProgressBadge(status: .failed)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 10)
-                            .background(.white.opacity(0.1))
+                            .background(DesignTokens.Color.surface.opacity(0.1))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                 case .paused:
@@ -136,7 +136,7 @@ public struct BookActionRow: View {
                         CircularDownloadProgressBadge(status: .paused)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 10)
-                            .background(.white.opacity(0.1))
+                            .background(DesignTokens.Color.surface.opacity(0.1))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                 }
@@ -151,10 +151,10 @@ public struct BookActionRow: View {
                 } label: {
                     Image(systemName: "arrow.down.circle")
                         .font(.title3)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DesignTokens.Color.foreground)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
-                        .background(.white.opacity(0.1))
+                        .background(DesignTokens.Color.surface.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
             }

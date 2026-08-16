@@ -22,7 +22,7 @@ public struct GlassBookCard: View {
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                     } placeholder: {
-                        Color.white.opacity(0.1)
+                        DesignTokens.Color.surface.opacity(0.1)
                     }
                 }
                 .clipped()
@@ -33,7 +33,7 @@ public struct GlassBookCard: View {
                 Text(book.title)
                     .font(.headline)
                     .lineLimit(2)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
 
                 if let author = book.author {
                     Text(author)
@@ -49,7 +49,7 @@ public struct GlassBookCard: View {
                         Text("\(progress.progressPercentage)% complete")
                             .font(.caption)
                     }
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(DesignTokens.Color.accent)
                 } else if book.isMissing == true {
                     HStack {
                         Image(systemName: "exclamationmark.triangle.fill")

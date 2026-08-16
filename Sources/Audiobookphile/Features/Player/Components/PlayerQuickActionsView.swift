@@ -61,7 +61,7 @@ public struct PlayerQuickActionsView: View {
                         isMonospaced: true,
                         isActive: abs(viewModel.playbackRate - 1.0) > 0.05,
                         activeColor: Color.appPrimary,
-                        textColor: coverIsLight ? .black : .white,
+                        textColor: coverIsLight ? DesignTokens.Color.background : DesignTokens.Color.foreground,
                         action: {}
                     )
                     .allowsHitTesting(false)
@@ -76,7 +76,7 @@ public struct PlayerQuickActionsView: View {
                     isMonospaced: viewModel.sleepTimerActive,
                     isActive: viewModel.sleepTimerActive,
                     activeColor: Color.appPrimary,
-                    textColor: coverIsLight ? .black : .white,
+                    textColor: coverIsLight ? DesignTokens.Color.background : DesignTokens.Color.foreground,
                     action: { showSleepTimer = true }
                 )
 
@@ -125,7 +125,7 @@ public struct PlayerQuickActionsView: View {
                     icon: "list.bullet",
                     fill: false,
                     size: .medium,
-                    color: coverIsLight ? .black : .white,
+                    color: coverIsLight ? DesignTokens.Color.background : DesignTokens.Color.foreground,
                     action: { showChapters = true }
                 )
                 .opacity(viewModel.chapters.isEmpty ? 0.3 : 1.0)
@@ -146,7 +146,7 @@ public struct PlayerQuickActionsView: View {
                 Spacer()
 
                 // AirPlay Route Picker Button
-                AirPlayButton(color: coverIsLight ? .black : .white, size: 40)
+                AirPlayButton(color: coverIsLight ? DesignTokens.Color.background : DesignTokens.Color.foreground, size: 40)
             }
         }
     }

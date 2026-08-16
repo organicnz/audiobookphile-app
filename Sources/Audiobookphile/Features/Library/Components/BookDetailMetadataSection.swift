@@ -13,7 +13,7 @@ public struct BookDetailMetadataSection: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Metadata")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
 
             VStack(alignment: .leading, spacing: 10) {
                 if let publisher = detailed.media.metadata.publisher, !publisher.isEmpty {
@@ -50,10 +50,10 @@ public struct BookDetailMetadataSection: View {
             HStack(spacing: 4) {
                 Text(label + ":")
                     .font(.subheadline.bold())
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
                 Text(value)
                     .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.85))
+                    .foregroundStyle(DesignTokens.Color.foreground.opacity(0.85))
             }
         }
     }

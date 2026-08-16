@@ -98,7 +98,7 @@ public struct TwoFactorSettingsView: View {
 
             Text(is2faEnabled ? "Multi-Factor Authentication is ON" : "Multi-Factor Authentication is OFF")
                 .font(.headline.bold())
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
 
             Text("Protect your account by requiring an authenticator app, PIN code, or facial biometric verification when signing in.")
                 .font(.subheadline)
@@ -128,7 +128,7 @@ public struct TwoFactorSettingsView: View {
                         Text("Set Up Authenticator (TOTP)")
                             .font(.headline.bold())
                     }
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.accentColor)
@@ -147,7 +147,7 @@ public struct TwoFactorSettingsView: View {
                         Text("Set Up PIN Code Sign-In")
                             .font(.headline.bold())
                     }
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.white.opacity(0.15))
@@ -169,7 +169,7 @@ public struct TwoFactorSettingsView: View {
                         Text("Enable Facial 2FA / Biometrics")
                             .font(.headline.bold())
                     }
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.white.opacity(0.15))
@@ -201,7 +201,7 @@ public struct TwoFactorSettingsView: View {
         VStack(alignment: .leading, spacing: 20) {
             Text("1. Add Secret Key to Authenticator")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
 
             Text("Copy the secret key below and add it to your authenticator app (such as 1Password, Authy, or Google Authenticator):")
                 .font(.subheadline)
@@ -210,7 +210,7 @@ public struct TwoFactorSettingsView: View {
             HStack {
                 Text(secret)
                     .font(.system(.body, design: .monospaced).bold())
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
                     .lineLimit(1)
                     .truncationMode(.middle)
 
@@ -244,7 +244,7 @@ public struct TwoFactorSettingsView: View {
 
             Text("2. Verify 6-Digit Code")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
 
             TextField("000000", text: $verificationCode)
                 .font(.system(size: 24, weight: .bold, design: .monospaced))
@@ -277,7 +277,7 @@ public struct TwoFactorSettingsView: View {
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(Color.white.opacity(0.15))
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
 
                 Button {
@@ -293,7 +293,7 @@ public struct TwoFactorSettingsView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(verificationCode.count == 6 ? Color.green : Color.gray.opacity(0.4))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .disabled(verificationCode.count != 6 || isSubmitting)
@@ -312,7 +312,7 @@ public struct TwoFactorSettingsView: View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Set Up 4-8 Digit PIN Code")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
 
             Text("Enter a numerical PIN code below to use as a sign-in alternative during two-factor authentication:")
                 .font(.subheadline)
@@ -348,7 +348,7 @@ public struct TwoFactorSettingsView: View {
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(Color.white.opacity(0.15))
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
 
                 Button {
@@ -364,7 +364,7 @@ public struct TwoFactorSettingsView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(pinInput.count >= 4 ? Color.green : Color.gray.opacity(0.4))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .disabled(pinInput.count < 4 || isSubmitting)
@@ -448,7 +448,7 @@ public struct TwoFactorSettingsView: View {
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(Color.white.opacity(0.15))
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
 
                 Button {
@@ -464,7 +464,7 @@ public struct TwoFactorSettingsView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.red)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .disabled(isSubmitting)

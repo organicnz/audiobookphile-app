@@ -105,7 +105,7 @@ public class ColorExtractor {
 
     /// Get contrasting text color for a background
     public func contrastingTextColor(for backgroundColor: UIColor) -> Color {
-        return isLight(backgroundColor) ? .black : .white
+        return isLight(backgroundColor) ? DesignTokens.Color.foreground : DesignTokens.Color.background
     }
 
     /// Generate gradient colors from a base color
@@ -143,8 +143,8 @@ public class ColorExtractor {
 @MainActor
 public class DynamicColorLoader {
     public var backgroundColor: Color = Color(red: 0.22, green: 0.22, blue: 0.22)
-    public var textColor: Color = .white
-    public var gradientColors: [Color] = [.black, .black]
+    public var textColor: Color = DesignTokens.Color.foreground
+    public var gradientColors: [Color] = [DesignTokens.Color.accent, DesignTokens.Color.accentSecondary]
     public var isLoaded = false
     public var isLight = false
 
@@ -183,8 +183,8 @@ public class DynamicColorLoader {
         let secondary: Color
 
         if lower.contains("mysterious") || lower.contains("dark") || lower.contains("suspense") || lower.contains("thriller") {
-            primary = Color(red: 0.22, green: 0.08, blue: 0.35) // Deep Violet
-            secondary = Color(red: 0.08, green: 0.04, blue: 0.18)
+            primary = DesignTokens.Color.accent
+            secondary = DesignTokens.Color.accentSecondary
         } else if lower.contains("inspir") || lower.contains("growth") || lower.contains("warm") || lower.contains("hope") {
             primary = Color(red: 0.35, green: 0.22, blue: 0.05) // Golden Amber
             secondary = Color(red: 0.18, green: 0.10, blue: 0.02)
@@ -204,7 +204,7 @@ public class DynamicColorLoader {
 
         backgroundColor = primary
         gradientColors = [primary, secondary]
-        textColor = .white
+        textColor = extractor.contrastingTextColor(for: uiColor)
         isLight = false
         isLoaded = true
     }
@@ -217,16 +217,16 @@ import Observation
 public class ColorExtractor {
     public static let shared = ColorExtractor()
     public init() {}
-    public func contrastingTextColor(for backgroundColor: Color) -> Color { .white }
-    public func generateGradient(from baseColor: Color) -> [Color] { [.black, .black] }
+    public func contrastingTextColor(for backgroundColor: Color) -> Color { DesignTokens.Color.foreground }
+    public func generateGradient(from baseColor: Color) -> [Color] { [DesignTokens.Color.accent, DesignTokens.Color.accentSecondary] }
 }
 
 @Observable
 @MainActor
 public class DynamicColorLoader {
     public var backgroundColor: Color = Color(red: 0.22, green: 0.22, blue: 0.22)
-    public var textColor: Color = .white
-    public var gradientColors: [Color] = [.black, .black]
+    public var textColor: Color = DesignTokens.Color.foreground
+    public var gradientColors: [Color] = [DesignTokens.Color.accent, DesignTokens.Color.accentSecondary]
     public var isLoaded = false
     public var isLight = false
 

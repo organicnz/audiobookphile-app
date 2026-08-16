@@ -36,7 +36,7 @@ public struct BookCard: View {
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .lineLimit(2)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DesignTokens.Color.foreground)
                         .multilineTextAlignment(.leading)
 
                     if let author = book.author, !author.isEmpty, author != "Unknown Author" {
@@ -116,12 +116,12 @@ public struct BookCard: View {
             .padding(8)
         }
         .aspectRatio(aspectRatio, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.step1, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .strokeBorder(
                     LinearGradient(
-                        colors: [.white.opacity(0.3), .white.opacity(0.05)],
+                        colors: [DesignTokens.Color.foreground.opacity(0.3), DesignTokens.Color.foreground.opacity(0.05)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
@@ -149,12 +149,12 @@ public struct BookCard: View {
     private var downloadBadge: some View {
         Image(systemName: "arrow.down.circle.fill")
             .font(.title3)
-            .foregroundStyle(.white)
+            .foregroundStyle(DesignTokens.Color.foreground)
             .padding(4)
             .background {
                 Circle()
                     .fill(
-                        LinearGradient(colors: [.green, .teal], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        LinearGradient(colors: [.appSecondary, .appPrimary], startPoint: .topLeading, endPoint: .bottomTrailing)
                     )
             }
             .background(.ultraThinMaterial, in: Circle())
@@ -164,12 +164,12 @@ public struct BookCard: View {
     private var missingBadge: some View {
         Image(systemName: "exclamationmark.triangle.fill")
             .font(.title3)
-            .foregroundStyle(.white)
+            .foregroundStyle(DesignTokens.Color.foreground)
             .padding(4)
             .background {
                 Circle()
                     .fill(
-                        LinearGradient(colors: [.red, .orange], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        LinearGradient(colors: [.appAccent, .appSecondary], startPoint: .topLeading, endPoint: .bottomTrailing)
                     )
             }
             .background(.ultraThinMaterial, in: Circle())
@@ -190,7 +190,7 @@ public struct BookCard: View {
                 Capsule()
                     .fill(
                         LinearGradient(
-                            colors: [Color.cyan, Color.purple],
+                            colors: [.appPrimary, .appAccent],
                             startPoint: .leading,
                             endPoint: .trailing
                         )

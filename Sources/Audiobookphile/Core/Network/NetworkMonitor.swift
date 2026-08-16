@@ -164,7 +164,7 @@ public struct NetworkStatusView: View {
             if networkMonitor.isMetered {
                 Text("(Metered)")
                     .font(.caption2)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(DesignTokens.Color.warning)
             }
         }
     }
@@ -185,9 +185,9 @@ public struct NetworkStatusView: View {
         if !networkMonitor.isConnected {
             return .red
         } else if networkMonitor.isMetered {
-            return .orange
+            return DesignTokens.Color.warning
         } else {
-            return .green
+            return DesignTokens.Color.success
         }
     }
 }

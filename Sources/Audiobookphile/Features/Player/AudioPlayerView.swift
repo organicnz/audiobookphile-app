@@ -32,7 +32,7 @@ public struct AudioPlayerView: View {
     @State var colorLoader = DynamicColorLoader()
 
     private var coverIsLight: Bool {
-        colorLoader.textColor == .black
+        colorLoader.textColor == DesignTokens.Color.foreground
     }
 
     private var coverURL: URL? {
@@ -149,8 +149,8 @@ public struct AudioPlayerView: View {
             // Darken/Blend overlay to ensure text is readable
             LinearGradient(
                 colors: [
-                    Color.black.opacity(0.3),
-                    Color.black.opacity(0.6)
+                    DesignTokens.Color.surface.opacity(0.3),
+                    DesignTokens.Color.background.opacity(0.6)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
@@ -181,7 +181,7 @@ public struct AudioPlayerView: View {
                 .padding(.vertical, 20)
 
             // Hardware vDSP Audio Spectrum Visualizer
-            VDSPAudioVisualizer(isPlaying: viewModel.isPlaying, color: coverIsLight ? .black : Color.appPrimary)
+            VDSPAudioVisualizer(isPlaying: viewModel.isPlaying, color: coverIsLight ? DesignTokens.Color.foreground : Color.appPrimary)
                 .padding(.bottom, 12)
 
             // Title and author
@@ -229,7 +229,7 @@ public struct AudioPlayerView: View {
             } label: {
                 Image(systemName: "chevron.down")
                     .font(.title2)
-                    .foregroundStyle(coverIsLight ? .black : .white)
+                    .foregroundStyle(coverIsLight ? DesignTokens.Color.foreground : DesignTokens.Color.background)
             }
 
             Spacer()
@@ -241,7 +241,7 @@ public struct AudioPlayerView: View {
             } label: {
                 Image(systemName: isUiLocked ? "lock.fill" : "lock.open")
                     .font(.title2)
-                    .foregroundStyle(isUiLocked ? Color.appPrimary : (coverIsLight ? .black : .white))
+                    .foregroundStyle(isUiLocked ? Color.appPrimary : (coverIsLight ? DesignTokens.Color.foreground : DesignTokens.Color.background))
             }
             .padding(.trailing, 16)
 
@@ -250,7 +250,7 @@ public struct AudioPlayerView: View {
             } label: {
                 Image(systemName: "ellipsis")
                     .font(.title2)
-                    .foregroundStyle(coverIsLight ? .black : .white)
+                    .foregroundStyle(coverIsLight ? DesignTokens.Color.foreground : DesignTokens.Color.background)
             }
         }
         .padding(.horizontal, 24)
@@ -262,13 +262,13 @@ public struct AudioPlayerView: View {
             Text(viewModel.currentChapterTitle.isEmpty ? viewModel.title : viewModel.currentChapterTitle)
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundStyle(coverIsLight ? .black : .white)
+                .foregroundStyle(coverIsLight ? DesignTokens.Color.foreground : DesignTokens.Color.background)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
 
             Text(viewModel.author)
                 .font(.headline)
-                .foregroundStyle((coverIsLight ? Color.black : .white).opacity(0.7))
+                .foregroundStyle((coverIsLight ? DesignTokens.Color.foreground : DesignTokens.Color.background).opacity(0.7))
                 .multilineTextAlignment(.center)
                 .lineLimit(1)
         }
@@ -291,7 +291,7 @@ public struct AudioAccessibilityQuickSheet: View {
 
                 VStack(spacing: 16) {
                     List {
-                        Section(header: Text("Spoken Audio & Speech Clarity").foregroundStyle(.white.opacity(0.7))) {
+                        Section(header: Text("Spoken Audio & Speech Clarity").foregroundStyle(DesignTokens.Color.foreground.opacity(0.7))) {
                             Toggle("Spoken Audio Optimization", isOn: Binding(
                                 get: { settings.spokenAudioModeEnabled },
                                 set: { newValue in
@@ -329,9 +329,9 @@ public struct AudioAccessibilityQuickSheet: View {
                                 }
                             ))
                         }
-                        .listRowBackground(Color.white.opacity(0.08))
+                        .listRowBackground(DesignTokens.Color.surface.opacity(0.08))
 
-                        Section(header: Text("Audiophile DSP & Fidelity").foregroundStyle(.white.opacity(0.7))) {
+                        Section(header: Text("Audiophile DSP & Fidelity").foregroundStyle(DesignTokens.Color.foreground.opacity(0.7))) {
                             Toggle("High-Res 48kHz Output", isOn: Binding(
                                 get: { settings.highResAudioEnabled },
                                 set: { newValue in
@@ -362,7 +362,7 @@ public struct AudioAccessibilityQuickSheet: View {
                                 }
                             ))
                         }
-                        .listRowBackground(Color.white.opacity(0.08))
+                        .listRowBackground(DesignTokens.Color.surface.opacity(0.08))
                     }
                     .scrollContentBackground(.hidden)
                 }

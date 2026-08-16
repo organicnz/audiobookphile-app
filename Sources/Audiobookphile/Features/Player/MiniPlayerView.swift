@@ -37,7 +37,7 @@ public struct MiniPlayerView: View {
                 }
                 .clipped()
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
+                .shadow(color: DesignTokens.Color.surface.opacity(0.3), radius: 4, x: 0, y: 2)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(audioPlayer.session?.displayTitle ?? "Sample Book Title")
@@ -99,30 +99,26 @@ public struct MiniPlayerView: View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
                 Rectangle()
-                    .fill(Color.white.opacity(0.12))
+                    .fill(Color.appBackground.opacity(0.12))
 
                 Rectangle()
                     .fill(
-                        LinearGradient(
-                            colors: [Color.appPrimary, Color.cyan],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
+                        LinearGradient(colors: [.appPrimary, .appAccent], startPoint: .leading, endPoint: .trailing)
                     )
                     .frame(width: max(0, min(geometry.size.width, geometry.size.width * CGFloat(audioPlayer.duration > 0 ? audioPlayer.currentTime / audioPlayer.duration : 0))))
-                    .shadow(color: Color.appPrimary.opacity(0.6), radius: 4)
+                    .shadow(color: DesignTokens.Color.accent.opacity(0.6), radius: 4)
             }
         }
         .frame(height: 3)
         }
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .shadow(color: .black.opacity(0.35), radius: 16, x: 0, y: 8)
+        .shadow(color: DesignTokens.Color.surface.opacity(0.35), radius: 16, x: 0, y: 8)
         .overlay(content: {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .strokeBorder(
                     LinearGradient(
-                        colors: [.white.opacity(0.35), .white.opacity(0.05)],
+                        colors: [DesignTokens.Color.foreground.opacity(0.35), DesignTokens.Color.foreground.opacity(0.05)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),

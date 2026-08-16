@@ -92,7 +92,7 @@ public struct BookDetailView: View {
 
     private var dragHandle: some View {
         Capsule()
-            .fill(.white.opacity(0.3))
+            .fill(DesignTokens.Color.foreground.opacity(0.3))
             .frame(width: 40, height: 5)
             .padding(.top, 12)
             .padding(.bottom, 8)
@@ -104,11 +104,11 @@ public struct BookDetailView: View {
         VStack(spacing: 20) {
             Spacer(minLength: 100)
             ProgressView()
-                .tint(.appPrimary)
+                .tint(DesignTokens.Color.accent)
                 .scaleEffect(1.5)
             Text("Fetching book details...")
                 .font(.headline)
-                .foregroundStyle(.white.opacity(0.8))
+                .foregroundStyle(DesignTokens.Color.foreground.opacity(0.8))
             Spacer(minLength: 100)
         }
     }
@@ -120,17 +120,17 @@ public struct BookDetailView: View {
             Spacer(minLength: 100)
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 50))
-                .foregroundStyle(.yellow)
+                .foregroundStyle(DesignTokens.Color.warning)
             Text("Failed to load details")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
             Button("Retry") {
                 Task {
                     await viewModel.fetchDetails(appState: appState)
                 }
             }
             .padding()
-            .background(.white.opacity(0.1))
+            .background(DesignTokens.Color.surface.opacity(0.1))
             .clipShape(Capsule())
             Spacer(minLength: 100)
         }
@@ -178,23 +178,23 @@ public struct BookDetailView: View {
         HStack(spacing: 12) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.title2)
-                .foregroundStyle(.red)
+                .foregroundStyle(DesignTokens.Color.error)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("Missing Audio Files")
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
                 Text("The audio files for this book are missing from the server. Playback and downloads are unavailable.")
                     .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.8))
+                    .foregroundStyle(DesignTokens.Color.foreground.opacity(0.8))
             }
         }
         .padding()
-        .background(.red.opacity(0.2))
+        .background(DesignTokens.Color.error.opacity(0.2))
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(.red.opacity(0.5), lineWidth: 1)
+                .strokeBorder(DesignTokens.Color.error.opacity(0.5), lineWidth: 1)
         )
     }
 

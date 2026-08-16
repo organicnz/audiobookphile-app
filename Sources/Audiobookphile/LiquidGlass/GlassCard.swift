@@ -13,7 +13,7 @@ struct GlassCard<Content: View>: View {
     var padding: CGFloat = 16
     var cornerRadius: CGFloat = 20
     var material: Material = .ultraThinMaterial
-    var borderOpacity: Double = 0.2
+    var borderOpacity: Double = UIConstants.glassBorderOpacity
     var shadowRadius: CGFloat = 10
     var shadowY: CGFloat = 5
 
@@ -46,7 +46,7 @@ struct GlassCard<Content: View>: View {
                             .strokeBorder(
                                 LinearGradient(
                                     colors: [
-                                        Color.white.opacity(borderOpacity),
+                                        DesignTokens.Color.surface.opacity(borderOpacity),
                                         Color.white.opacity(borderOpacity * 0.4),
                                         Color.white.opacity(0.0)
                                     ],
@@ -57,7 +57,7 @@ struct GlassCard<Content: View>: View {
                             )
                     }
                     .shadow(
-                        color: Color.black.opacity(0.15),
+                        color: DesignTokens.Color.background.opacity(0.15),
                         radius: shadowRadius,
                         y: shadowY
                     )
@@ -97,53 +97,53 @@ struct GlassCardModifier: ViewModifier {
 }
 
 /*
-// MARK: - Preview
-#Preview("Glass Card Examples") {
-    ZStack {
-        // Background gradient
-        LinearGradient(
-            colors: [.blue, .purple],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        .ignoresSafeArea()
-        
-        VStack(spacing: 20) {
-            // Basic glass card
-            GlassCard {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("The Midnight Library")
-                        .font(.headline)
-                    Text("Matt Haig")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            
-            // Custom glass card
-            GlassCard(
-                padding: 24,
-                cornerRadius: 24,
-                material: .thinMaterial
-            ) {
-                HStack {
-                    Image(systemName: "book.fill")
-                        .font(.largeTitle)
-                    VStack(alignment: .leading) {
-                        Text("Audiobook")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Text("8h 32m")
-                            .font(.headline)
-                    }
-                }
-            }
-            
-            // Using modifier
-            Text("View with glass modifier")
-                .glassCard()
-        }
-        .padding()
-    }
-}
-*/
+ // MARK: - Preview
+ #Preview("Glass Card Examples") {
+     ZStack {
+         // Background gradient
+         LinearGradient(
+             colors: [.appPrimary, .appAccent],
+             startPoint: .topLeading,
+             endPoint: .bottomTrailing
+         )
+         .ignoresSafeArea()
+         
+         VStack(spacing: 20) {
+             // Basic glass card
+             GlassCard {
+                 VStack(alignment: .leading, spacing: 8) {
+                     Text("The Midnight Library")
+                         .font(.headline)
+                     Text("Matt Haig")
+                         .font(.subheadline)
+                         .foregroundStyle(DesignTokens.Color.foregroundSubdued)
+                 }
+             }
+             
+             // Custom glass card
+             GlassCard(
+                 padding: 24,
+                 cornerRadius: 24,
+                 material: .thinMaterial
+             ) {
+                 HStack {
+                     Image(systemName: "book.fill")
+                         .font(.largeTitle)
+                     VStack(alignment: .leading) {
+                         Text("Audiobook")
+                             .font(.caption)
+                             .foregroundStyle(DesignTokens.Color.foregroundSubdued)
+                         Text("8h 32m")
+                             .font(.headline)
+                     }
+                 }
+             }
+             
+             // Using modifier
+             Text("View with glass modifier")
+                 .glassCard()
+         }
+         .padding()
+     }
+ }
+ */

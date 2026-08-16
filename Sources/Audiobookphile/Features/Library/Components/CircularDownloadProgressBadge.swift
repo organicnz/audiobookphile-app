@@ -38,32 +38,32 @@ public struct CircularDownloadProgressBadge: View {
                 case .pending:
                     ZStack {
                         Circle()
-                            .stroke(Color.orange.opacity(0.25), lineWidth: 2.5)
+                            .stroke(DesignTokens.Color.warning.opacity(0.25), lineWidth: 2.5)
                         Circle()
                             .trim(from: 0, to: 0.35)
-                            .stroke(Color.orange, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+                            .stroke(DesignTokens.Color.warning, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
                             .rotationEffect(.degrees(-90))
                             .applyConnectPulseEffect(isAnimating: true)
                         Image(systemName: "arrow.down")
                             .font(.system(size: 8, weight: .bold))
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(DesignTokens.Color.warning)
                     }
                     .frame(width: 26, height: 26)
                     .padding(3)
                     .background(.ultraThinMaterial, in: Circle())
-                    .shadow(color: .orange.opacity(0.4), radius: 6, x: 0, y: 2)
+                    .shadow(color: DesignTokens.Color.warning.opacity(0.4), radius: 6, x: 0, y: 2)
 
                 case .downloading:
                     ZStack {
                         // Background track
                         Circle()
-                            .stroke(Color.white.opacity(0.15), lineWidth: 2.5)
+                            .stroke(DesignTokens.Color.foreground.opacity(0.15), lineWidth: 2.5)
 
                         // Progress Arc Fill (Apple Podcasts / Spotify style)
                         Circle()
                             .trim(from: 0, to: max(0.06, CGFloat(progress)))
                             .stroke(
-                                LinearGradient(colors: [.cyan, .teal], startPoint: .topLeading, endPoint: .bottomTrailing),
+                                LinearGradient(colors: [.appSecondary, .appPrimary], startPoint: .topLeading, endPoint: .bottomTrailing),
                                 style: StrokeStyle(lineWidth: 2.5, lineCap: .round)
                             )
                             .rotationEffect(.degrees(-90))
@@ -71,13 +71,13 @@ public struct CircularDownloadProgressBadge: View {
 
                         // Center Stop Square (Apple Podcasts native download stop control)
                         RoundedRectangle(cornerRadius: 2, style: .continuous)
-                            .fill(Color.cyan)
+                            .fill(DesignTokens.Color.accentSecondary)
                             .frame(width: 7, height: 7)
                     }
                     .frame(width: 26, height: 26)
                     .padding(3)
                     .background(.ultraThinMaterial, in: Circle())
-                    .shadow(color: .cyan.opacity(0.5), radius: 8, x: 0, y: 2)
+                    .shadow(color: DesignTokens.Color.accentSecondary.opacity(0.5), radius: 8, x: 0, y: 2)
 
                 case .paused:
                     ZStack {
@@ -102,7 +102,7 @@ public struct CircularDownloadProgressBadge: View {
                             .fill(Color.red)
                         Image(systemName: "exclamationmark")
                             .font(.system(size: 9, weight: .bold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(DesignTokens.Color.foreground)
                     }
                     .frame(width: 26, height: 26)
                     .padding(3)
@@ -119,15 +119,15 @@ public struct CircularDownloadProgressBadge: View {
         ZStack {
             Circle()
                 .fill(
-                    LinearGradient(colors: [.green, .teal], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    LinearGradient(colors: [DesignTokens.Color.success, DesignTokens.Color.success], startPoint: .topLeading, endPoint: .bottomTrailing)
                 )
             Image(systemName: "checkmark")
                 .font(.system(size: 9, weight: .bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
         }
         .frame(width: 22, height: 22)
         .padding(3)
         .background(.ultraThinMaterial, in: Circle())
-        .shadow(color: .green.opacity(0.5), radius: 6, x: 0, y: 2)
+        .shadow(color: DesignTokens.Color.success.opacity(0.5), radius: 6, x: 0, y: 2)
     }
 }

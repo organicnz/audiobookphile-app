@@ -15,7 +15,7 @@ public struct BookshelfSearchOverlay: View {
 
                 TextField("Search books...", text: $searchText)
                     .textFieldStyle(.plain)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
 
                 if !searchText.isEmpty {
                     Button(action: { searchText = "" }) {

@@ -21,7 +21,7 @@ public struct ChapterListView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Chapters (\(detailed.chapters.count))")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
                 .padding(.horizontal, 4)
 
             VStack(spacing: 8) {
@@ -34,7 +34,7 @@ public struct ChapterListView: View {
                                 Text(chapter.title)
                                     .font(.subheadline)
                                     .fontWeight(.medium)
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(DesignTokens.Color.foreground)
                                     .multilineTextAlignment(.leading)
 
                                 Spacer()
@@ -49,7 +49,7 @@ public struct ChapterListView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .strokeBorder(.white.opacity(0.15), lineWidth: 1)
+                                    .strokeBorder(DesignTokens.Color.foreground.opacity(0.15), lineWidth: 1)
                             )
                         }
                         .liquidPressable()
@@ -60,12 +60,12 @@ public struct ChapterListView: View {
                         } label: {
                             Image(systemName: "sparkles")
                                 .font(.body)
-                                .foregroundStyle(.cyan)
+                                .foregroundStyle(DesignTokens.Color.accentSecondary)
                                 .padding(10)
                                 .background(.ultraThinMaterial)
                                 .clipShape(Circle())
                                 .overlay(
-                                    Circle().strokeBorder(Color.cyan.opacity(0.4), lineWidth: 1)
+                                    Circle().strokeBorder(DesignTokens.Color.accentSecondary.opacity(0.4), lineWidth: 1)
                                 )
                         }
                         .buttonStyle(.plain)

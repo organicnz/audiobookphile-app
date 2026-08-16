@@ -22,7 +22,7 @@ public struct TwoFactorChallengeView: View {
                     VStack(spacing: 12) {
                         Image(systemName: methodIconName)
                             .font(.system(size: 52, weight: .light))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(DesignTokens.Color.foreground)
                             .padding()
                             .background(
                                 Circle()
@@ -32,7 +32,7 @@ public struct TwoFactorChallengeView: View {
 
                         Text("Two-Factor Authentication")
                             .font(.title2.bold())
-                            .foregroundStyle(.white)
+                            .foregroundStyle(DesignTokens.Color.foreground)
 
                         Text(methodDescription)
                             .font(.subheadline)
@@ -104,7 +104,7 @@ public struct TwoFactorChallengeView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.accentColor)
-                                .foregroundStyle(.white)
+                                .foregroundStyle(DesignTokens.Color.foreground)
                                 .clipShape(RoundedRectangle(cornerRadius: 14))
                             }
                             .disabled(isVerifying)
@@ -149,7 +149,7 @@ public struct TwoFactorChallengeView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(pinCode.count >= 4 ? Color.accentColor : Color.gray.opacity(0.4))
-                                .foregroundStyle(.white)
+                                .foregroundStyle(DesignTokens.Color.foreground)
                                 .clipShape(RoundedRectangle(cornerRadius: 14))
                             }
                             .disabled(pinCode.count < 4 || isVerifying)
@@ -195,7 +195,7 @@ public struct TwoFactorChallengeView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(code.count == 6 ? Color.accentColor : Color.gray.opacity(0.4))
-                                .foregroundStyle(.white)
+                                .foregroundStyle(DesignTokens.Color.foreground)
                                 .clipShape(RoundedRectangle(cornerRadius: 14))
                             }
                             .disabled(code.count != 6 || isVerifying)
@@ -222,7 +222,7 @@ public struct TwoFactorChallengeView: View {
                         appState.cancel2FAChallenge()
                         dismiss()
                     }
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
                 }
             }
         }

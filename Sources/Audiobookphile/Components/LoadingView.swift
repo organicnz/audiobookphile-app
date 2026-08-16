@@ -30,6 +30,6 @@ public struct LoadingView: View {
         .padding(30)
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 20))
-        .shadow(color: Color.black.opacity(0.15), radius: 20)
+        .shadow(color: DesignTokens.Color.surface.opacity(0.15), radius: 20)
     }
 }

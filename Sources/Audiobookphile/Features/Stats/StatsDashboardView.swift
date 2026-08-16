@@ -68,7 +68,7 @@ public struct StatsDashboardView: View {
             Text("Library Overview")
                 .font(.title2)
                 .bold()
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
 
@@ -92,7 +92,7 @@ public struct StatsDashboardView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Genres")
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
 
                 let sorted = stats.genresWithCount.sorted { $0.count > $1.count }
                 let maxCount = sorted.first?.count ?? 1
@@ -136,7 +136,7 @@ public struct StatsDashboardView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Top Authors")
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
 
                 let sorted = stats.authorsWithCount.sorted { $0.count > $1.count }
                 HStack(alignment: .bottom, spacing: 8) {
@@ -170,7 +170,7 @@ public struct StatsDashboardView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Longest Books")
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
 
                 let topItems = Array(stats.longestItems.prefix(5))
                 ForEach(0..<topItems.count, id: \.self) { idx in
@@ -228,7 +228,7 @@ public struct StatsDashboardView: View {
             Text("My Listening")
                 .font(.title2)
                 .bold()
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
 
@@ -237,7 +237,7 @@ public struct StatsDashboardView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Recent Sessions")
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DesignTokens.Color.foreground)
 
                     ForEach(userStats.recentSessions.prefix(5)) { session in
                         HStack(spacing: 12) {
@@ -248,7 +248,7 @@ public struct StatsDashboardView: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(session.displayTitle ?? "Unknown Title")
                                     .font(.subheadline)
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(DesignTokens.Color.foreground)
                                     .lineLimit(1)
                                 Text(session.displayAuthor ?? "Unknown Author")
                                     .font(.caption)
@@ -284,7 +284,7 @@ public struct StatsDashboardView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("In Progress")
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DesignTokens.Color.foreground)
 
                     ForEach(userStats.mediaProgress.filter { !($0.isFinished ?? false) }.prefix(3)) { progress in
                         HStack(spacing: 12) {
@@ -295,7 +295,7 @@ public struct StatsDashboardView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(progress.title ?? "Unknown Title")
                                     .font(.subheadline)
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(DesignTokens.Color.foreground)
                                     .lineLimit(1)
                                 
                                 let current = progress.progress ?? 0
@@ -334,7 +334,7 @@ public struct StatsDashboardView: View {
                 .foregroundStyle(Color.appPrimary)
             Text(value)
                 .font(.title3.bold())
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
             Text(label)
                 .font(.caption2)
                 .foregroundStyle(.white.opacity(0.5))

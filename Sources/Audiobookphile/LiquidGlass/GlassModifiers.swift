@@ -139,7 +139,7 @@ struct AnimatedGlassModifier: ViewModifier {
 
 extension View {
     /// Apply an animated glass effect
-    func animatedGlass(colors: [Color] = [.blue, .purple, .pink]) -> some View {
+    func animatedGlass(colors: [Color] = [.appPrimary, .appAccent]) -> some View {
         self.modifier(AnimatedGlassModifier(colors: colors))
     }
 }
@@ -292,21 +292,21 @@ extension View {
             // Liquid gradient
             Text("Liquid Gradient")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
                 .padding()
-                .liquidGradient(colors: [.blue, .purple, .pink])
+                .liquidGradient(colors: [.appPrimary, .appAccent])
                 .cornerRadius(12)
             
             // Glass overlay on image
             ZStack {
-                Color.orange
+                DesignTokens.Color.warning
                 VStack {
                     Image(systemName: "book.fill")
                         .font(.system(size: 60))
                     Text("Glass Overlay")
                         .font(.headline)
                 }
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
             }
             .frame(height: 150)
             .glassOverlay(opacity: 0.4)
@@ -315,7 +315,7 @@ extension View {
             // Animated glass
             Text("Animated Glass")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
                 .padding()
                 .frame(maxWidth: .infinity)
                 .animatedGlass()
@@ -325,9 +325,9 @@ extension View {
             Text("Glass Shadow")
                 .font(.headline)
                 .padding()
-                .background(Color.white)
+                .background(DesignTokens.Color.background)
                 .cornerRadius(12)
-                .glassShadow(color: .blue, opacity: 0.3, radius: 20)
+                .glassShadow(color: DesignTokens.Color.accent, opacity: 0.3, radius: 20)
             
             // Shimmer effect
             RoundedRectangle(cornerRadius: 12)
@@ -339,7 +339,7 @@ extension View {
     }
     .background {
         LinearGradient(
-            colors: [.indigo, .purple],
+            colors: [.appPrimary, .appAccent],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )

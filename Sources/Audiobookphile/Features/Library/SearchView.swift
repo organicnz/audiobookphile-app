@@ -128,15 +128,15 @@ public struct SearchView: View {
         VStack(spacing: 16) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 48))
-                .foregroundStyle(.white.opacity(0.3))
+                .foregroundStyle(DesignTokens.Color.foreground.opacity(0.3))
 
             Text("No results found")
                 .font(.headline)
-                .foregroundStyle(.white.opacity(0.7))
+                .foregroundStyle(DesignTokens.Color.foreground.opacity(0.7))
 
             Text("Try searching for something else")
                 .font(.caption)
-                .foregroundStyle(.white.opacity(0.5))
+                .foregroundStyle(DesignTokens.Color.foreground.opacity(0.5))
         }
         .padding(.top, 60)
     }
@@ -147,7 +147,7 @@ public struct SearchView: View {
             HStack {
                 Text("Recent Searches")
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
 
                 Spacer()
 
@@ -170,23 +170,23 @@ public struct SearchView: View {
                     } label: {
                         HStack(spacing: 16) {
                             Image(systemName: "clock")
-                                .foregroundStyle(.white.opacity(0.4))
+                                .foregroundStyle(DesignTokens.Color.foreground.opacity(0.4))
 
                             Text(item.query)
-                                .foregroundStyle(.white.opacity(0.9))
+                                .foregroundStyle(DesignTokens.Color.foreground.opacity(0.9))
 
                             Spacer()
 
                             Image(systemName: "arrow.up.left")
                                 .font(.caption)
-                                .foregroundStyle(.white.opacity(0.3))
+.foregroundStyle(DesignTokens.Color.foreground.opacity(0.3))
                         }
                         .padding(16)
-                        .background(.white.opacity(0.05))
+                        .background(DesignTokens.Color.surface.opacity(0.05))
                     }
                     if item != recentSearches.last {
                         Divider()
-                            .background(.white.opacity(0.1))
+                            .background(DesignTokens.Color.surface.opacity(0.1))
                             .padding(.leading, 48)
                     }
                 }
@@ -198,7 +198,7 @@ public struct SearchView: View {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Browse Categories")
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
                     .padding(.horizontal, 16)
 
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -206,7 +206,7 @@ public struct SearchView: View {
                         ForEach(["Sci-Fi", "Fantasy", "Mystery", "Non-Fiction", "History"], id: \.self) { genre in
                             Text(genre)
                                 .font(.subheadline.weight(.medium))
-                                .foregroundStyle(.white)
+                                .foregroundStyle(DesignTokens.Color.foreground)
                                 .padding(.horizontal, 20)
                                 .padding(.vertical, 12)
                                 .background(
@@ -219,7 +219,7 @@ public struct SearchView: View {
                                 .clipShape(Capsule())
                                 .overlay(
                                     Capsule()
-                                        .stroke(.white.opacity(0.1), lineWidth: 1)
+                                        .stroke(DesignTokens.Color.foreground.opacity(0.1), lineWidth: 1)
                                 )
                         }
                     }

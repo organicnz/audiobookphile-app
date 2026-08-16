@@ -52,7 +52,7 @@ public struct ConnectView: View {
             FluidAuraBackground()
 
             // Particle effects
-            GlassParticlesView(particleCount: 20, colors: [.white.opacity(0.15), .appPrimary.opacity(0.1)])
+            GlassParticlesView(particleCount: 20, colors: [DesignTokens.Color.foreground.opacity(0.15), .appPrimary.opacity(0.1)])
 
             // Dismiss Button for Sheet presentation
             Button {
@@ -60,7 +60,7 @@ public struct ConnectView: View {
             } label: {
                 Image(systemName: "xmark.circle.fill")
                     .font(.title2)
-                    .foregroundStyle(Color.white.opacity(0.6))
+                    .foregroundStyle(DesignTokens.Color.foreground.opacity(0.6))
                     .padding(20)
             }
             .accessibilityIdentifier("abp_connect_dismiss")
@@ -145,13 +145,13 @@ public struct ConnectView: View {
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 120, height: 120)
                 .scaleEffect(isAnimating ? 1.05 : 1.0)
-                .shadow(color: .appPrimary.opacity(0.5), radius: 25, x: 0, y: 10)
+                .shadow(color: DesignTokens.Color.accent.opacity(0.5), radius: 25, x: 0, y: 10)
 
             // Title
             Text("Audiobookphile")
                 .font(.system(size: 38, weight: .bold))
                 .foregroundStyle(Color.primary)
-                .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+                .shadow(color: DesignTokens.Color.surface.opacity(0.1), radius: 2, x: 0, y: 1)
 
             Text("Sign in to your account")
                 .font(.headline.weight(.medium))
@@ -218,7 +218,7 @@ public struct ConnectView: View {
                 HStack {
                     if appState.isLoading {
                         ProgressView()
-                            .tint(.white)
+                            .tint(DesignTokens.Color.foreground)
                             .padding(.trailing, 8)
                     }
                     Text(appState.isLoading ? "Signing in..." : "Sign In")
@@ -226,7 +226,7 @@ public struct ConnectView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
                 .background(
                     LinearGradient(colors: [.appPrimary, .appSecondary], startPoint: .leading, endPoint: .trailing)
                 )
@@ -242,14 +242,14 @@ public struct ConnectView: View {
         .background(
             RoundedRectangle(cornerRadius: 24)
                 .fill(Color.appPrimary.opacity(0.05))
-                .shadow(color: .black.opacity(0.2), radius: 30, x: 0, y: 15)
+                .shadow(color: DesignTokens.Color.surface.opacity(0.2), radius: 30, x: 0, y: 15)
         )
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .overlay {
             RoundedRectangle(cornerRadius: 24)
                 .strokeBorder(
                     LinearGradient(
-                        colors: [.white.opacity(0.4), .white.opacity(0.05)],
+                        colors: [DesignTokens.Color.foreground.opacity(0.4), DesignTokens.Color.foreground.opacity(0.05)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
@@ -263,7 +263,7 @@ public struct ConnectView: View {
     private var magicLinkSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Divider()
-                .overlay(Color.white.opacity(0.2))
+                .overlay(DesignTokens.Color.surface.opacity(0.2))
 
             Text("Or sign in with a magic link")
                 .font(.subheadline.weight(.semibold))
@@ -274,7 +274,7 @@ public struct ConnectView: View {
             } label: {
                 HStack {
                     if magicLinkStatus == .sending {
-                        ProgressView().tint(.white)
+                        ProgressView().tint(DesignTokens.Color.foreground)
                             .padding(.trailing, 8)
                     }
                     Text("Email me a sign-in link")
@@ -282,12 +282,12 @@ public struct ConnectView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .foregroundStyle(.white)
-                .background(Color.white.opacity(0.12))
+                .foregroundStyle(DesignTokens.Color.foreground)
+                .background(DesignTokens.Color.surface.opacity(0.12))
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay {
                     RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(Color.white.opacity(0.25), lineWidth: 1)
+                        .strokeBorder(DesignTokens.Color.foreground.opacity(0.25), lineWidth: 1)
                 }
             }
             .disabled(magicLinkStatus == .sending || username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -305,11 +305,11 @@ public struct ConnectView: View {
             case .sent:
                 Text("Magic link sent! Check your email and open the link on this device to sign in.")
                     .font(.caption)
-                    .foregroundStyle(.green)
+                    .foregroundStyle(DesignTokens.Color.success)
             case .failed(let message):
                 Text(message)
                     .font(.caption)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(DesignTokens.Color.error)
             }
         }
     }

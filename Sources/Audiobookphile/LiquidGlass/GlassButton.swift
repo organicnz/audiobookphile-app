@@ -14,7 +14,7 @@ struct GlassButton: View {
     let action: () -> Void
 
     var size: ButtonSize = .medium
-    var colors: [Color] = [.blue, .purple]
+    var colors: [Color] = [.appPrimary, .appAccent]
     var isLoading: Bool = false
     var isDisabled: Bool = false
 
@@ -35,7 +35,7 @@ struct GlassButton: View {
                     .font(size.textFont)
                     .fontWeight(.semibold)
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(DesignTokens.Color.foreground)
             .padding(.horizontal, size.horizontalPadding)
             .padding(.vertical, size.verticalPadding)
             .frame(maxWidth: size.isFullWidth ? .infinity : nil)
@@ -147,79 +147,71 @@ extension GlassButton {
         _ title: String,
         icon: String? = nil,
         size: ButtonSize = .medium,
-        colors: [Color] = [.blue, .purple],
         action: @escaping () -> Void
     ) {
         self.title = title
         self.icon = icon
         self.size = size
-        self.colors = colors
+        self.colors = [.appPrimary, .appAccent]
         self.action = action
     }
 }
 
 /*
-// MARK: - Preview
-#Preview("Glass Button Examples") {
-    ZStack {
-        LinearGradient(
-            colors: [.indigo, .purple, .pink],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        .ignoresSafeArea()
-        
-        VStack(spacing: 20) {
-            // Small button
-            GlassButton(
-                "Play",
-                icon: "play.fill",
-                size: .small,
-                colors: [.green, .teal]
-            ) {
-                print("Play tapped")
-            }
-            
-            // Medium button (default)
-            GlassButton(
-                "Add to Library",
-                icon: "plus",
-                colors: [.blue, .purple]
-            ) {
-                print("Add tapped")
-            }
-            
-            // Large button
-            GlassButton(
-                "Start Listening",
-                icon: "headphones",
-                size: .large,
-                colors: [.orange, .red]
-            ) {
-                print("Start tapped")
-            }
-            
-            // Loading state
-            GlassButton(
-                "Downloading",
-                size: .medium,
-                colors: [.blue, .purple]
-            ) {
-                print("Download tapped")
-            }
-            .disabled(true)
-            
-            // Disabled state
-            GlassButton(
-                "Not Available",
-                icon: "xmark",
-                size: .medium
-            ) {
-                print("Not available")
-            }
-            .disabled(true)
-        }
-        .padding()
-    }
-}
-*/
+ // MARK: - Preview
+ #Preview("Glass Button Examples") {
+     ZStack {
+         LinearGradient(
+             self.colors = [.appPrimary, .appAccent]
+             startPoint: .topLeading,
+             endPoint: .bottomTrailing
+         )
+         .ignoresSafeArea()
+         
+         VStack(spacing: 20) {
+             // Small button
+             GlassButton(
+                 "Play",
+                 icon: "play.fill",
+                 size: .small,
+                 action: { print("Play tapped") }
+             )
+             
+             // Medium button (default)
+             GlassButton(
+                 "Add to Library",
+                 icon: "plus",
+                 action: { print("Add tapped") }
+             )
+             
+             // Large button
+             GlassButton(
+                 "Start Listening",
+                 icon: "headphones",
+                 size: .large,
+                 action: { print("Start tapped") }
+             )
+             
+             // Loading state
+             GlassButton(
+                 "Downloading",
+                 size: .medium
+             ) {
+                 print("Download tapped")
+             }
+             .disabled(true)
+             
+             // Disabled state
+             GlassButton(
+                 "Not Available",
+                 icon: "xmark",
+                 size: .medium
+             ) {
+                 print("Not available")
+             }
+             .disabled(true)
+         }
+         .padding()
+     }
+ }
+ */

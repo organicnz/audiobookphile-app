@@ -12,16 +12,16 @@ public struct BookCardSkeleton: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.white.opacity(0.08))
+                .fill(DesignTokens.Color.surface.opacity(0.08))
                 .aspectRatio(1.0, contentMode: .fit)
 
             VStack(alignment: .leading, spacing: 6) {
                 RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .fill(Color.white.opacity(0.12))
+                    .fill(DesignTokens.Color.surface.opacity(0.12))
                     .frame(height: 14)
 
                 RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .fill(Color.white.opacity(0.08))
+                    .fill(DesignTokens.Color.surface.opacity(0.08))
                     .frame(width: 80, height: 10)
             }
             .frame(height: 68, alignment: .topLeading)
@@ -48,7 +48,7 @@ public struct HomeSkeletonView: View {
                                 VStack(alignment: .leading, spacing: 10) {
                                     HStack(spacing: 14) {
                                         RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                            .fill(Color.white.opacity(0.08))
+                                            .fill(DesignTokens.Color.surface.opacity(0.08))
                                             .frame(width: 70, height: 70)
 
                                         VStack(alignment: .leading, spacing: 6) {
@@ -56,7 +56,7 @@ public struct HomeSkeletonView: View {
                                             SkeletonTextBar(width: 80, height: 10)
                                             // Progress bar skeleton
                                             RoundedRectangle(cornerRadius: 3, style: .continuous)
-                                                .fill(Color.white.opacity(0.06))
+                                                .fill(DesignTokens.Color.surface.opacity(0.06))
                                                 .frame(height: 6)
                                                 .frame(maxWidth: .infinity)
                                         }
@@ -98,7 +98,7 @@ public struct HomeSkeletonView: View {
                             ForEach(0..<3, id: \.self) { _ in
                                 VStack(alignment: .leading, spacing: 8) {
                                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.white.opacity(0.06))
+                                        .fill(DesignTokens.Color.surface.opacity(0.06))
                                         .frame(width: 200, height: 100)
                                     SkeletonTextBar(width: 120)
                                     SkeletonTextBar(width: 80, height: 10)
@@ -129,7 +129,7 @@ public struct SkeletonTextBar: View {
     
     public var body: some View {
         RoundedRectangle(cornerRadius: 4, style: .continuous)
-            .fill(Color.white.opacity(0.10))
+            .fill(DesignTokens.Color.surface.opacity(0.1))
             .frame(width: width, height: height)
             .shimmer()
     }

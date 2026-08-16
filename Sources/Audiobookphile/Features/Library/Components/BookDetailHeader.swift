@@ -28,7 +28,7 @@ public struct BookDetailHeader: View {
                     .font(.title2)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
 
                 if let author = detailed.author, !author.isEmpty, author != "Unknown Author" {
                     Text("by \(author)")
@@ -40,7 +40,7 @@ public struct BookDetailHeader: View {
                 if let narrator = detailed.media.metadata.narratorName {
                     Text("Narrated by \(narrator)")
                         .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.65))
+                        DesignTokens.Color.foreground.opacity(0.65)
                         .multilineTextAlignment(.center)
                 }
             }
@@ -75,8 +75,8 @@ public struct BookDetailHeader: View {
                 .strokeBorder(
                     LinearGradient(
                         colors: [
-                            Color.white.opacity(0.4),
-                            Color.white.opacity(0.1)
+                            DesignTokens.Color.surface.opacity(0.4),
+                            DesignTokens.Color.surface.opacity(0.1)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -93,7 +93,7 @@ public struct BookDetailHeader: View {
                 .resizable()
                 .aspectRatio(contentMode: .fill)
 
-            Color.black.opacity(0.15)
+            DesignTokens.Color.background.opacity(0.15)
         }
         .frame(width: 260, height: 260)
     }

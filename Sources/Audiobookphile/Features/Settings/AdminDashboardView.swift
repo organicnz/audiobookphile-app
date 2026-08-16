@@ -90,7 +90,7 @@ public struct AdminDashboardView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Return to Library")
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DesignTokens.Color.foreground)
 
                     Text("Switch back to your active bookshelf")
                         .font(.caption)
@@ -150,7 +150,7 @@ public struct AdminDashboardView: View {
 
                 Text("Root / Administrator")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DesignTokens.Color.foreground)
             }
         }
         .padding(16)
@@ -183,7 +183,7 @@ public struct AdminDashboardView: View {
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Invite New Member")
-                                .foregroundStyle(.white)
+                                .foregroundStyle(DesignTokens.Color.foreground)
                                 .font(.subheadline.weight(.semibold))
 
                             Text("Send tokenized invitation by email")

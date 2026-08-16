@@ -13,11 +13,11 @@ public struct BookDetailDescriptionSection: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Synopsis")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(DesignTokens.Color.foreground)
 
             Text(cleanHTML(text))
                 .font(.body)
-                .foregroundStyle(.white.opacity(0.8))
+                .foregroundStyle(DesignTokens.Color.foreground.opacity(0.8))
                 .lineLimit(viewModel.isDescriptionExpanded ? nil : 4)
                 .animation(.easeInOut, value: viewModel.isDescriptionExpanded)
 

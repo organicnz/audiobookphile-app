@@ -35,7 +35,7 @@ public struct ContinueListeningCard: View {
                                     fallbackCover
                                 }
                                 .blur(radius: 15)
-                                .overlay(Color.black.opacity(0.4))
+                                .overlay(DesignTokens.Color.surface.opacity(0.4))
 
                                 // Fit image
                                 SmartAsyncImage(url: url) { image in
@@ -56,14 +56,14 @@ public struct ContinueListeningCard: View {
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
                             .strokeBorder(
                                 LinearGradient(
-                                    colors: [.white.opacity(0.35), .white.opacity(0.05)],
+                                    colors: [DesignTokens.Color.foreground.opacity(0.35), DesignTokens.Color.foreground.opacity(0.05)],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 ),
                                 lineWidth: 1
                             )
                     )
-                    .shadow(color: Color.cyan.opacity(0.3), radius: 10, x: 0, y: 6)
+                    .shadow(color: DesignTokens.Color.accentSecondary.opacity(0.3), radius: 10, x: 0, y: 6)
 
                 // Title & Progress with strict height
                 VStack(alignment: .leading, spacing: 4) {
@@ -71,21 +71,21 @@ public struct ContinueListeningCard: View {
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .lineLimit(2)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DesignTokens.Color.foreground)
                         .multilineTextAlignment(.leading)
 
                     if let progress = book.userMediaProgress {
                         HStack {
                             Text("\(Int(progress.progress * 100))%")
                                 .font(.caption.bold())
-                                .foregroundStyle(.cyan)
+                                .foregroundStyle(DesignTokens.Color.accentSecondary)
 
                             Spacer()
 
                             Image(systemName: "play.circle.fill")
                                 .font(.body)
-                                .foregroundStyle(.cyan)
-                                .shadow(color: .cyan.opacity(0.6), radius: 4)
+                                .foregroundStyle(DesignTokens.Color.accentSecondary)
+                                .shadow(color: DesignTokens.Color.accentSecondary.opacity(0.6), radius: 4)
                         }
                     } else {
                         Spacer(minLength: 0)
@@ -107,12 +107,12 @@ public struct ContinueListeningCard: View {
             VStack(spacing: 6) {
                 Image(systemName: "book.closed.fill")
                     .font(.headline)
-                    .foregroundStyle(.white.opacity(0.3))
+                    .foregroundStyle(DesignTokens.Color.foreground.opacity(0.3))
 
                 Text(book.title)
                     .font(.caption2)
                     .fontWeight(.bold)
-                    .foregroundStyle(.white.opacity(0.4))
+                    .foregroundStyle(DesignTokens.Color.foreground.opacity(0.4))
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 6)

@@ -6,7 +6,7 @@ public struct GlassIconButton: View {
     public let icon: String
     public var fill: Bool = false
     public var size: ButtonSize = .medium
-    public var color: Color = .white
+    public var color: Color = DesignTokens.Color.foreground
     public var label: String?
     public let action: () -> Void
 
@@ -49,7 +49,7 @@ public struct GlassIconButton: View {
         }
     }
 
-    public init(icon: String, fill: Bool = false, size: ButtonSize = .medium, color: Color = .white, label: String? = nil, action: @escaping () -> Void) {
+    public init(icon: String, fill: Bool = false, size: ButtonSize = .medium, color: Color = DesignTokens.Color.foreground, label: String? = nil, action: @escaping () -> Void) {
         self.icon = icon
         self.fill = fill
         self.size = size
@@ -101,7 +101,7 @@ public struct GlassPillButton: View {
     public var isMonospaced: Bool = false
     public var isActive: Bool = false
     public var activeColor: Color = Color.appPrimary
-    public var textColor: Color = .white
+    public var textColor: Color = DesignTokens.Color.foreground
     public var height: CGFloat = 38
     public var action: () -> Void
 
@@ -111,7 +111,7 @@ public struct GlassPillButton: View {
         isMonospaced: Bool = false,
         isActive: Bool = false,
         activeColor: Color = Color.appPrimary,
-        textColor: Color = .white,
+        textColor: Color = DesignTokens.Color.foreground,
         height: CGFloat = 38,
         action: @escaping () -> Void
     ) {
