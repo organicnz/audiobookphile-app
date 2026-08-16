@@ -10,8 +10,11 @@ magic-link journey (`audiobookphile://` deep link) fixed in the web app.
 
 ```bash
 brew tap mobile-dev-inc/tap && brew install maestro   # once
-cp .maestro/.env.example .maestro/.env                # then fill in credentials
+../audiobookphile-backend/scripts/sync-env.sh         # generates .maestro/.env
 ```
+
+The env source of truth lives in `audiobookphile-backend/env/local.env`
+(see `docs/ENV.md` in that repo).
 
 `.maestro/.env` (gitignored) provides what credential flows need:
 
