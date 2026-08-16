@@ -1,10 +1,17 @@
 # Maestro UI E2E Testing
 
 End-to-end UI tests for the iOS/Android app, driven by
-[Maestro](https://maestro.mobile.dev). Flows live in [`.maestro/flows/`](../.maestro/flows/)
-and run against the **production backend** (`audiobookphile.vercel.app`), so they
-exercise the same auth, library, and playback APIs as real users — including the
-magic-link journey (`audiobookphile://` deep link) fixed in the web app.
+[Maestro](https://maestro.mobile.dev). Flows live in [`.maestro/flows/`](../.maestro/flows/).
+
+Two targets:
+
+- **Local** — `.maestro/.env` generated from `env/local.env`
+  (`SERVER_URL=http://localhost:3000`); run the web dev server first.
+- **CI** — runs against the **production backend** (`audiobookphile.vercel.app`),
+  so it exercises the same auth, library, and playback APIs as real users —
+  including the magic-link journey (`audiobookphile://` deep link) fixed in the
+  web app. Values come from GitHub Actions secrets (`mobile-e2e.yml`), never
+  from env files.
 
 ## Setup
 
@@ -63,9 +70,9 @@ always tests the current build.
 | `30_settings_disconnect` | e2e, settings | Settings sheet opens; Disconnect returns to connect screen. |
 
 `12_auth_magic_link_deeplink` validates the full prod journey of the magic-link
-fix: Supabase emails a link → web `/auth/callback` bounces the session via the
-custom scheme → the app signs in from the URL parameters. Mint a fresh link
-(single-use) from the web app and pass it as `MAGIC_LINK_URL`.
+fix (CI only; requires `MAGIC_LINK_URL` minted per run): Supabase emails a link
+→ web `/auth/callback` bounces the session via the custom scheme → the app
+signs in from the URL parameters.
 
 ## Conventions
 
