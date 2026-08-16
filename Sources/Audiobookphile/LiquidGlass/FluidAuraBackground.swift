@@ -20,7 +20,7 @@ public struct FluidAuraBackground: View {
     public var body: some View {
         ZStack {
             // Base background based on system theme or custom mood aura color
-            (baseColor ?? (colorScheme == .dark ? DesignTokens.Color.background : DesignTokens.Color.surface))
+            (baseColor ?? (colorScheme == .dark ? DesignTokens.Color.background : Color(red: 250/255, green: 249/255, blue: 246/255)))
                 .ignoresSafeArea()
             
             // Glowing orbs
@@ -30,15 +30,15 @@ public struct FluidAuraBackground: View {
                 
                 ZStack {
                     Circle()
-                        .fill(colorScheme == .dark ? DesignTokens.Color.accent.opacity(0.6) : DesignTokens.Color.accentSecondary.opacity(0.4))
-                        .frame(width: width * 0.8)
+                        .fill(colorScheme == .dark ? DesignTokens.Color.accent.opacity(0.6) : Color.appPrimary.opacity(0.4))
+                        .frame(width: width * 0.8, height: width * 0.8)
                         .blur(radius: 80)
                         .offset(x: animate ? width * 0.2 : -width * 0.2,
                                 y: animate ? -height * 0.2 : height * 0.2)
-                    
+
                     Circle()
-                        .fill(colorScheme == .dark ? DesignTokens.Color.warning.opacity(0.5) : DesignTokens.Color.error.opacity(0.7))
-                        .frame(width: width * 0.6)
+                        .fill(colorScheme == .dark ? Color(red: 0.8, green: 0.3, blue: 0.0).opacity(0.5) : Color(red: 1.0, green: 0.8, blue: 0.5).opacity(0.7))
+                        .frame(width: width * 0.6, height: width * 0.6)
                         .blur(radius: 60)
                         .offset(x: animate ? -width * 0.3 : width * 0.1,
                                 y: animate ? height * 0.3 : -height * 0.1)

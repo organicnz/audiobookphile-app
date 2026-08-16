@@ -204,7 +204,7 @@ public class DynamicColorLoader {
 
         backgroundColor = primary
         gradientColors = [primary, secondary]
-        textColor = extractor.contrastingTextColor(for: uiColor)
+        textColor = extractor.contrastingTextColor(for: UIColor(primary))
         isLight = false
         isLoaded = true
     }
