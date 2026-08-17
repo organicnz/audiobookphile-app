@@ -117,6 +117,19 @@ jobs:
             "checkout:Checkout Repository|java:Set up Java 17 (Maestro runtime)|maestro:Install Maestro|device:Pick Available iPhone Simulator|build:Build App for Simulator|boot:Boot Simulator and Install App|flows:Run Maestro Flows|upload:Upload Test Reports" \
             "checkout=${{ steps.checkout.outcome }};java=${{ steps.java.outcome }};maestro=${{ steps.maestro.outcome }};device=${{ steps.device.outcome }};build=${{ steps.build.outcome }};boot=${{ steps.boot.outcome }}"
           set +e
+          # Auth-dependent flows type real credentials from CI secrets. Without
+          # them, every login flow fails at the connect screen with a
+          # misleading "Collections is visible" assertion — fail fast instead
+          # of spending 25 minutes on a doomed run.
+          if [ -z "${TEST_EMAIL}" ] || [ -z "${TEST_PASSWORD}" ]; then
+            echo "❌ MAESTRO_TEST_EMAIL / MAESTRO_TEST_PASSWORD secrets are not configured"
+            echo "   Set them in repo settings → Secrets and variables → Actions:"
+            echo "   - MAESTRO_TEST_EMAIL:    test account email (no 2FA) on $SERVER_URL"
+            echo "   - MAESTRO_TEST_PASSWORD: its password"
+            echo "   The test account must exist on the backend (admin invite) and have"
+            echo "   no 2FA enrolled, otherwise the login flows cannot pass."
+            exit 1
+          fi
           # CI set: smoke + e2e tags from flows/ only. Auth-only flows (magic
           # link request) and the deeplink flow are excluded — the deeplink
           # needs a fresh single-use MAGIC_LINK_URL minted per run.

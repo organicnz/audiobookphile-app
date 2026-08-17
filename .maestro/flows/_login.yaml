@@ -7,6 +7,13 @@ name: Sign in with password
 ---
 - launchApp:
     clearState: true
+# A stale keychain session (which survives clearState and reinstall) can fail
+# to restore and pop a blocking "Connection Error" alert over the form.
+- runFlow:
+    when:
+      visible: "Connection Error"
+    commands:
+      - tapOn: "OK"
 # With a warm keychain the app auto-signs-in after reinstall, so the connect
 # form may never appear — wait briefly and skip the form when already signed in.
 - extendedWaitUntil:

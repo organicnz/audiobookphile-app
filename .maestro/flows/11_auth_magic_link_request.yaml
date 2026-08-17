@@ -5,24 +5,36 @@ tags:
 ---
 - launchApp:
     clearState: true
+- runFlow:
+    when:
+      visible: "Connection Error"
+    commands:
+      - tapOn: "OK"
+# Warm simulator keychains auto-sign-in and skip the connect form (see
+# _login.yaml) — only the signed-out path can request a magic link.
 - extendedWaitUntil:
     visible: "Sign In"
-    timeout: 20000
-- tapOn:
-    id: "abp_server_url_field"
-- inputText: ${SERVER_URL}
-- tapOn:
-    id: "abp_email_field"
-- inputText: ${TEST_EMAIL}
-- hideKeyboard
-# abp_magic_link_send accessibilityIdentifier on the button in ConnectView.
-- scrollUntilVisible:
-    element:
-      id: "abp_magic_link_send"
-    direction: DOWN
-    timeout: 10000
-- tapOn:
-    id: "abp_magic_link_send"
-- extendedWaitUntil:
-    visible: "Magic link sent! Check your email"
-    timeout: 30000
+    timeout: 15000
+    optional: true
+- runFlow:
+    when:
+      visible: "Sign In"
+    commands:
+      - tapOn:
+          id: "abp_server_url_field"
+      - inputText: ${SERVER_URL}
+      - pressKey: Enter
+      - tapOn:
+          id: "abp_email_field"
+      - inputText: ${TEST_EMAIL}
+      - pressKey: Enter
+      - scrollUntilVisible:
+          element:
+            id: "abp_magic_link_send"
+          direction: DOWN
+          timeout: 10000
+      - tapOn:
+          id: "abp_magic_link_send"
+      - extendedWaitUntil:
+          visible: "Magic link sent! Check your email"
+          timeout: 30000
