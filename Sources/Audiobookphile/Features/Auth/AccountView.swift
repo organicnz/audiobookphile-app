@@ -16,7 +16,7 @@ public struct AccountView: View {
 
     public var body: some View {
         ZStack {
-            Color.appBackground.ignoresSafeArea()
+            FluidAuraBackground()
 
             if let user = viewModel.currentUser {
                 ScrollView {
@@ -40,11 +40,11 @@ public struct AccountView: View {
                             Text(user.username)
                                 .font(.title)
                                 .fontWeight(.bold)
-                                .foregroundStyle(DesignTokens.Color.foreground)
+                                .foregroundStyle(.primary)
 
                             Text("Account Type: \(user.type.capitalized)")
                                 .font(.subheadline)
-                                .foregroundStyle(.white.opacity(0.6))
+                                .foregroundStyle(.secondary)
                         }
                         .padding(.top, 40)
 
@@ -60,11 +60,11 @@ public struct AccountView: View {
                                     .foregroundStyle(Color.appPrimary)
                                     .frame(width: 28)
                                 Text("Listening Stats")
-                                    .foregroundStyle(DesignTokens.Color.foreground)
+                                    .foregroundStyle(.primary)
                                 Spacer()
                                 Image(systemName: "chevron.right")
                                     .font(.caption)
-                                    .foregroundStyle(.white.opacity(0.4))
+                                    .foregroundStyle(.secondary)
                             }
                             .padding(12)
                             .background(.ultraThinMaterial)

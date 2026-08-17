@@ -14,7 +14,10 @@ public struct SleepTimerView: View {
 
     public var body: some View {
         NavigationStack {
-            List {
+            ZStack {
+                FluidAuraBackground()
+
+                List {
                 Section {
                     Button {
                         onSetTimer(nil)
@@ -93,6 +96,7 @@ public struct SleepTimerView: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
             .navigationTitle("Sleep Timer")
             #if os(iOS) || SKIP
             .navigationBarTitleDisplayMode(.inline)
@@ -106,6 +110,7 @@ public struct SleepTimerView: View {
             }
             // iOS 27 Toolbar Styling
             .applyToolbarAdapters(isLight: false, isHidden: false)
+            }
         }
     }
 }

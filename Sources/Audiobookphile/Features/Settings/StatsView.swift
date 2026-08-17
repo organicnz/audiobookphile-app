@@ -19,7 +19,7 @@ public struct StatsView: View {
 
     public var body: some View {
         ZStack {
-            Color.appBackground.ignoresSafeArea()
+            FluidAuraBackground()
 
             ScrollView {
                 VStack(spacing: 24) {
@@ -33,7 +33,7 @@ public struct StatsView: View {
                         Text("Listening Stats")
                             .font(.largeTitle)
                             .fontWeight(.bold)
-                            foregroundStyle(DesignTokens.Color.foreground)
+                            .foregroundStyle(.primary)
                     }
                     .padding(.top, 32)
                     .padding(.bottom, 16)
@@ -68,11 +68,11 @@ public struct StatsView: View {
         VStack(spacing: 8) {
             Text("Total Listening Time")
                 .font(.headline)
-                .foregroundStyle(DesignTokens.Color.foreground.opacity(0.7))
+                .foregroundStyle(.secondary)
 
             Text(formatDuration(stats.totalDuration))
                 .font(.system(size: 36, weight: .bold, design: .monospaced))
-                foregroundStyle(DesignTokens.Color.foreground)
+                .foregroundStyle(.primary)
         }
         .frame(maxWidth: .infinity)
         .padding(24)
@@ -133,16 +133,16 @@ public struct StatsView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Top Genres")
                     .font(.headline)
-                    foregroundStyle(DesignTokens.Color.foreground)
+                    .foregroundStyle(.primary)
 
                 let sorted = stats.genresWithCount.sorted { $0.count > $1.count }.prefix(8)
                 ForEach(Array(sorted)) { genre in
                     HStack {
                         Text(genre.genre)
-                            .foregroundStyle(DesignTokens.Color.foreground.opacity(0.8))
+                            .foregroundStyle(.primary.opacity(0.8))
                         Spacer()
                         Text("\(genre.count)")
-                            .foregroundStyle(DesignTokens.Color.foreground.opacity(0.5))
+                            .foregroundStyle(.secondary)
                             .font(.subheadline.monospacedDigit())
                     }
                     .padding(.vertical, 2)
@@ -158,16 +158,16 @@ public struct StatsView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Top Authors")
                     .font(.headline)
-                    foregroundStyle(DesignTokens.Color.foreground)
+                    .foregroundStyle(.primary)
 
                 let sorted = stats.authorsWithCount.sorted { $0.count > $1.count }.prefix(8)
                 ForEach(Array(sorted)) { author in
                     HStack {
                         Text(author.name)
-                            .foregroundStyle(DesignTokens.Color.foreground.opacity(0.8))
+                            .foregroundStyle(.primary.opacity(0.8))
                         Spacer()
                         Text("\(author.count) books")
-                            .foregroundStyle(DesignTokens.Color.foreground.opacity(0.5))
+                            .foregroundStyle(.secondary)
                             .font(.subheadline)
                     }
                     .padding(.vertical, 2)
@@ -183,16 +183,16 @@ public struct StatsView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Longest Books")
                     .font(.headline)
-                    foregroundStyle(DesignTokens.Color.foreground)
+                    .foregroundStyle(.primary)
 
                 ForEach(stats.longestItems.prefix(5)) { item in
                     HStack {
                         Text(item.title)
-                            .foregroundStyle(DesignTokens.Color.foreground.opacity(0.8))
+                            .foregroundStyle(.primary.opacity(0.8))
                             .lineLimit(1)
                         Spacer()
                         Text(formatDuration(item.duration ?? 0))
-                            .foregroundStyle(DesignTokens.Color.foreground.opacity(0.5))
+                            .foregroundStyle(.secondary)
                             .font(.subheadline.monospacedDigit())
                     }
                     .padding(.vertical, 2)
@@ -215,7 +215,7 @@ public struct StatsView: View {
 
             Text(message)
                 .font(.body)
-                .foregroundStyle(DesignTokens.Color.foreground.opacity(0.7))
+                .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
 
             Button("Retry") {
@@ -233,7 +233,7 @@ public struct StatsView: View {
     private var statsLoadingSkeleton: some View {
         VStack(spacing: 16) {
             RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white.opacity(0.05))
+                .fill(Color.primary.opacity(0.05))
                 .frame(height: 100)
                 .overlay {
                     ProgressView()
@@ -254,7 +254,7 @@ public struct StatsView: View {
 
     private var skeletonCard: some View {
         RoundedRectangle(cornerRadius: 16)
-            .fill(Color.white.opacity(0.05))
+            .fill(Color.primary.opacity(0.05))
             .frame(height: 100)
     }
 
@@ -272,11 +272,11 @@ public struct StatsView: View {
             Text(value)
                 .font(.title3)
                 .fontWeight(.bold)
-                foregroundStyle(DesignTokens.Color.foreground)
+                .foregroundStyle(.primary)
 
             Text(title)
                 .font(.caption)
-                .foregroundStyle(.white.opacity(0.6))
+                .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)

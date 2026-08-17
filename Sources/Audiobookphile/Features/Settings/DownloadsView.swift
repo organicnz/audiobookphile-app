@@ -491,7 +491,7 @@ public struct DownloadsView: View {
 
     public var body: some View {
         ZStack {
-            Color.appBackground.ignoresSafeArea()
+            FluidAuraBackground()
 
             if downloadService.downloads.isEmpty {
                 emptyState
@@ -511,15 +511,15 @@ public struct DownloadsView: View {
         VStack(spacing: 20) {
             Image(systemName: "arrow.down.circle")
                 .font(.system(size: 60))
-                .foregroundStyle(.white.opacity(0.2))
+                .foregroundStyle(.secondary)
 
             Text("No downloads yet")
                 .font(.title3)
-                .foregroundStyle(.white.opacity(0.8))
+                .foregroundStyle(.primary)
 
             Text("Downloaded audiobooks and episodes will appear here for offline listening.")
                 .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.5))
+                .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
         }
@@ -556,7 +556,7 @@ public struct DownloadsView: View {
                     Text("Downloading")
                         .foregroundStyle(Color.appPrimary)
                 }
-                .listRowBackground(Color.white.opacity(0.05))
+                .listRowBackground(DesignTokens.Color.surface.opacity(0.5))
             }
 
             // Completed Downloads
@@ -582,9 +582,9 @@ public struct DownloadsView: View {
                 }
             } header: {
                 Text("Downloaded")
-                    .foregroundStyle(.white.opacity(0.6))
+                    .foregroundStyle(.secondary)
             }
-            .listRowBackground(Color.white.opacity(0.05))
+            .listRowBackground(DesignTokens.Color.surface.opacity(0.5))
         }
         .scrollContentBackground(.hidden)
     }

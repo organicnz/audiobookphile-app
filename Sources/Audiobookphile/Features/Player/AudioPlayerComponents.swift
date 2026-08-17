@@ -189,8 +189,11 @@ public struct BookmarksListView: View {
 
     public var body: some View {
         NavigationStack {
-            List {
-                if viewModel.bookmarks.isEmpty {
+            ZStack {
+                FluidAuraBackground()
+
+                List {
+                    if viewModel.bookmarks.isEmpty {
                     VStack(spacing: 12) {
                         Image(systemName: "bookmark.slash")
                             .font(.largeTitle)
@@ -237,16 +240,19 @@ public struct BookmarksListView: View {
                             viewModel.deleteBookmark(viewModel.bookmarks[index])
                         }
                     }
+                    .listRowBackground(Color.clear)
                 }
-            }
-            .navigationTitle("Bookmarks")
-            #if os(iOS) || SKIP
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
-                        dismiss()
+                }
+                .scrollContentBackground(.hidden)
+                .navigationTitle("Bookmarks")
+                #if os(iOS) || SKIP
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") {
+                            dismiss()
+                        }
                     }
                 }
             }

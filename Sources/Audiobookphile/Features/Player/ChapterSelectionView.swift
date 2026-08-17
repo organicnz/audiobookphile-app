@@ -34,8 +34,11 @@ public struct ChapterSelectionView: View {
 
     public var body: some View {
         NavigationStack {
-            ScrollViewReader { proxy in
-                List {
+            ZStack {
+                FluidAuraBackground()
+
+                ScrollViewReader { proxy in
+                    List {
                     ForEach(chapters) { chapter in
                         HStack {
                             Button {
@@ -83,8 +86,10 @@ public struct ChapterSelectionView: View {
                         }
                         .applyBookshelfScrollTransition()
                         .id(chapter.id)
+                        .listRowBackground(Color.clear)
                     }
                 }
+                .scrollContentBackground(.hidden)
                 .onAppear {
                     if let current = currentChapter {
                         withAnimation {
@@ -112,6 +117,7 @@ public struct ChapterSelectionView: View {
                     bookAuthor: bookAuthor
                 )
                 .presentationDetents([.medium, .large])
+            }
             }
         }
     }

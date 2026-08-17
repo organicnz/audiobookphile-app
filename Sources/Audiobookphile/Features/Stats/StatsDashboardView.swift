@@ -24,36 +24,40 @@ public struct StatsDashboardView: View {
 
     public var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    Text(title)
-                        .font(.largeTitle)
-                        .bold()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal)
+            ZStack {
+                FluidAuraBackground()
 
-                    if isLoading {
-                        loadingView
-                    } else if let error = errorMessage {
-                        errorView(error)
-                    } else {
-                        if let userStats = userStats {
-                            userStatsContent(userStats)
+                ScrollView {
+                    VStack(spacing: 24) {
+                        Text(title)
+                            .font(.largeTitle)
+                            .bold()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal)
+
+                        if isLoading {
+                            loadingView
+                        } else if let error = errorMessage {
+                            errorView(error)
+                        } else {
+                            if let userStats = userStats {
+                                userStatsContent(userStats)
+                            }
+                            if let stats = stats {
+                                dashboardContent(stats)
+                            }
                         }
-                        if let stats = stats {
-                            dashboardContent(stats)
-                        }
+
+                        Spacer(minLength: 40)
                     }
-
-                    Spacer(minLength: 40)
                 }
+                .applyBookshelfScrollTransition()
+                .navigationTitle("Stats")
+                #if os(iOS) || SKIP
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
+                .applyToolbarAdapters(isLight: false, isHidden: false)
             }
-            .applyBookshelfScrollTransition()
-            .navigationTitle("Stats")
-            #if os(iOS) || SKIP
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .applyToolbarAdapters(isLight: false, isHidden: false)
         }
         .task {
             await loadStats()
@@ -68,18 +72,18 @@ public struct StatsDashboardView: View {
             Text("Library Overview")
                 .font(.title2)
                 .bold()
-                .foregroundStyle(DesignTokens.Color.foreground)
+                .foregroundStyle(.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
 
             // Quick Overview Bar
             HStack(spacing: 0) {
             overviewStat(label: "Books", value: "\(stats.totalBooks)", icon: "book.fill")
-            Divider().frame(height: 40).background(.white.opacity(0.2))
+            Divider().frame(height: 40).background(Color.primary.opacity(0.2))
             overviewStat(label: "Authors", value: "\(stats.totalAuthors)", icon: "person.fill")
-            Divider().frame(height: 40).background(.white.opacity(0.2))
+            Divider().frame(height: 40).background(Color.primary.opacity(0.2))
             overviewStat(label: "Series", value: "\(stats.totalSeries)", icon: "books.vertical.fill")
-            Divider().frame(height: 40).background(.white.opacity(0.2))
+            Divider().frame(height: 40).background(Color.primary.opacity(0.2))
             overviewStat(label: "Hours", value: "\(Int(stats.totalDuration / 3600))", icon: "clock.fill")
         }
         .padding(.vertical, 16)
@@ -92,7 +96,7 @@ public struct StatsDashboardView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Genres")
                     .font(.headline)
-                    .foregroundStyle(DesignTokens.Color.foreground)
+                    .foregroundStyle(.primary)
 
                 let sorted = stats.genresWithCount.sorted { $0.count > $1.count }
                 let maxCount = sorted.first?.count ?? 1
@@ -101,11 +105,11 @@ public struct StatsDashboardView: View {
                         HStack {
                             Text(genre.genre)
                                 .font(.subheadline)
-                                .foregroundStyle(.white.opacity(0.9))
+                                .foregroundStyle(.primary)
                             Spacer()
                             Text("\(genre.count)")
                                 .font(.caption.monospacedDigit())
-                                .foregroundStyle(.white.opacity(0.5))
+                                .foregroundStyle(.secondary)
                         }
 
                         GeometryReader { geometry in
@@ -136,7 +140,7 @@ public struct StatsDashboardView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Top Authors")
                     .font(.headline)
-                    .foregroundStyle(DesignTokens.Color.foreground)
+                    .foregroundStyle(.primary)
 
                 let sorted = stats.authorsWithCount.sorted { $0.count > $1.count }
                 HStack(alignment: .bottom, spacing: 8) {
@@ -144,13 +148,13 @@ public struct StatsDashboardView: View {
                         VStack(spacing: 4) {
                             Text("\(author.count)")
                                 .font(.caption2.monospacedDigit())
-                                .foregroundStyle(.white.opacity(0.6))
+                                .foregroundStyle(.secondary)
                             RoundedRectangle(cornerRadius: 4)
                                 .fill(Color.appPrimary)
                                 .frame(height: CGFloat(author.count * 16).clamped(to: 16...120))
                             Text(abbreviateName(author.name))
                                 .font(.caption2)
-                                .foregroundStyle(.white.opacity(0.6))
+                                .foregroundStyle(.secondary)
                                 .lineLimit(1)
                                 .frame(maxWidth: .infinity)
                         }
@@ -170,7 +174,7 @@ public struct StatsDashboardView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Longest Books")
                     .font(.headline)
-                    .foregroundStyle(DesignTokens.Color.foreground)
+                    .foregroundStyle(.primary)
 
                 let topItems = Array(stats.longestItems.prefix(5))
                 ForEach(0..<topItems.count, id: \.self) { idx in
@@ -184,14 +188,14 @@ public struct StatsDashboardView: View {
 
                         Text(item.title)
                             .font(.subheadline)
-                            .foregroundStyle(.white.opacity(0.9))
+                            .foregroundStyle(.primary)
                             .lineLimit(1)
 
                         Spacer()
 
                         Text(formatDuration(item.duration ?? 0))
                             .font(.caption.monospacedDigit())
-                            .foregroundStyle(.white.opacity(0.5))
+                            .foregroundStyle(.secondary)
                     }
                     .padding(.vertical, 4)
                 }
@@ -228,7 +232,7 @@ public struct StatsDashboardView: View {
             Text("My Listening")
                 .font(.title2)
                 .bold()
-                .foregroundStyle(DesignTokens.Color.foreground)
+                .foregroundStyle(.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
 
@@ -237,7 +241,7 @@ public struct StatsDashboardView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Recent Sessions")
                         .font(.headline)
-                        .foregroundStyle(DesignTokens.Color.foreground)
+                        .foregroundStyle(.primary)
 
                     ForEach(userStats.recentSessions.prefix(5)) { session in
                         HStack(spacing: 12) {
@@ -248,11 +252,11 @@ public struct StatsDashboardView: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(session.displayTitle ?? "Unknown Title")
                                     .font(.subheadline)
-                                    .foregroundStyle(DesignTokens.Color.foreground)
+                                    .foregroundStyle(.primary)
                                     .lineLimit(1)
                                 Text(session.displayAuthor ?? "Unknown Author")
                                     .font(.caption)
-                                    .foregroundStyle(.white.opacity(0.6))
+                                    .foregroundStyle(.secondary)
                             }
 
                             Spacer()
@@ -260,10 +264,10 @@ public struct StatsDashboardView: View {
                             VStack(alignment: .trailing, spacing: 2) {
                                 Text(formatDuration(session.timeListening ?? 0))
                                     .font(.subheadline.monospacedDigit())
-                                    .foregroundStyle(.white.opacity(0.9))
+                                    .foregroundStyle(.primary)
                                 Text(session.sessionDate ?? "")
                                     .font(.caption2)
-                                    .foregroundStyle(.white.opacity(0.5))
+                                    .foregroundStyle(.secondary)
                             }
                         }
                         .padding(.vertical, 8)
@@ -284,7 +288,7 @@ public struct StatsDashboardView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("In Progress")
                         .font(.headline)
-                        .foregroundStyle(DesignTokens.Color.foreground)
+                        .foregroundStyle(.primary)
 
                     ForEach(userStats.mediaProgress.filter { !($0.isFinished ?? false) }.prefix(3)) { progress in
                         HStack(spacing: 12) {
@@ -295,7 +299,7 @@ public struct StatsDashboardView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(progress.title ?? "Unknown Title")
                                     .font(.subheadline)
-                                    .foregroundStyle(DesignTokens.Color.foreground)
+                                    .foregroundStyle(.primary)
                                     .lineLimit(1)
                                 
                                 let current = progress.progress ?? 0
@@ -307,7 +311,7 @@ public struct StatsDashboardView: View {
                                 
                                 Text("\(Int(percent))% completed")
                                     .font(.caption2)
-                                    .foregroundStyle(.white.opacity(0.5))
+                                    .foregroundStyle(.secondary)
                             }
                         }
                         .padding(.vertical, 8)
@@ -334,10 +338,10 @@ public struct StatsDashboardView: View {
                 .foregroundStyle(Color.appPrimary)
             Text(value)
                 .font(.title3.bold())
-                .foregroundStyle(DesignTokens.Color.foreground)
+                .foregroundStyle(.primary)
             Text(label)
                 .font(.caption2)
-                .foregroundStyle(.white.opacity(0.5))
+                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
     }
@@ -374,7 +378,7 @@ public struct StatsDashboardView: View {
                 .scaleEffect(1.2)
             Text("Loading stats…")
                 .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.5))
+                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 60)

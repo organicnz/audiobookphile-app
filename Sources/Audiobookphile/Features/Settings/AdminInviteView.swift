@@ -77,7 +77,7 @@ public struct AdminInviteView: View {
 
     public var body: some View {
         ZStack {
-            Color.appBackground.ignoresSafeArea()
+            FluidAuraBackground()
 
             ScrollView {
                 VStack(spacing: 24) {
@@ -128,17 +128,17 @@ public struct AdminInviteView: View {
 
                     Image(systemName: "person.badge.plus")
                         .font(.title3.weight(.semibold))
-                        .foregroundStyle(DesignTokens.Color.foreground)
+                        .foregroundStyle(.primary)
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Email Invitation")
                         .font(.headline)
-                        .foregroundStyle(DesignTokens.Color.foreground)
+                        .foregroundStyle(.primary)
 
                     Text("Send an invite link to add a new member")
                         .font(.caption)
-                        .foregroundStyle(.white.opacity(0.6))
+                        .foregroundStyle(.secondary)
                 }
 
                 Spacer()
@@ -155,7 +155,7 @@ public struct AdminInviteView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Label("Email Address", systemImage: "envelope.fill")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.6))
+                        .foregroundStyle(.secondary)
 
                     TextField("user@example.com", text: $viewModel.email)
                         #if os(iOS) || SKIP
@@ -169,18 +169,18 @@ public struct AdminInviteView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .strokeBorder(.white.opacity(0.15), lineWidth: 1)
+                                .strokeBorder(.primary.opacity(0.15), lineWidth: 1)
                         )
-                        .foregroundStyle(DesignTokens.Color.foreground)
+                        .foregroundStyle(.primary)
                 }
 
-                Divider().background(.white.opacity(0.1))
+                Divider().background(Color.primary.opacity(0.1))
 
                 // Username (optional)
                 VStack(alignment: .leading, spacing: 6) {
                     Label("Username (Optional)", systemImage: "person.fill")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.6))
+                        .foregroundStyle(.secondary)
 
                     TextField("johndoe", text: $viewModel.username)
                         #if os(iOS) || SKIP
@@ -192,18 +192,18 @@ public struct AdminInviteView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .strokeBorder(.white.opacity(0.15), lineWidth: 1)
+                                .strokeBorder(.primary.opacity(0.15), lineWidth: 1)
                         )
-                        .foregroundStyle(DesignTokens.Color.foreground)
+                        .foregroundStyle(.primary)
                 }
 
-                Divider().background(.white.opacity(0.1))
+                Divider().background(Color.primary.opacity(0.1))
 
                 // User Type Picker
                 VStack(alignment: .leading, spacing: 6) {
                     Label("Role", systemImage: "shield.fill")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.6))
+                        .foregroundStyle(.secondary)
 
                     Picker("Role", selection: $viewModel.selectedUserType) {
                         ForEach(viewModel.userTypes, id: \.self) { type in
@@ -242,7 +242,7 @@ public struct AdminInviteView: View {
                 LinearGradient(
                     colors: viewModel.isValidEmail && !viewModel.isLoading
                         ? [.appPrimary, .appAccent]
-                        : [.gray.opacity(0.3), .gray.opacity(0.2)],
+                        : [Color.gray.opacity(0.3), Color.gray.opacity(0.2)],
                     startPoint: .leading,
                     endPoint: .trailing
                 )

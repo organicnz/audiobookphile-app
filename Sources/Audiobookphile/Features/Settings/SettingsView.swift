@@ -835,7 +835,7 @@ public struct SettingsSection<Content: View>: View {
             if let title = title {
                 Text(title.uppercased())
                     .font(.caption)
-                    .foregroundStyle(DesignTokens.Color.foreground.opacity(0.6))
+                    .foregroundStyle(.secondary)
                     .padding(.leading, 4)
             }
 
@@ -849,7 +849,7 @@ public struct SettingsSection<Content: View>: View {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .strokeBorder(
                         LinearGradient(
-                            colors: [.white.opacity(0.25), .white.opacity(0.05)],
+                            colors: [Color.primary.opacity(0.25), Color.primary.opacity(0.05)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
@@ -882,16 +882,16 @@ public struct SettingsRow: View {
                     .frame(width: 28)
 
                 Text(title)
-                    .foregroundStyle(DesignTokens.Color.foreground)
+                    .foregroundStyle(.primary)
 
                 Spacer()
 
                 Text(value)
-                    .foregroundStyle(DesignTokens.Color.foreground.opacity(0.6))
+                    .foregroundStyle(.secondary)
 
                 Image(systemName: "chevron.right")
                     .font(.caption)
-                    .foregroundStyle(DesignTokens.Color.foreground.opacity(0.4))
+                    .foregroundStyle(.secondary)
             }
             .padding(12)
         }
@@ -916,7 +916,7 @@ public struct SettingsToggleRow: View {
                 .frame(width: 28)
 
             Text(title)
-                .foregroundStyle(DesignTokens.Color.foreground)
+                .foregroundStyle(.primary)
 
             Spacer()
 

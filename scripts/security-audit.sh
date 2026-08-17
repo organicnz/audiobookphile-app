@@ -20,7 +20,10 @@ if [ -n "$HARDCODED" ]; then
 fi
 
 # 3. Cryptographic Token Security (Double.random)
-DOUBLE_RANDOM=$(grep -r -n -E 'Double\.random|Math\.random\(' Sources/ 2>/dev/null | grep -v 'GlassParticles' | grep -v 'LibraryService' || true)
+# Exclusions are non-crypto randomness: GlassParticles/LibraryService visual
+# effects, and AudiobookphileAPI full-jitter exponential backoff (AWS
+# recommendation) for HTTP retries — never used to generate secrets.
+DOUBLE_RANDOM=$(grep -r -n -E 'Double\.random|Math\.random\(' Sources/ 2>/dev/null | grep -v 'GlassParticles' | grep -v 'LibraryService' | grep -v 'AudiobookphileAPI' || true)
 if [ -n "$DOUBLE_RANDOM" ]; then
     echo "❌ SECURITY AUDIT FAILED: Insecure random number generator found:"
     echo "$DOUBLE_RANDOM"
