@@ -82,6 +82,10 @@ E2E UI tests live in `.maestro/flows/` and run on the iOS simulator (CI: `.githu
 
 The shared design system lives at the monorepo root: `design-system/tokens.json` — edit and run `bun design-system/sync-design-tokens.mjs` to regenerate `Sources/Audiobookphile/Core/Design/DesignTokens.swift` and the web's `tokens.generated.css`. See `docs/design-tokens.md`.
 
+## Credits
+
+Audiobookphile's mobile client descends from the [Audiobookshelf iOS app](https://github.com/advplyr/audiobookshelf-app). We forked it in 2025 to build a serverless architecture (Supabase backend) that Audiobookshelf's self-hosted model never needed, and have since diverged significantly — this repository is a standalone project and no longer tracks upstream.
+
 ## Contributing
 
 Pull requests are highly encouraged! When contributing to the Swift codebase, keep in mind that the code must be compatible with Skip's transpilation process. Avoid using iOS-only proprietary APIs unless you surround them with `#if !SKIP` compiler directives and provide an Android alternative.
