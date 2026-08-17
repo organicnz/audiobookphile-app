@@ -6,12 +6,12 @@ Welcome! If you are an AI coding assistant (e.g., Antigravity, Claude, Copilot, 
 
 ## 🎯 High-Level Context
 
-This project is a **dual-platform Skip (Swift/Kotlin) application** that ports the official, self-hosted audiobook and podcast client, [Audiobookphile Mobile Client](https://github.com/advplyr/audiobookphile-app), into a high-performance native iOS and Android application.
+This project is a **dual-platform Skip (Swift/Kotlin) application** — a premium, serverless audiobook and podcast client for the Audiobookphile ecosystem, built natively for iOS and Android. The codebase descends from the [Audiobookshelf iOS client](https://github.com/advplyr/audiobookshelf-app) but is a **standalone project**: it no longer tracks upstream and does not target self-hosted Audiobookshelf servers.
 
 ### The Source of Truth
-The upstream Capacitor/NuxtJS repository [advplyr/audiobookphile-app](https://github.com/advplyr/audiobookphile-app) is the **absolute functional benchmark** for feature scope, network payloads, WebSocket syncing, download architecture, and player controls.
+The authoritative functional reference is the **Audiobookphile backend** ([audiobookphile-backend](https://github.com/organicnz/audiobookphile-backend)) — a Supabase (Postgres + Auth + Storage) and Backblaze B2 stack served through the `api` edge function. Feature scope, endpoints, and payloads are defined there and in the API docs in this repo.
 
-Your goal is to **replicate all core functionality** of the official client while rendering it with the gorgeous, premium **Liquid Glass (LG)** native visual style.
+Your goal is to **deliver all Audiobookphile functionality** with the gorgeous, premium **Liquid Glass (LG)** native visual style.
 
 ---
 
@@ -22,8 +22,8 @@ Your goal is to **replicate all core functionality** of the official client whil
 *   Implement real-time progress syncing (REST fallback + Socket.io WebSockets) using the same events and thresholds as the official app (e.g., 4-second chapter threshold).
 *   Handle token refreshes (automatic 401 handling with Keychain credentials storage) and cellular metered network restrictions seamlessly.
 
-### 2. Custom Next.js & Supabase Backend
-*   **CRITICAL DEVIATION**: This client connects to a custom Next.js/Supabase backend, NOT the official Audiobookphile Node.js server.
+### 2. Serverless Supabase Backend
+*   **ARCHITECTURE**: This client connects to the serverless Audiobookphile backend (Supabase + edge functions) — NOT a self-hosted Audiobookshelf Node.js server.
 *   **Authentication**: The backend uses Supabase Auth via JWTs. Requests to `/api/*` must include `Authorization: Bearer <token>`.
 *   **Storage Architecture**: The backend uses a Hybrid Storage approach:
     * Small files (< 25MB, e.g., covers) are stored in Supabase Storage (`supabase://`).

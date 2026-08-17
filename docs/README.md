@@ -190,7 +190,7 @@ Documentation being prepared. Main focus areas:
 
 ### Documentation
 
-- [Audiobookphile Server](https://github.com/advplyr/audiobookphile)
+- [Audiobookphile Backend](https://github.com/organicnz/audiobookphile-backend)
 - [Audiobookphile API](https://api.audiobookphile.org/)
 - [Swift Documentation](https://swift.org/documentation/)
 - [SwiftUI Tutorials](https://developer.apple.com/tutorials/swiftui)
@@ -198,7 +198,6 @@ Documentation being prepared. Main focus areas:
 ### Community
 
 - [Discord](https://discord.gg/pJsjuNCKRq)
-- [GitHub Discussions](https://github.com/advplyr/audiobookphile/discussions)
 - [Website](https://audiobookphile.org)
 
 ---
@@ -225,7 +224,6 @@ Documentation being prepared. Main focus areas:
 
 - 📲 App Store (iOS)
 - 🤖 Google Play (Android)
-- 🌐 Self-hosted server
 - 🆓 Free & open source
 
 ---

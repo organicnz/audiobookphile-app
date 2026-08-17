@@ -4,7 +4,7 @@ Audiobookphile is a premium, serverless audiobook and podcast client that connec
 
 This mobile application is built natively for both **iOS** and **Android** using **Swift** and the [Skip framework](https://skip.dev). Skip allows us to write the app completely in Swift and SwiftUI, and it transpiles the logic and UI into native Kotlin/Compose for Android, providing a unified codebase with true native performance on both platforms.
 
-<img alt="Screenshot" src="https://github.com/advplyr/audiobookphile-app/raw/master/screenshots/DeviceDemoScreens.png" />
+<img alt="Screenshot" src="assets/audiobooth-audiobooks-player.png" />
 
 ## Architecture
 

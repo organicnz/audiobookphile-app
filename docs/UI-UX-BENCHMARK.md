@@ -1,6 +1,6 @@
 # 🎨 Audiobookphile Mobile UI/UX Benchmark & Mapping Guide
 
-This document defines the **official UI/UX benchmarks** derived from the upstream Capacitor/NuxtJS mobile application ([advplyr/audiobookphile-app](https://github.com/advplyr/audiobookphile-app)) and maps them directly to our high-fidelity, native Swift/Kotlin implementation. 
+This document defines the **official UI/UX benchmarks** for the Audiobookphile client. They are informed by the original [Audiobookshelf mobile client](https://github.com/advplyr/audiobookshelf-app) — historical reference only, as this project no longer tracks upstream — and map to our high-fidelity, native Swift/Kotlin implementation. 
 
 Use this guide as the permanent source of truth for matching features, client-server sync flows, and screen navigation models while enhancing the aesthetics using the **Liquid Glass (LG)** visual system.
 
