@@ -53,3 +53,13 @@ name: Sign in with password
 - extendedWaitUntil:
     visible: "Collections"
     timeout: 30000
+    optional: true
+# iOS can surface the "Save Password?" system sheet a couple seconds AFTER
+# sign-in completes — after the immediate dismissal above, it may still cover
+# the app while this wait runs. Dismiss it once more, then hard-assert.
+- runFlow:
+    when:
+      visible: "Save Password?"
+    commands:
+      - tapOn: "Not Now"
+- assertVisible: "Collections"
