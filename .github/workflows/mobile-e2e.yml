@@ -135,25 +135,20 @@ jobs:
           # needs a fresh single-use MAGIC_LINK_URL minted per run.
           # Flow env vars must be forwarded via -e flags: Maestro resolves
           # ${VAR} only from CLI flags, not from the process environment.
-          maestro test .maestro/flows \
+          # Explicit file order (not the directory listing) keeps the suite
+          # deterministic; the default console format prints every command
+          # COMPLETED/FAILED so failures are diagnosable from the job log.
+          maestro test \
+            .maestro/flows/00_smoke_launch.yaml \
+            .maestro/flows/10_auth_login.yaml \
+            .maestro/flows/20_library_browse.yaml \
+            .maestro/flows/30_settings_disconnect.yaml \
             --include-tags smoke,e2e \
             -e SERVER_URL="${SERVER_URL}" \
             -e TEST_EMAIL="${TEST_EMAIL}" \
-            -e TEST_PASSWORD="${TEST_PASSWORD}" \
-            --format junit \
-            --output .maestro-results/
+            -e TEST_PASSWORD="${TEST_PASSWORD}"
           STATUS=$?
           if [ $STATUS -ne 0 ]; then
             echo "Maestro failures:"
-            find .maestro-results -name '*.xml' -exec cat {} +
             exit $STATUS
           fi
-
-      - name: Upload Test Reports
-        id: upload
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: maestro-results
-          path: .maestro-results/
-          if-no-files-found: ignore
