@@ -33,7 +33,7 @@ jobs:
 
       - name: Set up Java 17 (Maestro runtime)
         id: java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -43,7 +43,7 @@ jobs:
         run: |
           . .github/scripts/step-tree.sh
           step_tree "Mobile E2E (Maestro)" maestro \
-            "checkout:Checkout Repository|java:Set up Java 17 (Maestro runtime)|maestro:Install Maestro|device:Pick Available iPhone Simulator|build:Build App for Simulator|boot:Boot Simulator and Install App|flows:Run Maestro Flows|upload:Upload Test Reports" \
+            "checkout:Checkout Repository|java:Set up Java 17 (Maestro runtime)|maestro:Install Maestro|device:Pick Available iPhone Simulator|build:Build App for Simulator|boot:Boot Simulator and Install App|flows:Run Maestro Flows" \
             "checkout=${{ steps.checkout.outcome }};java=${{ steps.java.outcome }}"
           curl -Ls "https://get.maestro.mobile.dev" | bash
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
@@ -53,7 +53,7 @@ jobs:
         run: |
           . .github/scripts/step-tree.sh
           step_tree "Mobile E2E (Maestro)" device \
-            "checkout:Checkout Repository|java:Set up Java 17 (Maestro runtime)|maestro:Install Maestro|device:Pick Available iPhone Simulator|build:Build App for Simulator|boot:Boot Simulator and Install App|flows:Run Maestro Flows|upload:Upload Test Reports" \
+            "checkout:Checkout Repository|java:Set up Java 17 (Maestro runtime)|maestro:Install Maestro|device:Pick Available iPhone Simulator|build:Build App for Simulator|boot:Boot Simulator and Install App|flows:Run Maestro Flows" \
             "checkout=${{ steps.checkout.outcome }};java=${{ steps.java.outcome }};maestro=${{ steps.maestro.outcome }}"
           DEVICE_ID=$(xcrun simctl list devices available -j | python3 -c "
             import json, sys
@@ -78,7 +78,7 @@ jobs:
         run: |
           . .github/scripts/step-tree.sh
           step_tree "Mobile E2E (Maestro)" build \
-            "checkout:Checkout Repository|java:Set up Java 17 (Maestro runtime)|maestro:Install Maestro|device:Pick Available iPhone Simulator|build:Build App for Simulator|boot:Boot Simulator and Install App|flows:Run Maestro Flows|upload:Upload Test Reports" \
+            "checkout:Checkout Repository|java:Set up Java 17 (Maestro runtime)|maestro:Install Maestro|device:Pick Available iPhone Simulator|build:Build App for Simulator|boot:Boot Simulator and Install App|flows:Run Maestro Flows" \
             "checkout=${{ steps.checkout.outcome }};java=${{ steps.java.outcome }};maestro=${{ steps.maestro.outcome }};device=${{ steps.device.outcome }}"
           xcodebuild build \
             -workspace Project.xcworkspace \
@@ -93,7 +93,7 @@ jobs:
         run: |
           . .github/scripts/step-tree.sh
           step_tree "Mobile E2E (Maestro)" boot \
-            "checkout:Checkout Repository|java:Set up Java 17 (Maestro runtime)|maestro:Install Maestro|device:Pick Available iPhone Simulator|build:Build App for Simulator|boot:Boot Simulator and Install App|flows:Run Maestro Flows|upload:Upload Test Reports" \
+            "checkout:Checkout Repository|java:Set up Java 17 (Maestro runtime)|maestro:Install Maestro|device:Pick Available iPhone Simulator|build:Build App for Simulator|boot:Boot Simulator and Install App|flows:Run Maestro Flows" \
             "checkout=${{ steps.checkout.outcome }};java=${{ steps.java.outcome }};maestro=${{ steps.maestro.outcome }};device=${{ steps.device.outcome }};build=${{ steps.build.outcome }}"
           ls -d .build/e2e-dd/Build/Products/Debug-iphonesimulator/Audiobookphile.app
           xcrun simctl boot "$DEVICE_ID" 2>/dev/null || true
@@ -114,7 +114,7 @@ jobs:
         run: |
           . .github/scripts/step-tree.sh
           step_tree "Mobile E2E (Maestro)" flows \
-            "checkout:Checkout Repository|java:Set up Java 17 (Maestro runtime)|maestro:Install Maestro|device:Pick Available iPhone Simulator|build:Build App for Simulator|boot:Boot Simulator and Install App|flows:Run Maestro Flows|upload:Upload Test Reports" \
+            "checkout:Checkout Repository|java:Set up Java 17 (Maestro runtime)|maestro:Install Maestro|device:Pick Available iPhone Simulator|build:Build App for Simulator|boot:Boot Simulator and Install App|flows:Run Maestro Flows" \
             "checkout=${{ steps.checkout.outcome }};java=${{ steps.java.outcome }};maestro=${{ steps.maestro.outcome }};device=${{ steps.device.outcome }};build=${{ steps.build.outcome }};boot=${{ steps.boot.outcome }}"
           set +e
           # Auth-dependent flows type real credentials from CI secrets. Without
