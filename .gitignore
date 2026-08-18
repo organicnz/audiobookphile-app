@@ -95,4 +95,3 @@ exportOptions.plist
 # Maestro e2e local credentials
 .maestro/.env
 
-_broken-viewmodels/
