@@ -31,124 +31,50 @@ jobs:
         id: checkout
         uses: actions/checkout@v4
 
-      - name: Set up Java 17 (Maestro runtime)
-        id: java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Install Maestro
-        id: maestro
-        run: |
-          . .github/scripts/step-tree.sh
-          step_tree "Mobile E2E (Maestro)" maestro \
-            "checkout:Checkout Repository|java:Set up Java 17 (Maestro runtime)|maestro:Install Maestro|device:Pick Available iPhone Simulator|build:Build App for Simulator|boot:Boot Simulator and Install App|flows:Run Maestro Flows" \
-            "checkout=${{ steps.checkout.outcome }};java=${{ steps.java.outcome }}"
-          curl -Ls "https://get.maestro.mobile.dev" | bash
-          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
-
-      - name: Pick Available iPhone Simulator
-        id: device
-        run: |
-          . .github/scripts/step-tree.sh
-          step_tree "Mobile E2E (Maestro)" device \
-            "checkout:Checkout Repository|java:Set up Java 17 (Maestro runtime)|maestro:Install Maestro|device:Pick Available iPhone Simulator|build:Build App for Simulator|boot:Boot Simulator and Install App|flows:Run Maestro Flows" \
-            "checkout=${{ steps.checkout.outcome }};java=${{ steps.java.outcome }};maestro=${{ steps.maestro.outcome }}"
-          DEVICE_ID=$(xcrun simctl list devices available -j | python3 -c "
-            import json, sys
-            data = json.load(sys.stdin)
-            udid = None
-            for runtime in sorted(data.get('devices', {}).keys(), reverse=True):
-                for device in data['devices'][runtime]:
-                    if device.get('name', '').startswith('iPhone') and device.get('isAvailable'):
-                        udid = device['udid']
-                        break
-                if udid:
-                    break
-            if not udid:
-                sys.exit('No available iPhone simulator found')
-            print(udid)
-          ")
-          echo "DEVICE_ID=$DEVICE_ID" >> "$GITHUB_ENV"
-          echo "Picked simulator: $DEVICE_ID"
-
       - name: Build App for Simulator
         id: build
         run: |
           . .github/scripts/step-tree.sh
           step_tree "Mobile E2E (Maestro)" build \
-            "checkout:Checkout Repository|java:Set up Java 17 (Maestro runtime)|maestro:Install Maestro|device:Pick Available iPhone Simulator|build:Build App for Simulator|boot:Boot Simulator and Install App|flows:Run Maestro Flows" \
-            "checkout=${{ steps.checkout.outcome }};java=${{ steps.java.outcome }};maestro=${{ steps.maestro.outcome }};device=${{ steps.device.outcome }}"
+            "checkout:Checkout Repository|build:Build App for Simulator|guard:Check Secrets|flows:Run Maestro Cloud" \
+            "checkout=${{ steps.checkout.outcome }}"
           xcodebuild build \
             -workspace Project.xcworkspace \
             -scheme "Audiobookphile App" \
             -configuration Debug \
-            -destination "platform=iOS Simulator,id=$DEVICE_ID" \
+            -destination "platform=iOS Simulator,name=iPhone 15" \
             -derivedDataPath .build/e2e-dd \
             -skipPackagePluginValidation
+          cd .build/e2e-dd/Build/Products/Debug-iphonesimulator
+          zip -q -r Audiobookphile.zip Audiobookphile.app
 
-      - name: Boot Simulator and Install App
-        id: boot
-        run: |
-          . .github/scripts/step-tree.sh
-          step_tree "Mobile E2E (Maestro)" boot \
-            "checkout:Checkout Repository|java:Set up Java 17 (Maestro runtime)|maestro:Install Maestro|device:Pick Available iPhone Simulator|build:Build App for Simulator|boot:Boot Simulator and Install App|flows:Run Maestro Flows" \
-            "checkout=${{ steps.checkout.outcome }};java=${{ steps.java.outcome }};maestro=${{ steps.maestro.outcome }};device=${{ steps.device.outcome }};build=${{ steps.build.outcome }}"
-          ls -d .build/e2e-dd/Build/Products/Debug-iphonesimulator/Audiobookphile.app
-          xcrun simctl boot "$DEVICE_ID" 2>/dev/null || true
-          xcrun simctl bootstatus "$DEVICE_ID" -b
-          # Keychain items survive app uninstall on the simulator: a session
-          # saved by an earlier flow would otherwise auto-sign-in and skip the
-          # connect form. Reset so every run starts logged out.
-          xcrun simctl keychain "$DEVICE_ID" reset
-          xcrun simctl install "$DEVICE_ID" .build/e2e-dd/Build/Products/Debug-iphonesimulator/Audiobookphile.app
-
-      - name: Run Maestro Flows
-        id: flows
+      - name: Check Secrets
+        id: guard
         env:
-          MAESTRO_CLI_NO_ANALYTICS: "true"
-          SERVER_URL: ${{ secrets.MAESTRO_SERVER_URL || 'https://audiobookphile.vercel.app' }}
           TEST_EMAIL: ${{ secrets.MAESTRO_TEST_EMAIL }}
           TEST_PASSWORD: ${{ secrets.MAESTRO_TEST_PASSWORD }}
         run: |
           . .github/scripts/step-tree.sh
-          step_tree "Mobile E2E (Maestro)" flows \
-            "checkout:Checkout Repository|java:Set up Java 17 (Maestro runtime)|maestro:Install Maestro|device:Pick Available iPhone Simulator|build:Build App for Simulator|boot:Boot Simulator and Install App|flows:Run Maestro Flows" \
-            "checkout=${{ steps.checkout.outcome }};java=${{ steps.java.outcome }};maestro=${{ steps.maestro.outcome }};device=${{ steps.device.outcome }};build=${{ steps.build.outcome }};boot=${{ steps.boot.outcome }}"
-          set +e
-          # Auth-dependent flows type real credentials from CI secrets. Without
-          # them, every login flow fails at the connect screen with a
-          # misleading "Collections is visible" assertion — fail fast instead
-          # of spending 25 minutes on a doomed run.
+          step_tree "Mobile E2E (Maestro)" guard \
+            "checkout:Checkout Repository|build:Build App for Simulator|guard:Check Secrets|flows:Run Maestro Cloud" \
+            "checkout=${{ steps.checkout.outcome }};build=${{ steps.build.outcome }}"
           if [ -z "${TEST_EMAIL}" ] || [ -z "${TEST_PASSWORD}" ]; then
             echo "❌ MAESTRO_TEST_EMAIL / MAESTRO_TEST_PASSWORD secrets are not configured"
             echo "   Set them in repo settings → Secrets and variables → Actions:"
-            echo "   - MAESTRO_TEST_EMAIL:    test account email (no 2FA) on $SERVER_URL"
+            echo "   - MAESTRO_TEST_EMAIL:    test account email (no 2FA)"
             echo "   - MAESTRO_TEST_PASSWORD: its password"
-            echo "   The test account must exist on the backend (admin invite) and have"
-            echo "   no 2FA enrolled, otherwise the login flows cannot pass."
             exit 1
           fi
-          # CI set: smoke + e2e tags from flows/ only. Auth-only flows (magic
-          # link request) and the deeplink flow are excluded — the deeplink
-          # needs a fresh single-use MAGIC_LINK_URL minted per run.
-          # Flow env vars must be forwarded via -e flags: Maestro resolves
-          # ${VAR} only from CLI flags, not from the process environment.
-          # Explicit file order (not the directory listing) keeps the suite
-          # deterministic; the default console format prints every command
-          # COMPLETED/FAILED so failures are diagnosable from the job log.
-          maestro test \
-            .maestro/flows/00_smoke_launch.yaml \
-            .maestro/flows/10_auth_login.yaml \
-            .maestro/flows/20_library_browse.yaml \
-            .maestro/flows/30_settings_disconnect.yaml \
-            --include-tags smoke,e2e \
-            -e SERVER_URL="${SERVER_URL}" \
-            -e TEST_EMAIL="${TEST_EMAIL}" \
-            -e TEST_PASSWORD="${TEST_PASSWORD}"
-          STATUS=$?
-          if [ $STATUS -ne 0 ]; then
-            echo "Maestro failures:"
-            exit $STATUS
-          fi
+
+      - name: Run Maestro Cloud
+        id: flows
+        uses: mobile-dev-inc/action-maestro-cloud@v3.0.1
+        with:
+          api-key: ${{ secrets.MAESTRO_CLOUD_API_KEY }}
+          app-file: .build/e2e-dd/Build/Products/Debug-iphonesimulator/Audiobookphile.zip
+          workspace: .maestro
+          include-tags: smoke,e2e
+          env: |
+            SERVER_URL=${{ secrets.MAESTRO_SERVER_URL || 'https://audiobookphile.vercel.app' }}
+            TEST_EMAIL=${{ secrets.MAESTRO_TEST_EMAIL }}
+            TEST_PASSWORD=${{ secrets.MAESTRO_TEST_PASSWORD }}
