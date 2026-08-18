@@ -44,9 +44,7 @@ public struct FluidAuraBackground: View {
                                 y: animate ? height * 0.3 : -height * 0.1)
                 }
                 .saturation(1.3)
-                .drawingGroup()
             }
-            .ignoresSafeArea()
             
             // Liquid glass noise or overlay layer
             Rectangle()

@@ -310,48 +310,60 @@ public struct SettingsView: View {
     private var playbackSection: some View {
         SettingsSection(title: "Playback") {
             // Jump forward time
-            Menu {
+            Picker(selection: Binding(
+                get: { viewModel.jumpForwardTime },
+                set: { viewModel.saveJumpForwardTime($0) }
+            )) {
                 ForEach([5, 10, 15, 30, 45, 60], id: \.self) { seconds in
-                    Button("\(seconds) seconds") {
-                        viewModel.saveJumpForwardTime(seconds)
-                    }
+                    Text("\(seconds) seconds").tag(seconds)
                 }
             } label: {
-                SettingsRow(
-                    icon: "goforward",
-                    title: "Jump Forward",
-                    value: "\(viewModel.jumpForwardTime)s"
-                ) {}
+                HStack {
+                    Image(systemName: "goforward")
+                        .foregroundStyle(Color.appPrimary)
+                        .frame(width: 28)
+                    Text("Jump Forward")
+                        .foregroundStyle(.primary)
+                }
+                .padding(.vertical, 12)
             }
 
             // Jump backward time
-            Menu {
+            Picker(selection: Binding(
+                get: { viewModel.jumpBackwardTime },
+                set: { viewModel.saveJumpBackwardTime($0) }
+            )) {
                 ForEach([5, 10, 15, 30, 45, 60], id: \.self) { seconds in
-                    Button("\(seconds) seconds") {
-                        viewModel.saveJumpBackwardTime(seconds)
-                    }
+                    Text("\(seconds) seconds").tag(seconds)
                 }
             } label: {
-                SettingsRow(
-                    icon: "gobackward",
-                    title: "Jump Backward",
-                    value: "\(viewModel.jumpBackwardTime)s"
-                ) {}
+                HStack {
+                    Image(systemName: "gobackward")
+                        .foregroundStyle(Color.appPrimary)
+                        .frame(width: 28)
+                    Text("Jump Backward")
+                        .foregroundStyle(.primary)
+                }
+                .padding(.vertical, 12)
             }
 
             // Playback speed
-            Menu {
+            Picker(selection: Binding(
+                get: { viewModel.defaultPlaybackSpeed },
+                set: { viewModel.saveDefaultPlaybackSpeed($0) }
+            )) {
                 ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0], id: \.self) { speed in
-                    Button(String(format: "%.2fx", speed)) {
-                        viewModel.saveDefaultPlaybackSpeed(speed)
-                    }
+                    Text(String(format: "%.2fx", speed)).tag(speed)
                 }
             } label: {
-                SettingsRow(
-                    icon: "speedometer",
-                    title: "Default Speed",
-                    value: String(format: "%.1fx", viewModel.defaultPlaybackSpeed)
-                ) {}
+                HStack {
+                    Image(systemName: "speedometer")
+                        .foregroundStyle(Color.appPrimary)
+                        .frame(width: 28)
+                    Text("Default Speed")
+                        .foregroundStyle(.primary)
+                }
+                .padding(.vertical, 12)
             }
 
             Divider().background(.white.opacity(0.2))
@@ -457,18 +469,22 @@ public struct SettingsView: View {
     private var appSection: some View {
         SettingsSection(title: "App") {
             // Theme
-            Menu {
-                ForEach(["System", "Dark", "Light"], id: \.self) { theme in
-                    Button(theme) {
-                        viewModel.saveTheme(theme)
-                    }
-                }
+            Picker(selection: Binding(
+                get: { viewModel.selectedTheme },
+                set: { viewModel.saveTheme($0) }
+            )) {
+                Text("System").tag("System")
+                Text("Dark").tag("Dark")
+                Text("Light").tag("Light")
             } label: {
-                SettingsRow(
-                    icon: "paintpalette",
-                    title: "Theme",
-                    value: viewModel.selectedTheme
-                ) {}
+                HStack {
+                    Image(systemName: "paintpalette")
+                        .foregroundStyle(Color.appPrimary)
+                        .frame(width: 28)
+                    Text("Theme")
+                        .foregroundStyle(.primary)
+                }
+                .padding(.vertical, 12)
             }
 
             // Haptics
