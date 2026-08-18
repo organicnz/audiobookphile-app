@@ -253,7 +253,7 @@ public struct SettingsView: View {
                     Divider().background(.white.opacity(0.1))
                 } else if viewModel.isLoadingStats {
                     HStack(spacing: 8) {
-                        ProgressView().tint(.appPrimary)
+                         ProgressView().tint(DesignTokens.Color.accent)
                         Text("Loading stats…")
                             .font(.caption)
                             .foregroundStyle(DesignTokens.Color.foreground.opacity(0.6))
@@ -922,7 +922,7 @@ public struct SettingsToggleRow: View {
 
             Toggle("", isOn: $isOn)
                 .labelsHidden()
-                .tint(.appPrimary)
+                .tint(DesignTokens.Color.accent)
         }
         .padding(12)
     }

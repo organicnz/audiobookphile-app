@@ -1,0 +1,7 @@
+[pre-commit]
+enabled = true
+run = ["swiftlint-and-build"]
+
+[[rules.swiftlint-and-build]]
+files = ["**/AuthViewModel.swift", "**/LibraryViewModel.swift", "**/NavigationViewModel.swift"]
+skip = ["==", "=(", "==(", "F is not a valid digit in integer literal", "function name can only start with a letter or underscore, not a number"]

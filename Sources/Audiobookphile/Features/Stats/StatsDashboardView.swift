@@ -307,7 +307,7 @@ public struct StatsDashboardView: View {
                                 let percent = (current / total) * 100
                                 
                                 ProgressView(value: current, total: total)
-                                    .tint(.appPrimary)
+                                    .tint(DesignTokens.Color.accent)
                                 
                                 Text("\(Int(percent))% completed")
                                     .font(.caption2)
@@ -374,7 +374,7 @@ public struct StatsDashboardView: View {
     private var loadingView: some View {
         VStack(spacing: 16) {
             ProgressView()
-                .tint(.appPrimary)
+                .tint(DesignTokens.Color.accent)
                 .scaleEffect(1.2)
             Text("Loading stats…")
                 .font(.subheadline)
