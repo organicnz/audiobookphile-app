@@ -10,8 +10,8 @@ let package = Package(
         .library(name: "Audiobookphile", type: .dynamic, targets: ["Audiobookphile"]),
     ],
     dependencies: [
-        .package(url: "https://source.skip.tools/skip.git", from: "1.8.14"),
-        .package(url: "https://source.skip.tools/skip-fuse-ui.git", "1.0.0"..<"1.17.0"),
+        .package(url: "https://github.com/skiptools/skip.git", from: "1.8.14"),
+        .package(url: "https://github.com/skiptools/skip-fuse-ui.git", "1.0.0"..<"1.17.0"),
         .package(url: "https://github.com/Flight-School/AnyCodable", from: "0.6.7")
     ],
     targets: [
