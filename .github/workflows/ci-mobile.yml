@@ -69,7 +69,7 @@ jobs:
           step_tree "Skip Cross-Platform Verify" verify \
             "checkout:Checkout Repository|java:Setup Java|install:Install Skip|verify:Skip Verify" \
             "checkout=${{ steps.checkout.outcome }};java=${{ steps.java.outcome }};install=${{ steps.install.outcome }}"
-          skip verify
+          skip verify --fix
 
   verify-swift:
     name: Verify Swift iOS Package
