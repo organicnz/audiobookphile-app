@@ -36,13 +36,13 @@ public struct SettingsView: View {
                         quickNavigationBanner
 
                         // User section
-                        if let user = viewModel.currentUser {
+                        if let user = appState.currentUser {
                             userSection(user)
                             securitySection
                         }
 
                         // Admin (visible to admins & root)
-                        if let user = viewModel.currentUser, ["admin", "root"].contains(user.type) {
+                        if let user = appState.currentUser, ["admin", "root"].contains(user.type) {
                             adminSection
                         }
 
@@ -139,7 +139,7 @@ public struct SettingsView: View {
                 )
             }
 
-            if let user = viewModel.currentUser, ["admin", "root"].contains(user.type) {
+            if let user = appState.currentUser, ["admin", "root"].contains(user.type) {
                 NavigationLink {
                     AdminDashboardView()
                 } label: {
@@ -686,8 +686,6 @@ public struct SettingsView: View {
 @Observable
 @MainActor
 public class SettingsViewModel {
-    public var currentUser: User?
-    
     public var serverURL = ""
 
     // Bindings to AppState

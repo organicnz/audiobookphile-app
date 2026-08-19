@@ -11,6 +11,7 @@ import Observation
 public struct AccountView: View {
     @State var viewModel = SettingsViewModel()
     @Environment(\.dismiss) var dismiss
+    @Environment(AppState.self) private var appState
 
     public init() {}
 
@@ -18,7 +19,7 @@ public struct AccountView: View {
         ZStack {
             FluidAuraBackground()
 
-            if let user = viewModel.currentUser {
+            if let user = appState.currentUser {
                 ScrollView {
                     VStack(spacing: 24) {
                         // Header
