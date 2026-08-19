@@ -53,16 +53,18 @@ jobs:
         env:
           TEST_EMAIL: ${{ secrets.MAESTRO_TEST_EMAIL }}
           TEST_PASSWORD: ${{ secrets.MAESTRO_TEST_PASSWORD }}
+          API_KEY: ${{ secrets.MAESTRO_CLOUD_API_KEY }}
         run: |
           . .github/scripts/step-tree.sh
           step_tree "Mobile E2E (Maestro)" guard \
             "checkout:Checkout Repository|build:Build App for Simulator|guard:Check Secrets|flows:Run Maestro Cloud" \
             "checkout=${{ steps.checkout.outcome }};build=${{ steps.build.outcome }}"
-          if [ -z "${TEST_EMAIL}" ] || [ -z "${TEST_PASSWORD}" ]; then
-            echo "❌ MAESTRO_TEST_EMAIL / MAESTRO_TEST_PASSWORD secrets are not configured"
+          if [ -z "${TEST_EMAIL}" ] || [ -z "${TEST_PASSWORD}" ] || [ -z "${API_KEY}" ]; then
+            echo "❌ MAESTRO_TEST_EMAIL / MAESTRO_TEST_PASSWORD / MAESTRO_CLOUD_API_KEY secrets are not configured"
             echo "   Set them in repo settings → Secrets and variables → Actions:"
             echo "   - MAESTRO_TEST_EMAIL:    test account email (no 2FA)"
             echo "   - MAESTRO_TEST_PASSWORD: its password"
+            echo "   - MAESTRO_CLOUD_API_KEY: your Maestro Cloud API Key"
             exit 1
           fi
 
