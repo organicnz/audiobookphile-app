@@ -42,7 +42,7 @@ jobs:
             -workspace Project.xcworkspace \
             -scheme "Audiobookphile App" \
             -configuration Debug \
-            -destination "platform=iOS Simulator,name=iPhone 15" \
+            -destination "platform=iOS Simulator,name=iPhone 17 Pro" \
             -derivedDataPath .build/e2e-dd \
             -skipPackagePluginValidation
           cd .build/e2e-dd/Build/Products/Debug-iphonesimulator
