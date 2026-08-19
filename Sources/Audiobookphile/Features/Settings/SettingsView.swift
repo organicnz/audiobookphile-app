@@ -176,32 +176,58 @@ public struct SettingsView: View {
 
     private func userSection(_ user: User) -> some View {
         SettingsSection {
-            HStack(spacing: 16) {
-                // Avatar
-                Circle()
-                    .fill(LinearGradient(
-                        colors: [.appPrimary, .appSecondary],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ))
-                    .frame(width: 50, height: 50)
-                    .overlay {
-                        Text(String(user.username.prefix(1)).uppercased())
-                            .font(.title2.weight(.bold))
+            VStack(spacing: 0) {
+                HStack(spacing: 16) {
+                    // Avatar
+                    Circle()
+                        .fill(LinearGradient(
+                            colors: [.appPrimary, .appSecondary],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ))
+                        .frame(width: 50, height: 50)
+                        .overlay {
+                            Text(String(user.username.prefix(1)).uppercased())
+                                .font(.title2.weight(.bold))
+                                .foregroundStyle(DesignTokens.Color.foreground)
+                        }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(user.username)
+                            .font(.headline)
                             .foregroundStyle(DesignTokens.Color.foreground)
+
+                        Text(user.type.capitalized)
+                            .font(.caption)
+                            .foregroundStyle(DesignTokens.Color.foreground.opacity(0.6))
                     }
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(user.username)
-                        .font(.headline)
-                        .foregroundStyle(DesignTokens.Color.foreground)
-
-                    Text(user.type.capitalized)
-                        .font(.caption)
-                        .foregroundStyle(DesignTokens.Color.foreground.opacity(0.6))
+                    Spacer()
                 }
+                .padding(.bottom, 16)
+                
+                Divider().background(Color.white.opacity(0.1))
+                
+                Button {
+                    appState.navigation.showingAccount = true
+                } label: {
+                    HStack {
+                        Image(systemName: "person.crop.circle")
+                            .foregroundStyle(Color.appPrimary)
+                            .frame(width: 28)
 
-                Spacer()
+                        Text("Account Details")
+                            .foregroundStyle(DesignTokens.Color.foreground)
+                            .font(.subheadline.weight(.semibold))
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(DesignTokens.Color.foreground.opacity(0.4))
+                    }
+                    .padding(.vertical, 12)
+                }
             }
         }
     }
@@ -535,6 +561,54 @@ public struct SettingsView: View {
     private var adminSection: some View {
         SettingsSection(title: "Administration") {
             VStack(spacing: 0) {
+                // Server Connection
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Server Connection")
+                        .font(.caption2)
+                        .foregroundStyle(DesignTokens.Color.foreground.opacity(0.6))
+                    
+                    HStack {
+                        Image(systemName: "server.rack")
+                            .foregroundStyle(Color.appPrimary)
+                            .frame(width: 28)
+                            
+                        Text(appState.serverURL.isEmpty ? "No Server Connected" : appState.serverURL)
+                            .foregroundStyle(DesignTokens.Color.foreground)
+                            .font(.subheadline)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            
+                        Spacer()
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                
+                Button {
+                    appState.navigation.showingConnectModal = true
+                } label: {
+                    HStack {
+                        Image(systemName: "network")
+                            .foregroundStyle(Color.appPrimary)
+                            .frame(width: 28)
+
+                        Text("Manage Server Connection")
+                            .foregroundStyle(DesignTokens.Color.foreground)
+                            .font(.subheadline.weight(.semibold))
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(DesignTokens.Color.foreground.opacity(0.4))
+                    }
+                    .padding(12)
+                }
+                
+                Divider()
+                    .background(Color.white.opacity(0.1))
+                
+                // Admin Dashboard
                 NavigationLink {
                     AdminDashboardView()
                 } label: {
@@ -559,6 +633,7 @@ public struct SettingsView: View {
                 Divider()
                     .background(Color.white.opacity(0.1))
 
+                // Invite Users
                 NavigationLink {
                     AdminInviteView()
                 } label: {

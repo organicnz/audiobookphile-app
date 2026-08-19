@@ -31,7 +31,7 @@ public struct CollectionListView: View {
                         emptyState(for: type)
                     } else {
                         ForEach(collections) { item in
-                            Text(item.name)
+                            collectionRow(item)
                         }
                     }
                 case .playlists:
@@ -39,7 +39,7 @@ public struct CollectionListView: View {
                         emptyState(for: type)
                     } else {
                         ForEach(playlists) { item in
-                            Text(item.name)
+                            playlistRow(item)
                         }
                     }
                 }
@@ -67,6 +67,70 @@ public struct CollectionListView: View {
                     .lineLimit(1)
                 
                 Text("\(item.numBooks ?? 0) books")
+                    .font(.subheadline)
+                    .foregroundStyle(Color.textSecondary)
+            }
+            
+            Spacer()
+            
+            Image(systemName: "chevron.right")
+                .foregroundStyle(Color.textSecondary.opacity(0.5))
+        }
+        .padding(12)
+        .glassBackground(cornerRadius: 12)
+    }
+
+    private func collectionRow(_ item: CollectionSummary) -> some View {
+        HStack(spacing: 16) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.appSecondaryBackground)
+                    .frame(width: 60, height: 60)
+                
+                Image(systemName: "square.stack.3d.up.fill")
+                    .foregroundStyle(Color.appPrimary)
+                    .font(.title2)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(item.name)
+                    .font(.headline)
+                    .foregroundStyle(Color.textPrimary)
+                    .lineLimit(1)
+                
+                Text("\(item.numBooks ?? item.books?.count ?? 0) books")
+                    .font(.subheadline)
+                    .foregroundStyle(Color.textSecondary)
+            }
+            
+            Spacer()
+            
+            Image(systemName: "chevron.right")
+                .foregroundStyle(Color.textSecondary.opacity(0.5))
+        }
+        .padding(12)
+        .glassBackground(cornerRadius: 12)
+    }
+
+    private func playlistRow(_ item: PlaylistSummary) -> some View {
+        HStack(spacing: 16) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.appSecondaryBackground)
+                    .frame(width: 60, height: 60)
+                
+                Image(systemName: "music.note.list")
+                    .foregroundStyle(Color.appPrimary)
+                    .font(.title2)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(item.name)
+                    .font(.headline)
+                    .foregroundStyle(Color.textPrimary)
+                    .lineLimit(1)
+                
+                Text("\(item.items?.count ?? 0) items")
                     .font(.subheadline)
                     .foregroundStyle(Color.textSecondary)
             }

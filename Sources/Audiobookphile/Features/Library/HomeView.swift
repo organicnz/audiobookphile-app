@@ -34,8 +34,8 @@ public struct HomeView: View {
                         recentlyAddedSection
                             .padding(.top, viewModel.continueListening.isEmpty ? 16 : 0)
 
-                        // Continue Series
-                        continueSeriesSection
+                        // Continue Series (Hidden until API supports it)
+                        // continueSeriesSection
                         
                         Spacer().frame(height: 100) // Bottom padding
                     }

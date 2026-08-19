@@ -86,37 +86,12 @@ public func audiobookphileServerMenuToolbarItem(
                     }
                 }
             }
-
-            Section("Server Connection") {
-                Label(
-                    appState.serverURL.isEmpty ? "No Server Connected" : appState.serverURL,
-                    systemImage: "server.rack"
-                )
-                Button {
-                    showingConnectModal.wrappedValue = true
-                } label: {
-                    Label("Manage / Connect Server", systemImage: "server.rack")
-                }
-                Button {
-                    showingAccount.wrappedValue = true
-                } label: {
-                    Label("Account & Server Details", systemImage: "person.crop.circle")
-                }
-            }
-
-            Section("Session") {
-                Button(role: .destructive) {
-                    appState.logout()
-                } label: {
-                    Label("Log Out / Disconnect", systemImage: "rectangle.portrait.and.arrow.right")
-                }
-            }
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: "server.rack")
                     .font(.subheadline)
                     .foregroundStyle(Color.appPrimary)
-                Text(appState.currentLibrary?.name ?? "All Books")
+                Text(appState.currentLibrary?.name ?? "Books")
                     .font(.headline)
                     .fontWeight(.bold)
                     .foregroundStyle(Color.textPrimary)

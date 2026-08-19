@@ -88,27 +88,7 @@ public struct HomeSkeletonView: View {
                     }
                 }
 
-                // Skeleton: Continue Series
-                VStack(alignment: .leading, spacing: 12) {
-                    SkeletonTextBar(width: 140)
-                        .padding(.horizontal)
-
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 16) {
-                            ForEach(0..<3, id: \.self) { _ in
-                                VStack(alignment: .leading, spacing: 8) {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(DesignTokens.Color.surface.opacity(0.06))
-                                        .frame(width: 200, height: 100)
-                                    SkeletonTextBar(width: 120)
-                                    SkeletonTextBar(width: 80, height: 10)
-                                }
-                                .shimmer()
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
-                }
+                // Continue Series skeleton removed to match HomeView
 
                 Spacer().frame(height: 100)
             }
