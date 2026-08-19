@@ -72,7 +72,7 @@ jobs:
         with:
           api-key: ${{ secrets.MAESTRO_CLOUD_API_KEY }}
           app-file: .build/e2e-dd/Build/Products/Debug-iphonesimulator/Audiobookphile.zip
-          workspace: .maestro
+          workspace: .maestro/flows
           include-tags: smoke,e2e
           env: |
             SERVER_URL=${{ secrets.MAESTRO_SERVER_URL || 'https://audiobookphile.vercel.app' }}
