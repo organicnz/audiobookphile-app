@@ -50,8 +50,13 @@ public final class AudiobookphileAppDelegate: Sendable {
         #if !SKIP && os(iOS)
         CrashReporter.install()
         #endif
+        // TelemetryService is the cross-platform Sentry envelope transport for
+        // Android (Skip). On Darwin, sentry-cocoa (Main.swift) handles native
+        // crash reporting — initializing both would double-report errors.
+        #if SKIP
         TelemetryService.shared.configure()
         TelemetryService.shared.handlePendingCrashReport()
+        #endif
 
         #if !SKIP && os(iOS)
         BGTaskScheduler.shared.register(

@@ -51,15 +51,16 @@ typealias AppType = NSApplication
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         SentrySDK.start { options in
-            options.dsn = "https://73b955343fb09bc7770dc93fa7d2c18a@o4509901022691328.ingest.de.sentry.io/4511573264236624"
+            options.dsn = EnvironmentConfig.sentryDSN
             #if DEBUG
             options.debug = true
             options.environment = "development"
+            options.tracesSampleRate = 1.0
             #else
             options.debug = false
             options.environment = "production"
+            options.tracesSampleRate = 0.1
             #endif
-            options.tracesSampleRate = 1.0
             options.tracePropagationTargets = ["iambzzclljayqdxkeepy.supabase.co"]
         }
         // Track an application metric to verify setup
@@ -93,15 +94,16 @@ typealias AppType = NSApplication
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         SentrySDK.start { options in
-            options.dsn = "https://73b955343fb09bc7770dc93fa7d2c18a@o4509901022691328.ingest.de.sentry.io/4511573264236624"
+            options.dsn = EnvironmentConfig.sentryDSN
             #if DEBUG
             options.debug = true
             options.environment = "development"
+            options.tracesSampleRate = 1.0
             #else
             options.debug = false
             options.environment = "production"
+            options.tracesSampleRate = 0.1
             #endif
-            options.tracesSampleRate = 1.0
             options.tracePropagationTargets = ["iambzzclljayqdxkeepy.supabase.co"]
         }
         // Track an application metric to verify setup
