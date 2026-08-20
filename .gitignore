@@ -95,3 +95,7 @@ exportOptions.plist
 # Maestro e2e local credentials
 .maestro/.env
 
+# Local dev tooling (contain local API tokens / simulator IDs)
+query_metrics.py
+run_sim.sh
+
