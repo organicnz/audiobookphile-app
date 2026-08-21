@@ -29,6 +29,7 @@ public struct PlaybackSession: Codable, Sendable {
     // Audio tracks and chapters
     public var audioTracks: [AudioTrack]
     public let chapters: [Chapter]
+    public let manifestUrl: String?
 
     // State
     public let currentTime: TimeInterval
@@ -40,7 +41,7 @@ public struct PlaybackSession: Codable, Sendable {
         case id, userId, libraryId, libraryItemId, episodeId
         case displayTitle, displayAuthor, coverPath
         case duration, playMethod, mediaPlayer, mediaType
-        case audioTracks, chapters
+        case audioTracks, chapters, manifestUrl
         case currentTime, playbackRate, startedAt, updatedAt
     }
 }

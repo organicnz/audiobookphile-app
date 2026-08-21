@@ -26,7 +26,22 @@ public class AudioPlayerService {
     public var playbackRate: Float = 1.0
     public var duration: TimeInterval = 0
     public var playbackError: Error?
-    private var currentSeekID: UUID?
+    // MARK: - Monotonic Seek Transaction Epochs
+    /**
+     * ── ARCHITECTURAL INVARIANT: PLAYBACK TIMELINE & SEEK INTEGRITY ──
+     * 1. Monotonicity: Time updates from periodic observers MUST be rejected 
+     *    while an active seek transaction is unresolved (activeSeekEpoch != acknowledgedSeekEpoch).
+     * 2. Inclusive Boundaries: Track indexing MUST evaluate the final track
+     *    inclusively (`targetTime <= trackEnd`) to prevent 100% end-of-book drops.
+     * 3. Transient Guard: While AVPlayerItem buffers, `currentTime` MUST hold
+     *    the target seek time and never fall back to `0.0`.
+     */
+    public private(set) var activeSeekEpoch: UInt64 = 0
+    public private(set) var acknowledgedSeekEpoch: UInt64 = 0
+
+    public var isSeeking: Bool {
+        activeSeekEpoch != acknowledgedSeekEpoch
+    }
     
     private var currentTrackIndex = 0
     private var retryCount = 0
@@ -82,7 +97,7 @@ public class AudioPlayerService {
                 self.isBuffering = buffering
                 if !buffering { self.retryCount = 0 }
             } else {
-                if self.currentSeekID == nil {
+                if self.activeSeekEpoch == self.acknowledgedSeekEpoch {
                     self.isPlaying = false
                 }
                 self.isBuffering = false
@@ -261,6 +276,9 @@ public class AudioPlayerService {
         let targetTime = max(0, min(time, duration))
         self.currentTime = targetTime
         
+        activeSeekEpoch &+= 1
+        let thisEpoch = activeSeekEpoch
+        
         #if !SKIP && !os(Android)
         nowPlayingManager.updateNowPlaying(elapsedTime: targetTime)
         #endif
@@ -274,20 +292,18 @@ public class AudioPlayerService {
             if let item = engine.currentItem as? AVPlayerItem, item.status == .readyToPlay {
                 let wasPlaying = self.isPlaying
                 let seekId = UUID()
-                self.currentSeekID = seekId
                 
                 if wasPlaying {
                     engine.pause()
                 }
                 
-                executeSeek(to: trackInfo.offset, seekId: seekId, wasPlaying: wasPlaying)
+                executeSeek(to: trackInfo.offset, seekId: seekId, wasPlaying: wasPlaying, epoch: thisEpoch)
             } else {
                 // Item is still loading, defer the seek until it is ready
-                self.currentSeekID = UUID()
                 self.pendingSeekTimeWithinTrack = trackInfo.offset
             }
         } else {
-            loadQueue(from: trackInfo.index, seekTimeWithinTrack: trackInfo.offset, autoPlay: isPlaying)
+            loadQueue(from: trackInfo.index, seekTimeWithinTrack: trackInfo.offset, autoPlay: isPlaying, epoch: thisEpoch)
         }
         #endif
         
@@ -315,15 +331,12 @@ public class AudioPlayerService {
 
     // MARK: - Queue & Engine Handling
     
-    private func loadQueue(from index: Int, seekTimeWithinTrack: TimeInterval, autoPlay: Bool = true) {
+    private func loadQueue(from index: Int, seekTimeWithinTrack: TimeInterval, autoPlay: Bool = true, epoch: UInt64? = nil) {
         guard let session = session else { return }
         guard index >= 0 && index < session.audioTracks.count else { return }
 
         self.currentTrackIndex = index
         self.pendingSeekTimeWithinTrack = seekTimeWithinTrack
-        
-        // Prevent periodic time updates while we load and seek the new queue
-        self.currentSeekID = UUID()
 
         #if !SKIP && !os(Android)
         engine.initializePlayer()
@@ -416,7 +429,7 @@ public class AudioPlayerService {
     private func handleCurrentItemChanged(_ item: AVPlayerItem?) {
         guard let session = session else { return }
         guard let item = item else {
-            if isPlaying && currentTrackIndex >= session.audioTracks.count - 1 && currentSeekID == nil {
+            if isPlaying && currentTrackIndex >= session.audioTracks.count - 1 && activeSeekEpoch == acknowledgedSeekEpoch {
                 handleItemDidPlayToEndTime()
             }
             return
@@ -438,7 +451,7 @@ public class AudioPlayerService {
     }
     
     private func handlePeriodicTimeUpdate(time: CMTime) {
-        guard isPlaying, currentSeekID == nil, let session = session, currentTrackIndex < session.audioTracks.count else { return }
+        guard isPlaying, activeSeekEpoch == acknowledgedSeekEpoch, let session = session, currentTrackIndex < session.audioTracks.count else { return }
         let track = session.audioTracks[currentTrackIndex]
         let absoluteTime = track.startOffset + time.seconds
         self.currentTime = absoluteTime
@@ -466,44 +479,49 @@ public class AudioPlayerService {
     private func handleItemReady(_ item: AVPlayerItem) {
         if let pendingSeek = self.pendingSeekTimeWithinTrack {
             self.pendingSeekTimeWithinTrack = nil
-            
-            // Capture the seekId to ensure we clear the correct one
-            let seekId = self.currentSeekID ?? UUID()
+            let seekId = UUID()
+            let thisEpoch = self.activeSeekEpoch
             
             if pendingSeek > 0.01 {
-                executeSeek(to: pendingSeek, seekId: seekId, wasPlaying: self.isPlaying)
+                executeSeek(to: pendingSeek, seekId: seekId, wasPlaying: self.isPlaying, epoch: thisEpoch)
             } else {
-                if self.currentSeekID == seekId {
-                    self.currentSeekID = nil
+                if self.activeSeekEpoch == thisEpoch {
+                    self.acknowledgedSeekEpoch = thisEpoch
                 }
                 if self.isPlaying {
                     self.play()
                 }
             }
         } else {
+            if self.activeSeekEpoch == self.acknowledgedSeekEpoch {
+                // Already in sync
+            } else {
+                self.acknowledgedSeekEpoch = self.activeSeekEpoch
+            }
             if self.isPlaying {
                 self.play()
             }
         }
     }
     
-    private func executeSeek(to targetTimeWithinTrack: TimeInterval, seekId: UUID, wasPlaying: Bool, retryCount: Int = 0) {
+    private func executeSeek(to targetTimeWithinTrack: TimeInterval, seekId: UUID, wasPlaying: Bool, epoch: UInt64? = nil, retryCount: Int = 0) {
         let cmTime = CMTime(seconds: targetTimeWithinTrack, preferredTimescale: 600)
+        let targetEpoch = epoch ?? self.activeSeekEpoch
         
         #if !SKIP && !os(Android)
         if let item = engine.currentItem as? AVPlayerItem {
             if item.status == .failed {
-                if self.currentSeekID == seekId {
-                    self.currentSeekID = nil
+                if self.activeSeekEpoch == targetEpoch {
+                    self.acknowledgedSeekEpoch = targetEpoch
                 }
                 return
             }
             if item.seekableTimeRanges.isEmpty {
                 if retryCount < 50 {
                     Task { @MainActor in
-                        try? await Task.sleep(nanoseconds: 200_000_000)
-                        if self.currentSeekID == seekId {
-                            self.executeSeek(to: targetTimeWithinTrack, seekId: seekId, wasPlaying: wasPlaying, retryCount: retryCount + 1)
+                        try? await Task.sleep(nanoseconds: 100_000_000)
+                        if self.activeSeekEpoch == targetEpoch {
+                            self.executeSeek(to: targetTimeWithinTrack, seekId: seekId, wasPlaying: wasPlaying, epoch: targetEpoch, retryCount: retryCount + 1)
                         }
                     }
                     return
@@ -515,24 +533,21 @@ public class AudioPlayerService {
         engine.seek(to: cmTime) { [weak self] finished in
             Task { @MainActor in
                 guard let self = self else { return }
-                guard self.currentSeekID == seekId else { return } // A new seek was requested
+                guard self.activeSeekEpoch == targetEpoch else { return } // A newer seek transaction was started
                 
                 if finished {
-                    self.currentSeekID = nil
+                    self.acknowledgedSeekEpoch = targetEpoch
                     if wasPlaying { self.play() }
                 } else {
                     if retryCount < 50 {
-                        // AVPlayer rejected the seek (likely because the stream is still buffering that byte range).
-                        // Retry after a short delay.
                         Task {
-                            try? await Task.sleep(nanoseconds: 200_000_000) // 0.2s
-                            if self.currentSeekID == seekId {
-                                self.executeSeek(to: targetTimeWithinTrack, seekId: seekId, wasPlaying: wasPlaying, retryCount: retryCount + 1)
+                            try? await Task.sleep(nanoseconds: 100_000_000)
+                            if self.activeSeekEpoch == targetEpoch {
+                                self.executeSeek(to: targetTimeWithinTrack, seekId: seekId, wasPlaying: wasPlaying, epoch: targetEpoch, retryCount: retryCount + 1)
                             }
                         }
                     } else {
-                        // Give up and clear seek state so it can at least play
-                        self.currentSeekID = nil
+                        self.acknowledgedSeekEpoch = targetEpoch
                         if wasPlaying { self.play() }
                     }
                 }
@@ -555,7 +570,7 @@ public class AudioPlayerService {
         } else {
             retryCount = 0
             pause()
-            self.currentSeekID = nil
+            self.acknowledgedSeekEpoch = self.activeSeekEpoch
             Task { @MainActor in
                 self.playbackError = error ?? NSError(domain: "AudioPlayerServiceErrorDomain", code: -1, userInfo: [NSLocalizedDescriptionKey: "Audio stream failed repeatedly."])
             }
