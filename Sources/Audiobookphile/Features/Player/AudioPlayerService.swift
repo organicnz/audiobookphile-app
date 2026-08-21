@@ -273,7 +273,8 @@ public class AudioPlayerService {
     public func seek(to time: TimeInterval) {
         guard let session = session else { return }
 
-        let targetTime = max(0, min(time, duration))
+        let effectiveDur = duration > 0 ? duration : (session.duration > 0 ? session.duration : session.audioTracks.reduce(0) { $0 + $1.duration })
+        let targetTime = effectiveDur > 0 ? max(0, min(time, effectiveDur)) : max(0, time)
         self.currentTime = targetTime
         
         activeSeekEpoch &+= 1
@@ -316,16 +317,21 @@ public class AudioPlayerService {
 
     private func findTrackIndexAndOffset(for targetTime: TimeInterval) -> (index: Int, offset: TimeInterval) {
         guard let session = session, !session.audioTracks.isEmpty else { return (0, 0) }
+        
+        let totalDuration = session.audioTracks.last.map { $0.startOffset + $0.duration } ?? 0
+        let clampedTarget = totalDuration > 0 ? max(0, min(targetTime, totalDuration)) : max(0, targetTime)
+        
         for (index, track) in session.audioTracks.enumerated() {
             let isLast = index == session.audioTracks.count - 1
             let trackEnd = track.startOffset + track.duration
-            if targetTime >= track.startOffset && (isLast ? targetTime <= trackEnd : targetTime < trackEnd) {
-                return (index, max(0, targetTime - track.startOffset))
+            if clampedTarget >= track.startOffset && (isLast ? clampedTarget <= trackEnd : clampedTarget < trackEnd) {
+                let offset = max(0, min(track.duration, clampedTarget - track.startOffset))
+                return (index, offset)
             }
         }
         let lastIdx = session.audioTracks.count - 1
         let track = session.audioTracks[lastIdx]
-        let offset = max(0, targetTime - track.startOffset)
+        let offset = max(0, min(track.duration, clampedTarget - track.startOffset))
         return (lastIdx, offset)
     }
 

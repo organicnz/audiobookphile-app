@@ -63,4 +63,39 @@ final class AudioPlayerServiceTests: XCTestCase {
         service.seek(to: -50)
         XCTAssertEqual(service.currentTime, 0)
     }
+
+    func testSeekWithZeroInitialDurationFallback() async throws {
+        let service = AudioPlayerService.shared
+        
+        let dummySession = PlaybackSession(
+            id: "test-session-zero-dur",
+            userId: "test-user",
+            libraryId: "lib-1",
+            libraryItemId: "item-2",
+            episodeId: nil,
+            displayTitle: "Test Audiobook Zero Dur",
+            displayAuthor: "Test Author",
+            coverPath: nil,
+            duration: 1200,
+            playMethod: 0,
+            mediaPlayer: "AVQueuePlayer",
+            mediaType: "book",
+            audioTracks: [
+                AudioTrack(index: 0, startOffset: 0, duration: 600, title: "Part 1", contentUrl: "https://example.com/1.mp3", mimeType: "audio/mp3", codec: "mp3"),
+                AudioTrack(index: 1, startOffset: 600, duration: 600, title: "Part 2", contentUrl: "https://example.com/2.mp3", mimeType: "audio/mp3", codec: "mp3")
+            ],
+            chapters: [],
+            manifestUrl: nil,
+            currentTime: 0,
+            playbackRate: 1.0,
+            startedAt: Date(),
+            updatedAt: Date()
+        )
+        service.session = dummySession
+        service.duration = 0 // Simulating uninitialized service duration
+        
+        // Seek to 750 (Part 2)
+        service.seek(to: 750)
+        XCTAssertEqual(service.currentTime, 750, "Should fall back to session duration and not clamp to 0")
+    }
 }

@@ -96,11 +96,10 @@ public class AudioPlayerEngine {
         #endif
     }
     
-    public func seek(to time: CMTime, completionHandler: @escaping (Bool) -> Void) {
+    public func seek(to time: CMTime, completionHandler: @escaping @Sendable (Bool) -> Void) {
         #if !SKIP && !os(Android)
         if let player = player {
-            let tolerance = CMTime(seconds: 0.5, preferredTimescale: 600)
-            player.seek(to: time, toleranceBefore: tolerance, toleranceAfter: tolerance, completionHandler: completionHandler)
+            player.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero, completionHandler: completionHandler)
         } else {
             completionHandler(false)
         }
@@ -152,10 +151,10 @@ public class AudioPlayerEngine {
         }
 
         currentItemObserver = player.observe(\.currentItem, options: [.initial, .new]) { [weak self] player, _ in
-            if let item = player.currentItem {
-                self?.observeCurrentItemStatus(item)
-            }
             Task { @MainActor in
+                if let item = player.currentItem {
+                    self?.observeCurrentItemStatus(item)
+                }
                 self?.onCurrentItemChanged?(player.currentItem)
             }
         }
