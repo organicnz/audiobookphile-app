@@ -71,6 +71,8 @@ public struct AudioPlayerView: View {
             ChapterSelectionView(
                 chapters: viewModel.chapters,
                 currentChapter: viewModel.currentChapter,
+                bookTitle: viewModel.title,
+                bookAuthor: viewModel.author,
                 onSelect: { chapter in
                     viewModel.seek(to: chapter.start)
                     showChapters = false
