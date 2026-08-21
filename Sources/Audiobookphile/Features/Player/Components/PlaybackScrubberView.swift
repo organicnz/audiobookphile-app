@@ -67,12 +67,10 @@ public struct PlaybackScrubberView: View {
                         let dur = viewModel.duration > 0 ? viewModel.duration : 1
                         let targetTime = max(0, min(dur, draggedProgress * dur))
                         viewModel.seek(to: targetTime)
-                        
-                        // Keep optimistic drag position active briefly while the audio engine buffers
-                        Task { @MainActor in
-                            try? await Task.sleep(nanoseconds: 250_000_000)
-                            isDragging = false
-                        }
+                        // Monotonic seek epoch tracking in AudioPlayerService guarantees that
+                        // currentTime immediately reflects targetTime and periodic ticks are suppressed
+                        // until AVPlayer finishes seeking.
+                        isDragging = false
                     }
                 }
             )
