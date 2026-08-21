@@ -304,17 +304,49 @@ public class DownloadService: NSObject, URLSessionDownloadDelegate {
     }
 
     private func fileExtension(for mimeType: String, urlPath: String) -> String {
-        if mimeType.contains("audio/mpeg") || mimeType.contains("mp3") {
-            return "mp3"
-        } else if mimeType.contains("audio/x-m4a") || mimeType.contains("m4a") || mimeType.contains("audio/mp4") {
-            return "m4a"
-        } else if mimeType.contains("audio/ogg") || mimeType.contains("ogg") {
-            return "ogg"
-        } else if mimeType.contains("audio/flac") || mimeType.contains("flac") {
-            return "flac"
+        let pathExt = URL(fileURLWithPath: urlPath).pathExtension.lowercased()
+        let knownAudioExtensions: Set<String> = [
+            "m4b", "mp3", "m4a", "flac", "opus", "ogg", "oga", "ogv",
+            "aac", "wav", "webm", "webma", "wma", "aiff", "aif",
+            "caf", "awb", "mka", "mkv", "mp4"
+        ]
+        if !pathExt.isEmpty && knownAudioExtensions.contains(pathExt) {
+            return pathExt
         }
-        let ext = URL(fileURLWithPath: urlPath).pathExtension
-        return ext.isEmpty ? "m4a" : ext
+
+        let lowerMime = mimeType.lowercased()
+        if lowerMime.contains("audio/x-m4b") || lowerMime.contains("m4b") {
+            return "m4b"
+        } else if lowerMime.contains("audio/mpeg") || lowerMime.contains("mp3") {
+            return "mp3"
+        } else if lowerMime.contains("audio/x-m4a") || lowerMime.contains("m4a") {
+            return "m4a"
+        } else if lowerMime.contains("audio/mp4") {
+            return pathExt == "m4b" ? "m4b" : "m4a"
+        } else if lowerMime.contains("audio/flac") || lowerMime.contains("flac") {
+            return "flac"
+        } else if lowerMime.contains("audio/opus") || lowerMime.contains("opus") {
+            return "opus"
+        } else if lowerMime.contains("audio/ogg") || lowerMime.contains("ogg") {
+            return "ogg"
+        } else if lowerMime.contains("audio/aac") || lowerMime.contains("aac") {
+            return "aac"
+        } else if lowerMime.contains("audio/wav") || lowerMime.contains("audio/x-wav") || lowerMime.contains("wav") {
+            return "wav"
+        } else if lowerMime.contains("audio/webm") || lowerMime.contains("webm") {
+            return "webm"
+        } else if lowerMime.contains("audio/x-ms-wma") || lowerMime.contains("wma") {
+            return "wma"
+        } else if lowerMime.contains("audio/aiff") || lowerMime.contains("audio/x-aiff") || lowerMime.contains("aiff") || lowerMime.contains("aif") {
+            return "aiff"
+        } else if lowerMime.contains("audio/x-caf") || lowerMime.contains("caf") {
+            return "caf"
+        } else if lowerMime.contains("audio/amr-wb") || lowerMime.contains("awb") {
+            return "awb"
+        } else if lowerMime.contains("audio/x-matroska") || lowerMime.contains("mka") {
+            return "mka"
+        }
+        return pathExt.isEmpty ? "m4a" : pathExt
     }
 
     private func loadDownloads() {
