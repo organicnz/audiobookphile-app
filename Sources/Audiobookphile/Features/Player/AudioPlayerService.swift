@@ -301,9 +301,10 @@ public class AudioPlayerService {
     private func findTrackIndexAndOffset(for targetTime: TimeInterval) -> (index: Int, offset: TimeInterval) {
         guard let session = session, !session.audioTracks.isEmpty else { return (0, 0) }
         for (index, track) in session.audioTracks.enumerated() {
+            let isLast = index == session.audioTracks.count - 1
             let trackEnd = track.startOffset + track.duration
-            if targetTime >= track.startOffset && targetTime < trackEnd {
-                return (index, targetTime - track.startOffset)
+            if targetTime >= track.startOffset && (isLast ? targetTime <= trackEnd : targetTime < trackEnd) {
+                return (index, max(0, targetTime - track.startOffset))
             }
         }
         let lastIdx = session.audioTracks.count - 1
@@ -469,7 +470,7 @@ public class AudioPlayerService {
             // Capture the seekId to ensure we clear the correct one
             let seekId = self.currentSeekID ?? UUID()
             
-            if pendingSeek > 0.1 {
+            if pendingSeek > 0.01 {
                 executeSeek(to: pendingSeek, seekId: seekId, wasPlaying: self.isPlaying)
             } else {
                 if self.currentSeekID == seekId {

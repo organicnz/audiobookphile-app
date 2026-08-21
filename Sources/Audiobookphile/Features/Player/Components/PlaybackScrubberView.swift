@@ -26,7 +26,11 @@ public struct PlaybackScrubberView: View {
 
     // The time value shown in the left timestamp label
     private var displayTime: TimeInterval {
-        isDragging ? viewModel.duration * draggedProgress : viewModel.currentTime
+        if isDragging {
+            let dur = viewModel.duration > 0 ? viewModel.duration : 1
+            return max(0, min(dur, dur * draggedProgress))
+        }
+        return viewModel.currentTime
     }
 
     public var body: some View {
@@ -50,18 +54,25 @@ public struct PlaybackScrubberView: View {
                             isDragging = true
                         }
                         let dur = viewModel.duration > 0 ? viewModel.duration : 1
-                        draggedProgress = newValue / dur
+                        draggedProgress = max(0, min(1, newValue / dur))
                     }
                 ),
-                in: 0...(viewModel.duration > 0 ? viewModel.duration : 1),
+                in: 0...max(1, viewModel.duration),
                 onEditingChanged: { editing in
-                    if editing && !isDragging {
+                    if editing {
+                        isDragging = true
                         let dur = viewModel.duration > 0 ? viewModel.duration : 1
-                        draggedProgress = viewModel.currentTime / dur
-                    }
-                    isDragging = editing
-                    if !editing {
-                        viewModel.seek(to: draggedProgress * viewModel.duration)
+                        draggedProgress = max(0, min(1, viewModel.currentTime / dur))
+                    } else {
+                        let dur = viewModel.duration > 0 ? viewModel.duration : 1
+                        let targetTime = max(0, min(dur, draggedProgress * dur))
+                        viewModel.seek(to: targetTime)
+                        
+                        // Keep optimistic drag position active briefly while the audio engine buffers
+                        Task { @MainActor in
+                            try? await Task.sleep(nanoseconds: 250_000_000)
+                            isDragging = false
+                        }
                     }
                 }
             )
