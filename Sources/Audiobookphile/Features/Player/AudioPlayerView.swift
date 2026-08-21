@@ -32,7 +32,7 @@ public struct AudioPlayerView: View {
     @State var colorLoader = DynamicColorLoader()
 
     private var coverIsLight: Bool {
-        colorLoader.textColor == DesignTokens.Color.foreground
+        colorLoader.isLight
     }
 
     private var coverURL: URL? {
@@ -126,7 +126,7 @@ public struct AudioPlayerView: View {
 
     private var backgroundLayer: some View {
         ZStack {
-            // Apple Music-style dynamic cover art background
+            // Apple Music-style dynamic cover art background with rich fallback
             if let url = coverURL {
                 GeometryReader { proxy in
                     SmartAsyncImage(url: url) { image in
@@ -139,20 +139,20 @@ public struct AudioPlayerView: View {
                             .rotationEffect(.degrees(isAnimatingBackground ? 10 : -10))
                             .offset(x: isAnimatingBackground ? -20 : 20, y: isAnimatingBackground ? -20 : 20)
                     } placeholder: {
-                        colorLoader.backgroundColor
+                        FluidAuraBackground(baseColor: colorLoader.backgroundColor)
                     }
                     .frame(width: proxy.size.width, height: proxy.size.height)
                     .clipped()
                 }
             } else {
-                Color.appBackground
+                FluidAuraBackground(baseColor: colorLoader.backgroundColor)
             }
 
             // Darken/Blend overlay to ensure text is readable
             LinearGradient(
                 colors: [
-                    DesignTokens.Color.surface.opacity(0.3),
-                    DesignTokens.Color.background.opacity(0.6)
+                    DesignTokens.Color.surface.opacity(0.25),
+                    DesignTokens.Color.background.opacity(0.55)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
@@ -183,7 +183,7 @@ public struct AudioPlayerView: View {
                 .padding(.vertical, 20)
 
             // Hardware vDSP Audio Spectrum Visualizer
-            VDSPAudioVisualizer(isPlaying: viewModel.isPlaying, color: coverIsLight ? DesignTokens.Color.foreground : Color.appPrimary)
+            VDSPAudioVisualizer(isPlaying: viewModel.isPlaying, color: coverIsLight ? DesignTokens.Color.background : Color.appPrimary)
                 .padding(.bottom, 12)
 
             // Title and author
@@ -231,7 +231,7 @@ public struct AudioPlayerView: View {
             } label: {
                 Image(systemName: "chevron.down")
                     .font(.title2)
-                    .foregroundStyle(coverIsLight ? DesignTokens.Color.foreground : DesignTokens.Color.background)
+                    .foregroundStyle(coverIsLight ? DesignTokens.Color.background : DesignTokens.Color.foreground)
             }
 
             Spacer()
@@ -243,7 +243,7 @@ public struct AudioPlayerView: View {
             } label: {
                 Image(systemName: isUiLocked ? "lock.fill" : "lock.open")
                     .font(.title2)
-                    .foregroundStyle(isUiLocked ? Color.appPrimary : (coverIsLight ? DesignTokens.Color.foreground : DesignTokens.Color.background))
+                    .foregroundStyle(isUiLocked ? Color.appPrimary : (coverIsLight ? DesignTokens.Color.background : DesignTokens.Color.foreground))
             }
             .padding(.trailing, 16)
 
@@ -252,7 +252,7 @@ public struct AudioPlayerView: View {
             } label: {
                 Image(systemName: "ellipsis")
                     .font(.title2)
-                    .foregroundStyle(coverIsLight ? DesignTokens.Color.foreground : DesignTokens.Color.background)
+                    .foregroundStyle(coverIsLight ? DesignTokens.Color.background : DesignTokens.Color.foreground)
             }
         }
         .padding(.horizontal, 24)
@@ -264,13 +264,13 @@ public struct AudioPlayerView: View {
             Text(viewModel.currentChapterTitle.isEmpty ? viewModel.title : viewModel.currentChapterTitle)
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundStyle(coverIsLight ? DesignTokens.Color.foreground : DesignTokens.Color.background)
+                .foregroundStyle(coverIsLight ? DesignTokens.Color.background : DesignTokens.Color.foreground)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
 
             Text(viewModel.author)
                 .font(.headline)
-                .foregroundStyle((coverIsLight ? DesignTokens.Color.foreground : DesignTokens.Color.background).opacity(0.7))
+                .foregroundStyle((coverIsLight ? DesignTokens.Color.background : DesignTokens.Color.foreground).opacity(0.7))
                 .multilineTextAlignment(.center)
                 .lineLimit(1)
         }

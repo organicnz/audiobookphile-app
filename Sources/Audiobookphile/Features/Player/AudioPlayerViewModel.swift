@@ -22,7 +22,9 @@ public class AudioPlayerViewModel {
     public var author: String { session.displayAuthor }
     public var duration: TimeInterval {
         let actual = AudioPlayerService.shared.duration
-        return actual > 0 ? actual : session.duration
+        if actual > 0 { return actual }
+        if session.duration > 0 { return session.duration }
+        return session.audioTracks.reduce(0) { $0 + $1.duration }
     }
     public var chapters: [Chapter] { session.chapters }
 
@@ -47,7 +49,10 @@ public class AudioPlayerViewModel {
     }
 
     public var progress: Double {
-        duration > 0 ? currentTime / duration : 0.0
+        guard duration > 0, !currentTime.isNaN, !currentTime.isInfinite, !duration.isNaN, !duration.isInfinite else {
+            return 0.0
+        }
+        return min(1.0, max(0.0, currentTime / duration))
     }
 
     public var bufferedProgress: Double {
@@ -59,9 +64,10 @@ public class AudioPlayerViewModel {
     }
 
     public var sleepTimerRemainingPretty: String {
-        guard let remaining = AudioPlayerService.shared.sleepTimerRemaining else { return "" }
-        let minutes = Int(remaining) / 60
-        let seconds = Int(remaining) % 60
+        guard let remaining = AudioPlayerService.shared.sleepTimerRemaining, !remaining.isNaN, !remaining.isInfinite, remaining > 0 else { return "" }
+        let total = Int(remaining)
+        let minutes = total / 60
+        let seconds = total % 60
         return String(format: "%d:%02d", minutes, seconds)
     }
 
@@ -78,7 +84,7 @@ public class AudioPlayerViewModel {
     }
 
     public var totalProgress: Double {
-        duration > 0 ? currentTime / duration : 0
+        progress
     }
 
     public var currentTimePretty: String {
@@ -86,17 +92,18 @@ public class AudioPlayerViewModel {
     }
 
     public var totalTimeRemainingPretty: String {
-        "-" + formatTime(duration - currentTime)
+        let remaining = max(0, duration - currentTime)
+        return "-" + formatTime(remaining)
     }
 
     public var currentChapterTimePretty: String {
         guard let chapter = currentChapter else { return currentTimePretty }
-        return formatTime(currentTime - chapter.start)
+        return formatTime(max(0, currentTime - chapter.start))
     }
 
     public var timeRemainingPretty: String {
         guard let chapter = currentChapter else { return totalTimeRemainingPretty }
-        return "-" + formatTime(chapter.end - currentTime)
+        return "-" + formatTime(max(0, chapter.end - currentTime))
     }
 
     public init(session: PlaybackSession) {
@@ -159,9 +166,11 @@ public class AudioPlayerViewModel {
     public func showBookmarks() {}
 
     public func formatTime(_ time: TimeInterval) -> String {
-        let hours = Int(time) / 3600
-        let minutes = (Int(time) % 3600) / 60
-        let seconds = Int(time) % 60
+        guard !time.isNaN && !time.isInfinite && time >= 0 else { return "0:00" }
+        let totalSeconds = Int(time)
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        let seconds = totalSeconds % 60
 
         if hours > 0 {
             return String(format: "%d:%02d:%02d", hours, minutes, seconds)

@@ -62,7 +62,8 @@ public struct PlayerCoverArtView: View {
             )
             // AudioBooth signature topLeading Progress Badge
             .overlay(alignment: .topLeading) {
-                let progPercent = Int(viewModel.progress * 100)
+                let p = (viewModel.progress.isNaN || viewModel.progress.isInfinite) ? 0.0 : viewModel.progress
+                let progPercent = Int(min(1.0, max(0.0, p)) * 100)
                 audiobookphileBadge(text: "\(progPercent)%")
                     .padding(8)
             }
@@ -102,11 +103,31 @@ public struct PlayerCoverArtView: View {
 
     private var placeholderCover: some View {
         ZStack {
-            Image("BookPlaceholder", bundle: .module)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            backgroundColor.opacity(0.8),
+                            DesignTokens.Color.surface
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
 
-            Color.black.opacity(0.15)
+            VStack(spacing: 12) {
+                Image(systemName: "book.closed.fill")
+                    .font(.system(size: 48))
+                    .foregroundStyle(DesignTokens.Color.foreground.opacity(0.6))
+                
+                Text(viewModel.title)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundStyle(DesignTokens.Color.foreground.opacity(0.8))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .padding(.horizontal, 16)
+            }
         }
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
