@@ -76,18 +76,30 @@ public extension View {
 
 public struct SmartAsyncImage<Content: View, Placeholder: View>: View {
     let url: URL?
+    let maxPixelSize: CGFloat
     let content: (Image) -> Content
     let placeholder: () -> Placeholder
 
-    public init(url: URL?, @ViewBuilder content: @escaping (Image) -> Content, @ViewBuilder placeholder: @escaping () -> Placeholder) {
+    public init(
+        url: URL?,
+        maxPixelSize: CGFloat = CoverDecodeBudget.standard,
+        @ViewBuilder content: @escaping (Image) -> Content,
+        @ViewBuilder placeholder: @escaping () -> Placeholder
+    ) {
         self.url = url
+        self.maxPixelSize = maxPixelSize
         self.content = content
         self.placeholder = placeholder
     }
 
     public var body: some View {
         if let url = url {
-            CachedAsyncImage(url: url, content: content, placeholder: placeholder)
+            CachedAsyncImage(
+                url: url,
+                maxPixelSize: maxPixelSize,
+                content: content,
+                placeholder: placeholder,
+            )
         } else {
             placeholder()
         }

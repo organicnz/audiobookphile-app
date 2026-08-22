@@ -25,14 +25,14 @@ public struct MiniPlayerView: View {
             Color.clear
                 .frame(width: 44, height: 44)
                 .overlay {
-                    SmartAsyncImage(url: coverURL) { image in
+                    SmartAsyncImage(url: coverURL, maxPixelSize: CoverDecodeBudget.thumbnail) { image in
                         image
                             .resizable()
-                            .aspectRatio(contentMode: .fill)
+                            .scaledToFill()
                     } placeholder: {
                         Image("BookPlaceholder", bundle: .module)
                             .resizable()
-                            .aspectRatio(contentMode: .fill)
+                            .scaledToFill()
                     }
                 }
                 .clipped()

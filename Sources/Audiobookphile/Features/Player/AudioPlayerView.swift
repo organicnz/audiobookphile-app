@@ -129,7 +129,7 @@ public struct AudioPlayerView: View {
             // Apple Music-style dynamic cover art background with rich fallback
             if let url = coverURL {
                 GeometryReader { proxy in
-                    SmartAsyncImage(url: url) { image in
+                    SmartAsyncImage(url: url, maxPixelSize: CoverDecodeBudget.standard) { image in
                         image
                             .resizable()
                             .scaledToFill()

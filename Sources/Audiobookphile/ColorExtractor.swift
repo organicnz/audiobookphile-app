@@ -75,16 +75,30 @@ public class ColorExtractor {
             return cached
         }
 
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            if let image = UIImage(data: data),
-               let color = await extractColor(from: image) {
-                colorCache.setObject(color, forKey: cacheKey)
-                return color
-            }
-        } catch {
-            print("Failed to load image for color extraction: \(error)")
+        // Reuse an already-decoded bitmap when the player has one; otherwise
+        // fetch a tiny downsample — a 1px average needs nowhere near the
+        // provider's full resolution.
+        #if os(iOS)
+        var uiImage = await MainActor.run {
+            ImageMemoryCache.shared.cachedImage(for: url)
         }
+        if uiImage == nil, let (data, _) = try? await URLSession.shared.data(from: url) {
+            uiImage = await Task.detached(priority: .utility) {
+                downsampledImage(data: data, maxPixelSize: 64) ?? UIImage(data: data)
+            }.value
+        }
+        if let uiImage, let color = await extractColor(from: uiImage) {
+            colorCache.setObject(color, forKey: cacheKey)
+            return color
+        }
+        #else
+        if let (data, _) = try? await URLSession.shared.data(from: url),
+           let image = UIImage(data: data),
+           let color = await extractColor(from: image) {
+            colorCache.setObject(color, forKey: cacheKey)
+            return color
+        }
+        #endif
 
         return UIColor(red: 0.22, green: 0.22, blue: 0.22, alpha: 1.0) // Default dark gray
     }

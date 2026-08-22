@@ -22,10 +22,10 @@ public struct PlayerCoverArtView: View {
             ZStack {
                 if let url = coverURL {
                     // AudioBooth signature background blur backdrop
-                    SmartAsyncImage(url: url) { image in
+                    SmartAsyncImage(url: url, maxPixelSize: CoverDecodeBudget.player) { image in
                         image
                             .resizable()
-                            .aspectRatio(contentMode: .fill)
+                            .scaledToFill()
                     } placeholder: {
                         backgroundColor
                     }
@@ -34,10 +34,10 @@ public struct PlayerCoverArtView: View {
                     .opacity(0.4)
 
                     // AudioBooth unclipped foreground artwork (.fit)
-                    SmartAsyncImage(url: url) { image in
+                    SmartAsyncImage(url: url, maxPixelSize: CoverDecodeBudget.player) { image in
                         image
                             .resizable()
-                            .aspectRatio(contentMode: .fit)
+                            .scaledToFit()
                     } placeholder: {
                         placeholderCover
                     }
