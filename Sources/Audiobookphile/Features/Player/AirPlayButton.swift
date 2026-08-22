@@ -17,6 +17,7 @@ public struct AirPlayButton: View {
         #if os(iOS) && !SKIP
         AVRoutePickerViewWrapper(tintColor: UIColor(color))
             .frame(width: size, height: size)
+            .accessibilityLabel("AirPlay")
         #else
         // Fallback for Android/Skip compilation
         Image(systemName: "airplayaudio")
@@ -24,6 +25,7 @@ public struct AirPlayButton: View {
             .foregroundStyle(color)
             .frame(width: size, height: size)
             .opacity(0.5)
+            .accessibilityLabel("AirPlay")
         #endif
     }
 }

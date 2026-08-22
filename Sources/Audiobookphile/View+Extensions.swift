@@ -205,27 +205,6 @@ public struct ScrollOffsetPreferenceKey: PreferenceKey {
     }
 }
 
-// MARK: - Debugging
-
-extension View {
-    /// Debug modifier to print view updates
-    func debugPrint(_ value: String) -> some View {
-        #if DEBUG
-        print("[Debug] \(value)")
-        #endif
-        return self
-    }
-
-    /// Debug modifier to add colored border
-    func debugBorder(_ color: Color = .red) -> some View {
-        #if DEBUG
-        return self.border(color, width: 1)
-        #else
-        return self
-        #endif
-    }
-}
-
 // MARK: - Redacted/Loading State
 
 extension View {
@@ -244,7 +223,7 @@ extension View {
     /// Hide keyboard on tap
     func hideKeyboardOnTap() -> some View {
         self.onTapGesture {
-            #if os(iOS)
+            #if os(iOS) && !SKIP
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             #endif
         }

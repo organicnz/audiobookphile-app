@@ -3,6 +3,9 @@ name: Magic-link email can be requested
 tags:
   - auth
 ---
+# Credentials via generated subflow — see _login.yaml for why env vars can't
+# be interpolated directly into inputText.
+- runFlow: _credentials.yaml
 - launchApp:
     clearState: true
 - runFlow:
@@ -22,11 +25,11 @@ tags:
     commands:
       - tapOn:
           id: "abp_server_url_field"
-      - inputText: ${SERVER_URL}
+      - inputText: ${output.server}
       - pressKey: Enter
       - tapOn:
           id: "abp_email_field"
-      - inputText: ${TEST_EMAIL}
+      - inputText: ${output.email}
       - pressKey: Enter
       - scrollUntilVisible:
           element:

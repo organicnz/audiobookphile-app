@@ -37,10 +37,10 @@ public struct BookDetailHeader: View {
                         .multilineTextAlignment(.center)
                 }
 
-                if let narrator = detailed.media.metadata.narratorName {
+                if let narrator = detailed.media.metadata.narratorName, !narrator.isEmpty {
                     Text("Narrated by \(narrator)")
                         .font(.subheadline)
-                        DesignTokens.Color.foreground.opacity(0.65)
+                        .foregroundStyle(DesignTokens.Color.foreground.opacity(0.65))
                         .multilineTextAlignment(.center)
                 }
             }
@@ -52,7 +52,7 @@ public struct BookDetailHeader: View {
         return SmartAsyncImage(url: coverURL) { image in
             image
                 .resizable()
-                .aspectRatio(contentMode: .fit)
+                .scaledToFit()
         } placeholder: {
             placeholderCover
         }
@@ -61,7 +61,7 @@ public struct BookDetailHeader: View {
             SmartAsyncImage(url: coverURL) { image in
                 image
                     .resizable()
-                    .aspectRatio(contentMode: .fill)
+                    .scaledToFill()
                     .blur(radius: 10)
                     .opacity(0.4)
             } placeholder: {
@@ -91,7 +91,7 @@ public struct BookDetailHeader: View {
         ZStack {
             Image("BookPlaceholder", bundle: .module)
                 .resizable()
-                .aspectRatio(contentMode: .fill)
+                .scaledToFill()
 
             DesignTokens.Color.background.opacity(0.15)
         }

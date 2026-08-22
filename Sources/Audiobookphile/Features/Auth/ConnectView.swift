@@ -35,6 +35,7 @@ public struct ConnectView: View {
     @State var isAnimating = false
     @State var appearPhase = 0
     @State var magicLinkStatus: MagicLinkStatus = .idle
+    @FocusState private var focusedField: ConnectField?
 
     public init() {}
 
@@ -48,11 +49,15 @@ public struct ConnectView: View {
     public var body: some View {
         @Bindable var appState = appState
         return ZStack(alignment: .topTrailing) {
-            // Fluid Aura background
+            // Fluid Aura background — the only layers that should bleed under
+            // the safe area; the form below must keep its keyboard-avoidance
+            // insets or the lower fields get covered instead of scrolled up.
             FluidAuraBackground()
+                .ignoresSafeArea()
 
             // Particle effects
             GlassParticlesView(particleCount: 20, colors: [DesignTokens.Color.foreground.opacity(0.15), .appPrimary.opacity(0.1)])
+                .ignoresSafeArea()
 
             // Dismiss Button for Sheet presentation
             Button {
@@ -64,6 +69,7 @@ public struct ConnectView: View {
                     .padding(20)
             }
             .accessibilityIdentifier("abp_connect_dismiss")
+            .accessibilityLabel("Close")
             .zIndex(100)
 
             ScrollView {
@@ -90,8 +96,8 @@ public struct ConnectView: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 60)
             }
+            .hideKeyboardOnTap()
         }
-        .ignoresSafeArea()
         .alert("Connection Error", isPresented: $viewModel.showError) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -142,7 +148,7 @@ public struct ConnectView: View {
             // App icon
             Image("Logo", bundle: .module)
                 .resizable()
-                .aspectRatio(contentMode: .fit)
+                .scaledToFit()
                 .frame(width: 120, height: 120)
                 .scaleEffect(isAnimating ? 1.05 : 1.0)
                 .shadow(color: DesignTokens.Color.accent.opacity(0.5), radius: 25, x: 0, y: 10)
@@ -170,7 +176,10 @@ public struct ConnectView: View {
                 placeholder: "Server URL",
                 icon: "server.rack",
                 autocapitalize: false,
-                identifier: "abp_server_url_field"
+                identifier: "abp_server_url_field",
+                focus: $focusedField,
+                field: .server,
+                onSubmit: { focusedField = .email }
             )
 
             // Username / Email
@@ -179,7 +188,10 @@ public struct ConnectView: View {
                 placeholder: "Email address",
                 icon: "envelope.fill",
                 autocapitalize: false,
-                identifier: "abp_email_field"
+                identifier: "abp_email_field",
+                focus: $focusedField,
+                field: .email,
+                onSubmit: { focusedField = .password }
             )
 
             // Password
@@ -188,7 +200,10 @@ public struct ConnectView: View {
                 placeholder: "Password",
                 icon: "lock.fill",
                 showPassword: $showPassword,
-                identifier: "abp_password_field"
+                identifier: "abp_password_field",
+                focus: $focusedField,
+                field: .password,
+                onSubmit: { focusedField = nil }
             )
 
             // Connect button
@@ -398,18 +413,46 @@ class ConnectViewModel {
 
 // MARK: - Supporting Views
 
+/// Focus targets for the connect form — the return key walks server → email
+/// → password and then dismisses, so the keyboard never traps the lower
+/// fields behind the prediction bar on small screens.
+enum ConnectField: Hashable {
+    case server
+    case email
+    case password
+}
+
+/// Applies an optional `@FocusState` binding without forcing every call site
+/// to participate in focus handling.
+struct ConnectFieldFocus: ViewModifier {
+    var focus: FocusState<ConnectField?>.Binding?
+    var field: ConnectField?
+
+    func body(content: Content) -> some View {
+        if let focus, let field {
+            content.focused(focus, equals: field)
+        } else {
+            content
+        }
+    }
+}
+
 struct GlassTextField: View {
     @Binding var text: String
     let placeholder: String
     let icon: String
     var autocapitalize: Bool = true
     var identifier: String? = nil
+    var focus: FocusState<ConnectField?>.Binding? = nil
+    var field: ConnectField? = nil
+    var onSubmit: (() -> Void)? = nil
 
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .foregroundStyle(Color.primary.opacity(0.6))
                 .frame(width: 24)
+                .accessibilityHidden(true)
 
             TextField(placeholder, text: $text)
                 .textFieldStyle(.plain)
@@ -419,6 +462,8 @@ struct GlassTextField: View {
                 .textInputAutocapitalization(autocapitalize ? .sentences : .none)
                 #endif
                 .autocorrectionDisabled()
+                .modifier(ConnectFieldFocus(focus: focus, field: field))
+                .onSubmit { onSubmit?() }
         }
         .padding(16)
         .background(.regularMaterial)
@@ -436,12 +481,16 @@ struct GlassSecureField: View {
     let icon: String
     @Binding var showPassword: Bool
     var identifier: String? = nil
+    var focus: FocusState<ConnectField?>.Binding? = nil
+    var field: ConnectField? = nil
+    var onSubmit: (() -> Void)? = nil
 
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .foregroundStyle(Color.primary.opacity(0.6))
                 .frame(width: 24)
+                .accessibilityHidden(true)
 
             if showPassword {
                 TextField(placeholder, text: $text)
@@ -452,11 +501,15 @@ struct GlassSecureField: View {
                     .textInputAutocapitalization(.none)
                     #endif
                     .autocorrectionDisabled()
+                    .modifier(ConnectFieldFocus(focus: focus, field: field))
+                    .onSubmit { onSubmit?() }
             } else {
                 SecureField(placeholder, text: $text)
                     .textFieldStyle(.plain)
                     .foregroundStyle(Color.primary)
                     .accessibilityIdentifier(identifier ?? "")
+                    .modifier(ConnectFieldFocus(focus: focus, field: field))
+                    .onSubmit { onSubmit?() }
             }
 
             Button {
@@ -465,6 +518,7 @@ struct GlassSecureField: View {
                 Image(systemName: showPassword ? "eye.slash" : "eye")
                     .foregroundStyle(Color.primary.opacity(0.6))
             }
+            .accessibilityLabel(showPassword ? "Hide Password" : "Show Password")
         }
         .padding(16)
         .background(.regularMaterial)

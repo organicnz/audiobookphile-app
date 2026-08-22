@@ -28,7 +28,74 @@ public struct Book: Identifiable, Codable, Hashable, Sendable {
 
     // Metadata
     public var title: String {
+        Book.sanitizeDisplayTitle(media.metadata.title)
+    }
+
+    /// The title exactly as delivered by the payload, before display cleanup.
+    public var rawTitle: String {
         media.metadata.title
+    }
+
+    /// Strips junk suffixes that scraped/provider data leaves on book titles
+    /// ("Mortality [96] Unabridged", "Discourses on Livy (1517)",
+    /// "Brain Droppings (Humor)"). Subtitle, series, and year already arrive
+    /// as separate metadata fields rendered on their own, so these trailing
+    /// tokens are redundant noise in every title surface (cards, detail,
+    /// search). Rules, applied repeatedly to catch combinations:
+    ///   - trailing `[<digits>]`
+    ///   - trailing "Unabridged"/"Abridged" (either case)
+    ///   - a trailing parenthesized group of at most two words — real
+    ///     parenthesized subtitles are longer ("… (Falettinme Be Mice Elf
+    ///     Agin)"), short ones are tag noise (genre, year, format).
+    public static func sanitizeDisplayTitle(_ title: String) -> String {
+        var result = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        var changed = true
+        while changed {
+            changed = false
+            // trailing "[<digits>]"
+            if let group = trailingDelimitedGroup(result, open: "[", close: "]"),
+               !group.inner.isEmpty, group.inner.allSatisfy({ $0.isNumber }) {
+                result = trimmedPrefix(result, upTo: group.openIndex)
+                changed = true
+            }
+            // trailing "Unabridged"/"Abridged" as a whole word
+            let lower = result.lowercased()
+            let wordLength = lower.hasSuffix("unabridged") ? 10 : (lower.hasSuffix("abridged") ? 8 : 0)
+            if wordLength > 0 {
+                let cut = result.index(result.endIndex, offsetBy: -wordLength)
+                if cut == result.startIndex || result[result.index(before: cut)] == " " {
+                    result = String(result[..<cut]).trimmingCharacters(in: .whitespacesAndNewlines)
+                    changed = true
+                }
+            }
+            // trailing "(…)" of at most two words
+            if let group = trailingDelimitedGroup(result, open: "(", close: ")") {
+                let words = group.inner.split(separator: " ")
+                    .filter { !$0.isEmpty }
+                if !words.isEmpty, words.count <= 2 {
+                    result = trimmedPrefix(result, upTo: group.openIndex)
+                    changed = true
+                }
+            }
+        }
+        return result.isEmpty ? title : result
+    }
+
+    /// If the string ends with a flat `open…close` group (no nested
+    /// delimiters), returns its inner text and the index of the opening
+    /// delimiter.
+    private static func trailingDelimitedGroup(_ s: String, open: Character, close: Character) -> (inner: String, openIndex: String.Index)? {
+        guard s.hasSuffix(String(close)) else { return nil }
+        guard let o = s.lastIndex(of: open), o < s.index(before: s.endIndex) else { return nil }
+        let inner = String(s[s.index(after: o)..<s.index(before: s.endIndex)])
+        guard !inner.contains(String(open)), !inner.contains(String(close)) else { return nil }
+        return (inner, o)
+    }
+
+    /// Drops everything from `index` onward and trims the dangling separator
+    /// whitespace left behind.
+    private static func trimmedPrefix(_ s: String, upTo index: String.Index) -> String {
+        String(s[..<index]).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     public var author: String? {

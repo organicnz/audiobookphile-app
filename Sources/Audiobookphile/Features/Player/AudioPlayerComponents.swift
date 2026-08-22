@@ -45,6 +45,8 @@ public struct GlassIconButton: View {
         case "list.bullet": return "Chapters"
         case "backward.end.fill": return "Previous Chapter"
         case "forward.end.fill": return "Next Chapter"
+        case "play.fill": return "Play"
+        case "pause.fill": return "Pause"
         default: return "Button"
         }
     }
@@ -90,7 +92,9 @@ public struct GlassIconButton: View {
         }
         .buttonStyle(ScaleButtonStyle())
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(label ?? defaultLabel))
+        // String overload: the Text overload is dropped on some platforms,
+        // leaking the raw SF Symbol description ("Go To End") to screen readers.
+        .accessibilityLabel(label ?? defaultLabel)
         .accessibilityAddTraits(.isButton)
     }
 }
@@ -171,6 +175,9 @@ public struct GlassPillButton: View {
             .shadow(color: isActive ? activeColor.opacity(0.2) : Color.black.opacity(0.12), radius: 6, x: 0, y: 3)
         }
         .buttonStyle(ScaleButtonStyle())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
+        .accessibilityAddTraits(.isButton)
     }
 }
 

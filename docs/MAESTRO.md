@@ -31,6 +31,20 @@ The env source of truth lives in `audiobookphile-backend/env/local.env`
 | `TEST_EMAIL` / `TEST_PASSWORD` | password login, magic-link request | Account **without 2FA** — the 2FA sheet would divert the login assertion. |
 | `MAGIC_LINK_URL` | `12_auth_magic_link_deeplink.yaml` | Fresh single-use deep link; leave empty to skip. |
 
+**Credentials reach flows via `flows/_credentials.yaml` (generated, gitignored),
+not `${ENV_VAR}` interpolation**: Maestro 2.8 mangles any interpolated value
+containing `:` or `/` — `inputText: ${SERVER_URL}` types the literal
+`undefined`. `sync-env.sh` writes the values as `evalScript` `output.*`
+variables, which pass through verbatim; flows `runFlow: _credentials.yaml`
+first and reference `${output.server}` / `${output.email}` /
+`${output.password}`.
+
+The runner also patches runtime config into the built app's `Info.plist`
+(`ServerURL`, `SupabaseURL`, `SupabaseAnonKey`, then re-signs ad hoc). This
+cannot go through `Skip.env`: xcconfig treats `//` as a comment, so URLs
+truncate to `http:` and the local placeholder anon key (`testkey`) gets baked
+instead — the app then sends a garbage `apikey` and every login 401s.
+
 Build the app for the simulator, then boot one. **The build must be code-signed
 (ad-hoc; the default for simulator destinations) — `CODE_SIGNING_ALLOWED=NO`
 breaks the login flow**: an unsigned app cannot write to the keychain, so

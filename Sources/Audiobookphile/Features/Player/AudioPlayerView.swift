@@ -132,7 +132,7 @@ public struct AudioPlayerView: View {
                     SmartAsyncImage(url: url) { image in
                         image
                             .resizable()
-                            .aspectRatio(contentMode: .fill)
+                            .scaledToFill()
                             .frame(width: proxy.size.width * 1.5, height: proxy.size.height * 1.5)
                             .blur(radius: 100, opaque: true)
                             .scaleEffect(isAnimatingBackground ? 1.1 : 1.0)
@@ -233,6 +233,7 @@ public struct AudioPlayerView: View {
                     .font(.title2)
                     .foregroundStyle(coverIsLight ? DesignTokens.Color.background : DesignTokens.Color.foreground)
             }
+            .accessibilityLabel("Close Player")
 
             Spacer()
 
@@ -245,6 +246,7 @@ public struct AudioPlayerView: View {
                     .font(.title2)
                     .foregroundStyle(isUiLocked ? Color.appPrimary : (coverIsLight ? DesignTokens.Color.background : DesignTokens.Color.foreground))
             }
+            .accessibilityLabel(isUiLocked ? "Unlock Controls" : "Lock Controls")
             .padding(.trailing, 16)
 
             Button {
@@ -254,6 +256,7 @@ public struct AudioPlayerView: View {
                     .font(.title2)
                     .foregroundStyle(coverIsLight ? DesignTokens.Color.background : DesignTokens.Color.foreground)
             }
+            .accessibilityLabel("More Options")
         }
         .padding(.horizontal, 24)
     }

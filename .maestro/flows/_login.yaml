@@ -5,6 +5,10 @@
 appId: club.foodshare.audiobookphile
 name: Sign in with password
 ---
+# Credentials come from the generated, gitignored _credentials.yaml: bare
+# ${ENV_VAR} interpolation in inputText mangles values containing ':' or '/'
+# (Maestro 2.8), so the URL must be injected via evalScript output variables.
+- runFlow: _credentials.yaml
 - launchApp:
     clearState: true
 # A stale keychain session (which survives clearState and reinstall) can fail
@@ -29,16 +33,16 @@ name: Sign in with password
       # stealing the tap and leaving the password typed into the email field).
       - tapOn:
           id: "abp_server_url_field"
-      - inputText: ${SERVER_URL}
+      - inputText: ${output.server}
       - tapOn:
           id: "abp_email_field"
-      - inputText: ${TEST_EMAIL}
+      - inputText: ${output.email}
       # Dismiss the keyboard: its "Passwords" QuickType bar covers the password
       # field below, so a tap on the field hits the bar instead of focusing it.
       - pressKey: Enter
       - tapOn:
           id: "abp_password_field"
-      - inputText: ${TEST_PASSWORD}
+      - inputText: ${output.password}
       - pressKey: Enter
       - tapOn: "Sign In"
       # The iOS password-autofill system sheet ("Save Password?") covers the app

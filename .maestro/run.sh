@@ -27,6 +27,24 @@ if [ -f .maestro/.env ]; then
   set -a; . .maestro/.env; set +a
 fi
 
+# Bake runtime config into the built app's Info.plist. Values cannot travel
+# via Skip.env: xcconfig treats '//' as a comment, so URLs truncate ('http:')
+# and the placeholder anon key ('testkey') gets baked instead — the app then
+# sends a garbage apikey and every login 401s. Patching the built plist (then
+# re-signing ad hoc, which the simulator accepts) sidesteps xcconfig entirely.
+patch_app_plist() {
+  local web_env="../audiobookphile-web/.env.local"
+  local sb_url sb_key
+  sb_url="$(grep -E '^NEXT_PUBLIC_SUPABASE_URL=' "$web_env" 2>/dev/null | cut -d= -f2- | tr -d '"')"
+  sb_key="$(grep -E '^NEXT_PUBLIC_SUPABASE_ANON_KEY=' "$web_env" 2>/dev/null | cut -d= -f2- | tr -d '"')"
+  [ -n "${SERVER_URL:-}" ] && plutil -replace ServerURL -string "$SERVER_URL" "$1/Info.plist"
+  [ -n "$sb_url" ] && plutil -replace SupabaseURL -string "$sb_url" "$1/Info.plist"
+  [ -n "$sb_key" ] && plutil -replace SupabaseAnonKey -string "$sb_key" "$1/Info.plist"
+  codesign -f -s - "$1" >/dev/null 2>&1 || true
+  echo "patched Info.plist (ServerURL${sb_url:+, SupabaseURL${sb_key:+, SupabaseAnonKey}})"
+}
+patch_app_plist "$APP_PATH"
+
 # Maestro resolves ${VAR} in flows only from `-e KEY=VALUE` CLI flags, not the
 # process environment — forward the credential vars explicitly.
 ENV_ARGS=""

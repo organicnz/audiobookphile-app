@@ -88,9 +88,10 @@ public func audiobookphileServerMenuToolbarItem(
             }
         } label: {
             HStack(spacing: 6) {
-                Image(systemName: "server.rack")
+                Image(systemName: "books.vertical")
                     .font(.subheadline)
                     .foregroundStyle(Color.appPrimary)
+                    .accessibilityHidden(true)
                 Text(appState.currentLibrary?.name ?? "Books")
                     .font(.headline)
                     .fontWeight(.bold)
@@ -99,6 +100,7 @@ public func audiobookphileServerMenuToolbarItem(
                     .font(.caption2)
                     .fontWeight(.bold)
                     .foregroundStyle(Color.appPrimary)
+                    .accessibilityHidden(true)
             }
             .padding(.vertical, 6)
             .padding(.horizontal, 10)
@@ -108,6 +110,9 @@ public func audiobookphileServerMenuToolbarItem(
                 Capsule()
                     .stroke(Color.appPrimary.opacity(0.4), lineWidth: 1)
             )
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Switch Library")
+            .accessibilityAddTraits(.isButton)
         }
     }
 }
@@ -126,6 +131,7 @@ public func audiobookphileTrailingToolbarItems(
                 Image(systemName: "chart.bar.fill")
                     .font(.subheadline)
             }
+            .accessibilityLabel("Statistics")
             .tint(.primary)
 
             Button {
@@ -134,6 +140,7 @@ public func audiobookphileTrailingToolbarItems(
                 Image(systemName: "gear")
                     .font(.subheadline)
             }
+            .accessibilityLabel("Settings")
             .accessibilityIdentifier("abp_settings_button")
             .tint(.primary)
         }
