@@ -27,6 +27,10 @@ if [ -f .maestro/.env ]; then
   set -a; . .maestro/.env; set +a
 fi
 
+# The iOS driver occasionally outruns its default startup budget on loaded
+# machines (IOSDriverTimeoutException) — raise it unless the caller chose one.
+export MAESTRO_DRIVER_STARTUP_TIMEOUT="${MAESTRO_DRIVER_STARTUP_TIMEOUT:-180000}"
+
 # Bake runtime config into the built app's Info.plist. Values cannot travel
 # via Skip.env: xcconfig treats '//' as a comment, so URLs truncate ('http:')
 # and the placeholder anon key ('testkey') gets baked instead — the app then
