@@ -26,14 +26,14 @@ public struct Book: Identifiable, Codable, Hashable, Sendable {
     // Media Info
     public let media: BookMedia
 
-    // Metadata
+    // Metadata — media.metadata.title is sanitized once at decode time.
     public var title: String {
-        Book.sanitizeDisplayTitle(media.metadata.title)
+        media.metadata.title
     }
 
     /// The title exactly as delivered by the payload, before display cleanup.
     public var rawTitle: String {
-        media.metadata.title
+        media.metadata.rawTitle
     }
 
     /// Strips junk suffixes that scraped/provider data leaves on book titles
@@ -186,7 +186,11 @@ public struct BookMedia: Codable, Hashable, Sendable {
 
 // MARK: - Book Metadata
 public struct BookMetadata: Codable, Hashable, Sendable {
+    /// Display title — sanitized once at decode/init time (scraped suffix
+    /// tags stripped) so list rendering never re-runs the trim loop.
     public let title: String
+    /// The title exactly as delivered by the payload, before cleanup.
+    public let rawTitle: String
     public let subtitle: String?
     public let authorName: String?
     public let narratorName: String?
@@ -209,7 +213,8 @@ public struct BookMetadata: Codable, Hashable, Sendable {
     }
 
     public init(title: String, subtitle: String? = nil, authorName: String? = nil, narratorName: String? = nil, seriesName: String? = nil, genres: [String] = [], publishedYear: String? = nil, publishedDate: String? = nil, publisher: String? = nil, description: String? = nil, isbn: String? = nil, asin: String? = nil, language: String? = nil, explicit: Bool = false) {
-        self.title = title
+        self.rawTitle = title
+        self.title = Book.sanitizeDisplayTitle(title)
         self.subtitle = subtitle
         self.authorName = authorName
         self.narratorName = narratorName
@@ -227,7 +232,9 @@ public struct BookMetadata: Codable, Hashable, Sendable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        title = (try container.decodeIfPresent(String.self, forKey: .title)) ?? "Unknown Title"
+        let decodedTitle = (try container.decodeIfPresent(String.self, forKey: .title)) ?? "Unknown Title"
+        rawTitle = decodedTitle
+        title = Book.sanitizeDisplayTitle(decodedTitle)
         subtitle = try container.decodeIfPresent(String.self, forKey: .subtitle)
         authorName = try container.decodeIfPresent(String.self, forKey: .authorName)
         narratorName = try container.decodeIfPresent(String.self, forKey: .narratorName)
@@ -246,7 +253,8 @@ public struct BookMetadata: Codable, Hashable, Sendable {
 
 extension BookMetadata {
     public init(title: String, authorName: String?) {
-        self.title = title
+        self.rawTitle = title
+        self.title = Book.sanitizeDisplayTitle(title)
         self.subtitle = nil
         self.authorName = authorName
         self.narratorName = nil
