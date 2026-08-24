@@ -80,7 +80,17 @@ public final class TelemetryService: @unchecked Sendable {
         let deviceID: String
     }
 
-    private var config: Config?
+    // The class claims @unchecked Sendable because captureEvent/captureMessage
+    // are called from arbitrary threads (player, sync callbacks). The mutable
+    // `config` is therefore guarded by a lock — an unsynchronized read here
+    // could race configure()'s write at launch.
+    private let configLock = NSLock()
+    private var _config: Config?
+
+    private var config: Config? {
+        get { configLock.withLock { _config } }
+        set { configLock.withLock { _config = newValue } }
+    }
 
     private init() {}
 

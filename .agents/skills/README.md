@@ -2,7 +2,10 @@
 
 Curated third-party AI agent skills for this repository, sourced via
 [twostraws/Swift-Agent-Skills](https://github.com/twostraws/Swift-Agent-Skills).
-Each skill was reviewed before vendoring. Do not add skills without reading
+Each skill was reviewed before vendoring and pinned to the exact source
+commit it was copied from. `.claude/skills/*` are symlinks into this
+directory so both Claude Code (`.claude/skills/`) and generic agent
+loaders (`.agents/skills/`) discover the same files — edit only here. Do not add skills without reading
 them in full first.
 
 | Skill | Author | Source | License | Why it fits this repo |
