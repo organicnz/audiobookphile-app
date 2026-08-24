@@ -159,15 +159,31 @@ public class AudioPlayerService {
     }
 
     public func startPlayback(session: PlaybackSession) {
-        if self.session != nil {
-            Task {
-                await closeSession()
-            }
-        }
+        // Capture the outgoing session BEFORE swapping state. The old code
+        // spawned `Task { await closeSession() }` which reads `self.session`
+        // at execution time — by then it points at the NEW session, so the
+        // "cleanup" paused the new engine and engine.cleanup() destroyed the
+        // freshly built playback queue (dead/frozen player).
+        let outgoingSession = self.session
+        let outgoingTime = self.currentTime
+        let outgoingDuration = self.duration
 
         logger.info("startPlayback called - session id: \(session.id)")
 
         self.session = session
+
+        // Persist the replaced session's listening position. Deliberately does
+        // NOT touch the shared engine, sync timers, or player state — those now
+        // belong to the incoming session.
+        if let outgoing = outgoingSession, outgoing.id != session.id {
+            Task { [weak self] in
+                self?.syncManager.recordClosedSession(
+                    session: outgoing,
+                    syncTime: outgoingTime,
+                    syncDuration: outgoingDuration
+                )
+            }
+        }
         self.duration = session.duration
         self.currentTime = session.currentTime
         self.isPlaying = true

@@ -98,4 +98,56 @@ final class AudioPlayerServiceTests: XCTestCase {
         service.seek(to: 750)
         XCTAssertEqual(service.currentTime, 750, "Should fall back to session duration and not clamp to 0")
     }
+
+    /// Regression: swapping sessions used to spawn `Task { await closeSession() }`
+    /// which resolved `self.session` at execution time — i.e. the NEW session —
+    /// and engine.cleanup() destroyed the freshly built playback queue.
+    func testStartPlaybackSwapPreservesNewQueue() async throws {
+        let service = AudioPlayerService.shared
+
+        func makeSession(id: String) -> PlaybackSession {
+            PlaybackSession(
+                id: id,
+                userId: "test-user",
+                libraryId: "lib-1",
+                libraryItemId: "item-\(id)",
+                episodeId: nil,
+                displayTitle: "Book \(id)",
+                displayAuthor: "Author",
+                coverPath: nil,
+                duration: 1000,
+                playMethod: 0,
+                mediaPlayer: "AVQueuePlayer",
+                mediaType: "book",
+                audioTracks: [
+                    AudioTrack(index: 0, startOffset: 0, duration: 500, title: "Part 1", contentUrl: "https://example.com/\(id)-1.mp3", mimeType: "audio/mp3", codec: "mp3"),
+                    AudioTrack(index: 1, startOffset: 500, duration: 500, title: "Part 2", contentUrl: "https://example.com/\(id)-2.mp3", mimeType: "audio/mp3", codec: "mp3")
+                ],
+                chapters: [],
+                manifestUrl: nil,
+                currentTime: 0,
+                playbackRate: 1.0,
+                startedAt: Date(),
+                updatedAt: Date()
+            )
+        }
+
+        // Session A is playing…
+        service.startPlayback(session: makeSession(id: "swap-A"))
+        // …then the user starts session B without closing A first.
+        service.startPlayback(session: makeSession(id: "swap-B"))
+
+        // Yield so any spawned teardown task gets a chance to run (it used to
+        // run here and wipe the queue of session B).
+        await Task.yield()
+        await Task.yield()
+        try? await Task.sleep(nanoseconds: 50_000_000)
+
+        XCTAssertEqual(service.session?.id, "swap-B")
+        XCTAssertGreaterThan(
+            service.engine.queuedItemsCount, 0,
+            "New session's playback queue must survive the session swap"
+        )
+        XCTAssertTrue(service.isPlaying)
+    }
 }
