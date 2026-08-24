@@ -61,6 +61,11 @@ public struct SettingsView: View {
                         // App settings
                         appSection
 
+                        #if !SKIP && os(iOS)
+                        // Diagnostics
+                        diagnosticsSection
+                        #endif
+
                         // About
                         aboutSection
 
@@ -537,6 +542,34 @@ public struct SettingsView: View {
             }
         }
     }
+
+    // MARK: - Diagnostics Section
+
+    #if !SKIP && os(iOS)
+    private var diagnosticsSection: some View {
+        SettingsSection(title: "Diagnostics") {
+            NavigationLink {
+                CrashDiagnosticsView()
+            } label: {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle")
+                        .foregroundStyle(Color.appPrimary)
+                        .frame(width: 28)
+
+                    Text("Crash Diagnostics")
+                        .foregroundStyle(.primary)
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(12)
+            }
+        }
+    }
+    #endif
 
     // MARK: - About Section
 

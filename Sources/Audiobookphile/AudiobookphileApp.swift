@@ -3,6 +3,7 @@ import SkipFuse
 import SwiftUI
 #if !SKIP && os(iOS)
 import BackgroundTasks
+import Sentry
 #endif
 
 /// A logger for the Audiobookphile module.
@@ -48,11 +49,38 @@ public final class AudiobookphileAppDelegate: Sendable {
         migrateLegacyKeys()
 
         #if !SKIP && os(iOS)
-        CrashReporter.install()
+        // Native crash reporting via sentry-cocoa (already a package
+        // dependency). Started only when a DSN is configured; otherwise fall
+        // back to the lightweight on-device CrashReporter so crashes are still
+        // captured locally and surfaced in Settings → Crash Diagnostics.
+        // Installing both would double-report: Sentry replaces the process
+        // signal/exception handlers when it starts.
+        let sentryDSN = EnvironmentConfig.sentryDSN
+        if sentryDSN.isEmpty {
+            CrashReporter.install()
+        } else {
+            let info = Bundle.main.infoDictionary ?? [:]
+            let version = info["CFBundleShortVersionString"] as? String ?? "0.0.0"
+            let build = info["CFBundleVersion"] as? String ?? "0"
+            SentrySDK.start { options in
+                options.dsn = sentryDSN
+                options.releaseName = "audiobookphile-app@\(version)+\(build)"
+                #if DEBUG
+                options.environment = "development"
+                #else
+                options.environment = "production"
+                #endif
+            }
+        }
+
+        // Deliver any crash retained from a previous session: forwards to
+        // Sentry when telemetry is configured, otherwise mirrors the report to
+        // the system log and keeps it on disk for Crash Diagnostics.
+        TelemetryService.shared.configure()
+        TelemetryService.shared.handlePendingCrashReport()
         #endif
-        // TelemetryService is the cross-platform Sentry envelope transport for
-        // Android (Skip). On Darwin, sentry-cocoa (Main.swift) handles native
-        // crash reporting — initializing both would double-report errors.
+        // TelemetryService is also the cross-platform Sentry envelope transport
+        // for Android (Skip), which has no native sentry-cocoa.
         #if SKIP
         TelemetryService.shared.configure()
         TelemetryService.shared.handlePendingCrashReport()

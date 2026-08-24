@@ -180,6 +180,44 @@ if [ "$EXPORT_FAILED" = "true" ]; then
     echo "========================================"
 fi
 
+# ─── 7. Sentry dSYM upload (symbolication) ───
+# Best practice for Xcode Cloud: ship debug symbols to Sentry so crash
+# reports are symbolicated (a raw crash only shows a signal number without
+# them). This is a no-op unless SENTRY_DSN + SENTRY_AUTH_TOKEN are set as
+# Xcode Cloud environment variables, plus SENTRY_ORG and SENTRY_PROJECT.
+if [ -n "$SENTRY_DSN" ] && [ -n "$SENTRY_AUTH_TOKEN" ]; then
+    echo ""
+    echo "========================================"
+    echo "=== Sentry dSYM Upload ==="
+    echo "========================================"
+
+    if ! command -v sentry-cli >/dev/null 2>&1; then
+        echo "Installing sentry-cli via Homebrew..."
+        brew install getsentry/tools/sentry-cli || echo "⚠️ sentry-cli install failed; skipping dSYM upload"
+    fi
+
+    if command -v sentry-cli >/dev/null 2>&1; then
+        if [ -z "$SENTRY_ORG" ] || [ -z "$SENTRY_PROJECT" ]; then
+            echo "⚠️ SENTRY_ORG / SENTRY_PROJECT not set; skipping dSYM upload"
+        else
+            export SENTRY_AUTH_TOKEN
+            export SENTRY_ORG
+            export SENTRY_PROJECT
+            DSYM_DIR="$CI_ARCHIVE_PATH/dSYMs"
+            if [ -d "$DSYM_DIR" ]; then
+                echo "Uploading dSYMs from $DSYM_DIR"
+                sentry-cli debug-files upload --org "$SENTRY_ORG" --project "$SENTRY_PROJECT" "$DSYM_DIR" \
+                    || echo "⚠️ dSYM upload failed (crash reports will be unsymbolicated)"
+            else
+                echo "No dSYMs found at $DSYM_DIR; skipping"
+            fi
+        fi
+    fi
+else
+    echo ""
+    echo "=== Sentry dSYM upload skipped (SENTRY_DSN / SENTRY_AUTH_TOKEN not set) ==="
+fi
+
 echo ""
 echo "========================================"
 echo "=== ci_post_xcodebuild.sh complete ==="

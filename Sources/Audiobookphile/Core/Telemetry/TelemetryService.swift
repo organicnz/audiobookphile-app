@@ -133,11 +133,33 @@ public final class TelemetryService: @unchecked Sendable {
         flushPendingEvents()
     }
 
-    /// Consumes a crash report written by the crash handler (if any) from a
-    /// previous session and reports it as a fatal event.
+    /// Reads a crash report written by the crash handler (if any) from a
+    /// previous session, mirrors it to the system log, and forwards it to
+    /// Sentry when telemetry is configured. The on-disk report is only removed
+    /// after a successful hand-off, so it survives when telemetry is disabled.
     public func handlePendingCrashReport() {
         #if !SKIP && os(iOS)
-        guard let report = CrashReporter.consumePendingCrashReport() else { return }
+        guard let report = CrashReporter.readPendingCrashReport() else { return }
+
+        // Mirror the crash to the system log so it is visible in the Xcode
+        // console on the next launch — even when Sentry is not configured.
+        logger.error("CrashReporter: previous session terminated by \(report.kind): \(report.detail)")
+        if let signal = report.signal {
+            logger.error("CrashReporter: signal \(signal)")
+        }
+        if let symbols = report.stackSymbols {
+            for symbol in symbols {
+                logger.error("CrashReporter: \(symbol)")
+            }
+        }
+
+        guard config != nil, isEnabled else {
+            // No telemetry sink available: retain the on-disk report so it can
+            // be inspected (e.g. via device logs) instead of being discarded.
+            logger.error("CrashReporter: report retained locally (telemetry not configured)")
+            return
+        }
+
         var extra: [String: Any] = ["signal": report.signal ?? -1]
         if let symbols = report.stackSymbols {
             extra["stack_symbols"] = symbols
@@ -149,6 +171,7 @@ public final class TelemetryService: @unchecked Sendable {
             value: report.detail,
             extra: extra
         )
+        CrashReporter.clearPendingCrashReport()
         #else
         // Android crash capture is handled by the platform at a later stage.
         #endif

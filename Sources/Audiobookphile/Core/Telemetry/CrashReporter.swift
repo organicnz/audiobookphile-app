@@ -66,13 +66,25 @@ enum CrashReporter {
 
     // MARK: - Report persistence
 
-    private static func reportURL() -> URL {
-        let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first ?? FileManager.default.temporaryDirectory
-        return caches.appendingPathComponent(reportFileName)
+    /// Stored in Application Support rather than Caches: iOS purges Caches
+    /// under storage pressure, which would silently destroy a retained crash
+    /// report. Excluded from iCloud backups so it doesn't bloat them.
+    static func reportURL() -> URL {
+        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? FileManager.default.temporaryDirectory
+        let directory = base.appendingPathComponent("Audiobookphile", isDirectory: true)
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        var excluded = URLResourceValues()
+        excluded.isExcludedFromBackup = true
+        var url = directory.appendingPathComponent(reportFileName)
+        try? url.setResourceValues(excluded)
+        return url
     }
 
-    /// Reads and deletes any crash report from a previous session.
-    static func consumePendingCrashReport() -> PendingCrashReport? {
+    /// Reads any crash report from a previous session **without** removing it.
+    /// Use this on launch so an undelivered report is retained when telemetry
+    /// is disabled, rather than being silently discarded.
+    static func readPendingCrashReport() -> PendingCrashReport? {
         reportLock.lock()
         defer { reportLock.unlock() }
         let url = reportURL()
@@ -81,7 +93,6 @@ enum CrashReporter {
         else {
             return nil
         }
-        try? FileManager.default.removeItem(at: url)
         let kind = json["kind"] as? String ?? "Crash"
         let name = json["name"] as? String
         let reason = json["reason"] as? String
@@ -93,6 +104,25 @@ enum CrashReporter {
             stackSymbols: json["stack"] as? [String]
         )
     }
+
+    /// Removes the persisted crash report. Call only after it has been
+    /// delivered to a telemetry sink, so a failed upload can be retried on the
+    /// next launch instead of the report vanishing.
+    static func clearPendingCrashReport() {
+        reportLock.lock()
+        defer { reportLock.unlock() }
+        let url = reportURL()
+        try? FileManager.default.removeItem(at: url)
+    }
+
+    /// Backwards-compatible read-and-delete. Prefer `readPendingCrashReport()`
+    /// plus `clearPendingCrashReport()` so the report survives when no sink is
+    /// configured.
+    static func consumePendingCrashReport() -> PendingCrashReport? {
+        guard let report = readPendingCrashReport() else { return nil }
+        clearPendingCrashReport()
+        return report
+    }
 }
 
 // C-conformant handler functions: @convention(c) callbacks cannot capture
@@ -101,8 +131,7 @@ enum CrashReporter {
 private func abpWriteReport(_ payload: [String: Any], signal: Int32?) {
     CrashReporter.reportLock.lock()
     defer { CrashReporter.reportLock.unlock() }
-    let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first ?? FileManager.default.temporaryDirectory
-    let url = caches.appendingPathComponent(CrashReporter.reportFileName)
+    let url = CrashReporter.reportURL()
     guard let data = try? JSONSerialization.data(withJSONObject: payload, options: []) else { return }
     try? data.write(to: url, options: .atomic)
 }
