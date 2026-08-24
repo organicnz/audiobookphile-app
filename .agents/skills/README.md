@@ -12,8 +12,8 @@ them in full first.
 |---|---|---|---|---|
 | `swift-concurrency-pro` | Paul Hudson | [Swift-Concurrency-Agent-Skill](https://github.com/twostraws/Swift-Concurrency-Agent-Skill) | MIT | 48 source files use `@MainActor`/`Sendable`/structured concurrency; two production races traced to task/isolation mistakes |
 | `background-execution` | Anton Novoselov | [Background-Execution-Agent-Skill](https://github.com/n0an/Background-Execution-Agent-Skill) | MIT | `BGTaskScheduler` progress-sync registered in `AudiobookphileApp` + submitted in `AudioPlayerSyncManager`; background audio mode |
-| `app-intents` | Anton Novoselov | [App-Intents-Agent-Skill](https://github.com/n0an/App-Intents-Agent-Skill) | MIT | `Intents/SiriIntents.swift` exposes playback intents to Siri/Shortcuts |
-| `widgets` | Anton Novoselov | [Widgets-Agent-Skill](https://github.com/n0an/Widgets-Agent-Skill) | MIT | Player widget shares state via the `group.organicnz.audiobookphile` app group (`syncWidgetState()`) |
+| `app-intents` | Anton Novoselov | [App-Intents-Agent-Skill](https://github.com/n0an/App-Intents-Agent-Skill) | MIT | `Intents/SiriIntents.swift` exposes playback intents via the modern AppIntents framework (`AppIntent`, `AudioPlaybackIntent`), guarded `#if os(iOS) && !SKIP` to Siri/Shortcuts |
+| `widgets` | Anton Novoselov | [Widgets-Agent-Skill](https://github.com/n0an/Widgets-Agent-Skill) | MIT | Native WidgetKit extension at `Darwin/WidgetExtensionTemplates/AudiobookWidget.swift` shares state via the `group.organicnz.audiobookphile` app group (`syncWidgetState()`) |
 
 ## ⚠️ Skip (Android) constraint overrides pure-iOS advice
 
