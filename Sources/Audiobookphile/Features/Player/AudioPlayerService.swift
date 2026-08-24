@@ -10,6 +10,7 @@ import MediaPlayer
 #if os(iOS)
 import UIKit
 import BackgroundTasks
+import WidgetKit
 #endif
 #endif
 
@@ -717,6 +718,13 @@ public class AudioPlayerService {
             "updatedAt": Date().timeIntervalSince1970
         ]
         defaults.set(stateDict, forKey: "audiobookWidgetState")
+
+        // The widget timeline uses .never, so it only refreshes when the app
+        // explicitly asks — which is exactly right for event-driven state.
+        // Without this call the home-screen widget shows stale progress.
+        #if os(iOS) && !SKIP
+        WidgetCenter.shared.reloadAllTimelines()
+        #endif
     }
 }
 

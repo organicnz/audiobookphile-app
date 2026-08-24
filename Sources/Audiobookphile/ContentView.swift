@@ -58,11 +58,27 @@ public struct ContentView: View {
                     Task {
                         await appState.refreshSessionIfNeeded()
                     }
+                    consumeWidgetPlaybackCommand()
                 }
             }
             .onOpenURL { url in
                 handleDeepLink(url)
             }
+    }
+
+    /// The widget's TogglePlaybackIntent writes a timestamped command to the
+    /// shared app group and opens the app; drain it here exactly once.
+    private func consumeWidgetPlaybackCommand() {
+        #if os(iOS)
+        guard let defaults = UserDefaults(suiteName: "group.organicnz.audiobookphile") else { return }
+        let commandKey = "audiobookWidgetPlaybackCommand"
+        guard let issuedAt = defaults.object(forKey: commandKey) as? TimeInterval else { return }
+        defaults.removeObject(forKey: commandKey)
+
+        // Ignore stale commands (e.g. app killed before consuming an older one).
+        guard Date().timeIntervalSince1970 - issuedAt < 30 else { return }
+        AudioPlayerService.shared.togglePlayPause()
+        #endif
     }
 
     private func handleDeepLink(_ url: URL) {

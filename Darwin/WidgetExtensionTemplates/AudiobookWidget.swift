@@ -9,8 +9,16 @@ import AppIntents
 struct TogglePlaybackIntent: AppIntent {
     static var title: LocalizedStringResource = "Toggle Playback"
 
+    // The widget extension process cannot reach the app's audio engine, so
+    // the intent opens the app and hands over a command via the shared app
+    // group; ContentView consumes it on foreground.
+    static var openAppWhenRun: Bool = true
+
     func perform() async throws -> some IntentResult {
-        // You would dispatch a notification or use shared UserDefaults to tell the main app to play/pause
+        guard let defaults = UserDefaults(suiteName: "group.organicnz.audiobookphile") else {
+            return .result()
+        }
+        defaults.set(Date().timeIntervalSince1970, forKey: "audiobookWidgetPlaybackCommand")
         return .result()
     }
 }

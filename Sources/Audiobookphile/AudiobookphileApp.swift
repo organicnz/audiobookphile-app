@@ -144,15 +144,38 @@ public final class AudiobookphileAppDelegate: Sendable {
         let task: BGProcessingTask
     }
 
+    /// Completion state for one background run. Per the background-execution
+    /// contract: setTaskCompleted must fire EXACTLY once, and an expiring run
+    /// must complete early with success:false — running past expiration
+    /// without completing can get the app killed and scheduling penalized.
+    private final class ProgressSyncRun: @unchecked Sendable {
+        private let lock = NSLock()
+        private var completed = false
+        private var expired = false
+
+        func markExpired() { lock.withLock { expired = true } }
+
+        func finish(_ task: BGProcessingTask, completedSuccessfully: Bool) {
+            let shouldComplete: Bool = lock.withLock {
+                if completed { return false }
+                completed = true
+                return true
+            }
+            guard shouldComplete else { return }
+            task.setTaskCompleted(success: completedSuccessfully && !expired)
+        }
+    }
+
     private func handleProgressSync(task: BGProcessingTask) {
-        task.expirationHandler = {
-            // OS requested us to stop early
+        let run = ProgressSyncRun()
+        let sendableTask = UncheckedSendableTask(task: task)
+        task.expirationHandler = { [run] in
+            run.markExpired()
         }
 
-        let sendableTask = UncheckedSendableTask(task: task)
         Task {
             await AudioPlayerService.shared.flushOfflineProgressQueue()
-            sendableTask.task.setTaskCompleted(success: true)
+            run.finish(sendableTask.task, completedSuccessfully: true)
         }
     }
     #endif
