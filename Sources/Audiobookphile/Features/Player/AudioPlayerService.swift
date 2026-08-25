@@ -47,6 +47,8 @@ public class AudioPlayerService {
     private var currentTrackIndex = 0
     private var retryCount = 0
     private var pendingSeekTimeWithinTrack: TimeInterval?
+    /// Dedupe key for the last WidgetKit timeline reload (budget protection).
+    private var lastWidgetReloadKey: String?
 
     // Sub-Managers
     public let bookmarkManager = AudioPlayerBookmarkManager()
@@ -720,10 +722,18 @@ public class AudioPlayerService {
         defaults.set(stateDict, forKey: "audiobookWidgetState")
 
         // The widget timeline uses .never, so it only refreshes when the app
-        // explicitly asks — which is exactly right for event-driven state.
-        // Without this call the home-screen widget shows stale progress.
+        // explicitly asks. But WidgetKit's reload budget is ~40-70/day and
+        // this method fires on every 15s sync tick — reloading each time
+        // would exhaust the budget within ~20 minutes of listening, after
+        // which iOS throttles ALL widget updates. Reload only when the
+        // visible state meaningfully changed: play-state flip, chapter
+        // change, or a 5-minute progress bucket.
         #if os(iOS) && !SKIP
-        WidgetCenter.shared.reloadAllTimelines()
+        let reloadKey = "\(isPlaying)|\(currentChapterName)|\(Int(currentTime / 300))"
+        if reloadKey != lastWidgetReloadKey {
+            lastWidgetReloadKey = reloadKey
+            WidgetCenter.shared.reloadAllTimelines()
+        }
         #endif
     }
 }
