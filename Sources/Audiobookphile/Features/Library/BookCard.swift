@@ -78,7 +78,7 @@ public struct BookCard: View {
                         SmartAsyncImage(url: url) { image in
                             image
                                 .resizable()
-                                .aspectRatio(contentMode: .fill)
+                                .scaledToFill()
                                 .blur(radius: 6)
                                 .opacity(0.35)
                         } placeholder: {
@@ -93,7 +93,7 @@ public struct BookCard: View {
                         SmartAsyncImage(url: url) { image in
                             image
                                 .resizable()
-                                .aspectRatio(contentMode: .fit)
+                                .scaledToFit()
                         } placeholder: {
                             placeholderCover
                         }

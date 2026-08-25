@@ -7,13 +7,14 @@
 //
 
 import SwiftUI
+import Observation
 import AVFoundation
 
 /// Full-screen audio player with heavy Liquid Glass treatment
 struct AudioPlayerView: View {
     
     // MARK: - Properties
-    @StateObject private var viewModel: AudioPlayerViewModel
+    @State private var viewModel: AudioPlayerViewModel
     @ObservedObject private var proMotion = ProMotionManager.shared
     @Environment(\.dismiss) private var dismiss
     
@@ -30,7 +31,7 @@ struct AudioPlayerView: View {
     @GestureState private var dragOffset: CGFloat = 0
     
     init(session: PlaybackSession) {
-        _viewModel = StateObject(wrappedValue: AudioPlayerViewModel(session: session))
+        _viewModel = State(wrappedValue: AudioPlayerViewModel(session: session))
     }
     
     var body: some View {
@@ -177,7 +178,7 @@ struct AudioPlayerView: View {
                 case .success(let image):
                     image
                         .resizable()
-                        .aspectRatio(contentMode: .fit)
+                        .scaledToFit()
                         .onAppear {
                             extractColor(from: image)
                         }
@@ -463,7 +464,7 @@ struct AudioPlayerView: View {
                     AsyncImage(url: viewModel.coverURL) { image in
                         image
                             .resizable()
-                            .aspectRatio(contentMode: .fill)
+                            .scaledToFill()
                     } placeholder: {
                         Color.gray.opacity(0.3)
                     }
@@ -555,16 +556,17 @@ struct GlassIconButton: View {
 // MARK: - View Model (Placeholder)
 
 @MainActor
-class AudioPlayerViewModel: ObservableObject {
+@Observable
+class AudioPlayerViewModel {
     // Published state
-    @Published var isPlaying = false
-    @Published var progress: Double = 0.0
-    @Published var bufferedProgress: Double = 0.0
-    @Published var currentTime: TimeInterval = 0
-    @Published var playbackRate: Float = 1.0
-    @Published var sleepTimerActive = false
-    @Published var hasBookmarks = false
-    @Published var useTotalTrack = true
+    var isPlaying = false
+    var progress: Double = 0.0
+    var bufferedProgress: Double = 0.0
+    var currentTime: TimeInterval = 0
+    var playbackRate: Float = 1.0
+    var sleepTimerActive = false
+    var hasBookmarks = false
+    var useTotalTrack = true
     
     // Session data
     let session: PlaybackSession

@@ -10,7 +10,7 @@ import SwiftUI
 
 /// Main bookshelf/library view
 struct BookshelfView: View {
-    @StateObject private var viewModel = BookshelfViewModel()
+    @State private var viewModel = BookshelfViewModel()
     @ObservedObject private var proMotion = ProMotionManager.shared
     @State private var showSearch = false
     @State private var searchText = ""
@@ -317,7 +317,7 @@ struct ContinueListeningCard: View {
                 AsyncImage(url: coverURL) { image in
                     image
                         .resizable()
-                        .aspectRatio(contentMode: .fill)
+                        .scaledToFill()
                 } placeholder: {
                     Color.gray.opacity(0.3)
                 }
@@ -359,13 +359,17 @@ struct ContinueListeningCard: View {
 // MARK: - View Model
 
 @MainActor
-class BookshelfViewModel: ObservableObject {
-    @Published var books: [Book] = []
-    @Published var filteredBooks: [Book] = []
-    @Published var continueListening: [Book] = []
-    @Published var currentLibrary: Library?
-    @Published var selectedBook: Book?
-    @Published var isLoading = false
+import Observation
+
+@Observable
+@MainActor
+class BookshelfViewModel {
+    var books: [Book] = []
+    var filteredBooks: [Book] = []
+    var continueListening: [Book] = []
+    var currentLibrary: Library?
+    var selectedBook: Book?
+    var isLoading = false
     
     var totalBooks: Int { books.count }
     var inProgressCount: Int { continueListening.count }

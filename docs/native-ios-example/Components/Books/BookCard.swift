@@ -65,7 +65,7 @@ struct BookCard: View {
                     case .success(let image):
                         image
                             .resizable()
-                            .aspectRatio(contentMode: .fill)
+                            .scaledToFill()
                             .onAppear {
                                 // Extract color in real implementation
                             }
@@ -181,7 +181,7 @@ struct GlassBookCard: View {
                 AsyncImage(url: coverURL) { image in
                     image
                         .resizable()
-                        .aspectRatio(contentMode: .fill)
+                        .scaledToFill()
                 } placeholder: {
                     Color.gray.opacity(0.3)
                 }

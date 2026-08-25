@@ -30,7 +30,7 @@ public struct ContinueListeningCard: View {
                                 SmartAsyncImage(url: url) { image in
                                     image
                                         .resizable()
-                                        .aspectRatio(contentMode: .fill)
+                                        .scaledToFill()
                                 } placeholder: {
                                     fallbackCover
                                 }
@@ -41,7 +41,7 @@ public struct ContinueListeningCard: View {
                                 SmartAsyncImage(url: url) { image in
                                     image
                                         .resizable()
-                                        .aspectRatio(contentMode: .fill)
+                                        .scaledToFill()
                                 } placeholder: {
                                     Color.clear
                                 }

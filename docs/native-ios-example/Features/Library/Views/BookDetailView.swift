@@ -112,7 +112,7 @@ struct BookDetailView: View {
                 case .success(let image):
                     image
                         .resizable()
-                        .aspectRatio(contentMode: .fit)
+                        .scaledToFit()
                 case .failure:
                     Image(systemName: "book.fill")
                         .font(.system(size: 60))

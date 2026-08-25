@@ -645,7 +645,7 @@ public struct ActiveDownloadRow: View {
         HStack(spacing: 12) {
             // Cover
             SmartAsyncImage(url: AppState.shared.getCoverURL(itemId: download.libraryItemId)) { image in
-                image.resizable().aspectRatio(contentMode: .fill)
+                image.resizable().scaledToFill()
             } placeholder: {
                 RoundedRectangle(cornerRadius: 4)
                     .fill(Color.gray.opacity(0.3))
@@ -767,7 +767,7 @@ public struct DownloadedBookRow: View {
         HStack(spacing: 16) {
             // Cover
             SmartAsyncImage(url: AppState.shared.getCoverURL(itemId: download.libraryItemId)) { image in
-                image.resizable().aspectRatio(contentMode: .fill)
+                image.resizable().scaledToFill()
             } placeholder: {
                 RoundedRectangle(cornerRadius: 6)
                     .fill(Color.appPrimary.opacity(0.15))

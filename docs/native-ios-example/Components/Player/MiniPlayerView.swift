@@ -116,7 +116,7 @@ struct MiniPlayerView: View {
             case .success(let image):
                 image
                     .resizable()
-                    .aspectRatio(contentMode: .fill)
+                    .scaledToFill()
             case .failure:
                 Image(systemName: "book.fill")
                     .font(.title2)

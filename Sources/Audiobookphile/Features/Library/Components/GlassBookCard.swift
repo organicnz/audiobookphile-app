@@ -20,7 +20,7 @@ public struct GlassBookCard: View {
                     SmartAsyncImage(url: coverURL) { image in
                         image
                             .resizable()
-                            .aspectRatio(contentMode: .fill)
+                            .scaledToFill()
                     } placeholder: {
                         DesignTokens.Color.surface.opacity(0.1)
                     }
