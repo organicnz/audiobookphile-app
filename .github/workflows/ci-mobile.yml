@@ -14,7 +14,7 @@ concurrency:
 jobs:
   lint-swift:
     name: SwiftLint
-    runs-on: macos-latest
+    runs-on: [self-hosted, macOS]
     steps:
       - name: Checkout Repository
         id: checkout
@@ -40,7 +40,7 @@ jobs:
 
   skip-verify:
     name: Skip Cross-Platform Verify
-    runs-on: macos-latest
+    runs-on: [self-hosted, macOS]
     steps:
       - name: Checkout Repository
         id: checkout
@@ -73,7 +73,7 @@ jobs:
 
   verify-swift:
     name: Verify Swift iOS Package
-    runs-on: macos-latest
+    runs-on: [self-hosted, macOS]
     steps:
       - name: Checkout Repository
         id: checkout
@@ -110,7 +110,7 @@ jobs:
     name: Deploy iOS & macOS App (TestFlight / Xcode Cloud)
     needs: [lint-swift, skip-verify, verify-swift]
     if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
-    runs-on: macos-latest
+    runs-on: [self-hosted, macOS]
     concurrency:
       group: ci-mobile-deploy-${{ github.ref }}
       cancel-in-progress: false

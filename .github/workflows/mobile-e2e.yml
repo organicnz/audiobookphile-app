@@ -20,7 +20,7 @@ concurrency:
 jobs:
   maestro-ios:
     name: Maestro UI Tests (iOS Simulator)
-    runs-on: macos-latest
+    runs-on: [self-hosted, macOS]
     timeout-minutes: 90
     steps:
       - name: Checkout Repository
