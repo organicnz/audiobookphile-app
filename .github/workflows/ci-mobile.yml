@@ -3,10 +3,19 @@ name: CI Mobile Verification (Skip & Swift)
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'Sources/**'
+      - 'Package.swift'
+      - 'Package.resolved'
+      - 'Project.xcworkspace/**'
+      - '.github/workflows/ci-mobile.yml'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'Sources/**'
+      - 'Package.swift'
+      - 'Package.resolved'
   workflow_dispatch:
-
 concurrency:
   group: ci-mobile-${{ github.ref }}
   cancel-in-progress: false
