@@ -101,6 +101,7 @@ jobs:
         uses: mobile-dev-inc/action-maestro-cloud@v3.0.1
         with:
           api-key: ${{ secrets.MAESTRO_CLOUD_API_KEY }}
+          project-id: ${{ secrets.MAESTRO_PROJECT_ID }}
           app-file: .build/e2e-dd/Build/Products/Debug-iphonesimulator/Audiobookphile.zip
           workspace: .maestro/flows
           include-tags: smoke,e2e
