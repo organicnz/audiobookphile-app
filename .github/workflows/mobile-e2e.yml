@@ -1,18 +1,14 @@
 name: Mobile E2E (Maestro)
 
+# Maestro Cloud is disabled (paid product; not in use). Flows remain in
+# .maestro/flows for free local runs:
+#   maestro start-device && maestro test .maestro/flows
+# To re-enable cloud runs: restore the push/pull_request triggers below and
+# ensure MAESTRO_CLOUD_API_KEY, MAESTRO_PROJECT_ID, MAESTRO_TEST_EMAIL and
+# MAESTRO_TEST_PASSWORD secrets are set with an active Cloud plan.
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'Sources/**'
-      - 'Package.swift'
-      - '.maestro/**'
-      - '.github/workflows/mobile-e2e.yml'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'Sources/**'
-      - 'Package.swift'
+  workflow_dispatch: {}
+
       - '.maestro/**'
       - '.github/workflows/mobile-e2e.yml'
   workflow_dispatch:
