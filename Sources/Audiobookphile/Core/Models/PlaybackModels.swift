@@ -31,6 +31,10 @@ public struct PlaybackSession: Codable, Sendable {
     public let chapters: [Chapter]
     public let manifestUrl: String?
 
+    // Integrity: number of tracks the backend could not resolve in storage.
+    // Greater than 0 means this book is partially unavailable.
+    public let missingTrackCount: Int?
+
     // State
     public let currentTime: TimeInterval
     public let playbackRate: Float
@@ -42,6 +46,7 @@ public struct PlaybackSession: Codable, Sendable {
         case displayTitle, displayAuthor, coverPath
         case duration, playMethod, mediaPlayer, mediaType
         case audioTracks, chapters, manifestUrl
+        case missingTrackCount
         case currentTime, playbackRate, startedAt, updatedAt
     }
 }

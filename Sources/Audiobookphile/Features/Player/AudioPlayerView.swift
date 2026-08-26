@@ -50,6 +50,13 @@ public struct AudioPlayerView: View {
 
             // Full-screen player
             fullscreenPlayer
+
+            // Playback failure overlay. Without this, a book whose audio
+            // files are gone presented a normal-looking player that silently
+            // never played — effectively a black screen.
+            if let playbackError = AudioPlayerService.shared.playbackError {
+                playbackFailureView(playbackError)
+            }
         }
         .applyToolbarAdapters(isLight: colorLoader.isLight, isHidden: isUiLocked)
         .ignoresSafeArea()
@@ -124,6 +131,56 @@ public struct AudioPlayerView: View {
         }
     }
 
+    /// Full-screen failure card shown when audio tracks fail to load after
+    /// retries (e.g. the book's files are missing from storage).
+    private func playbackFailureView(_ error: Error) -> some View {
+        ZStack {
+            Color.black.opacity(0.65).ignoresSafeArea()
+            VStack(spacing: 16) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 40))
+                    .foregroundStyle(Color.appPrimary)
+                Text("Playback Unavailable")
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(DesignTokens.Color.foreground)
+                Text(error.localizedDescription)
+                    .font(.subheadline)
+                    .foregroundStyle(DesignTokens.Color.foreground.opacity(0.75))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 8)
+                VStack(spacing: 10) {
+                    Button {
+                        AudioPlayerService.shared.retryCurrentTrack()
+                    } label: {
+                        Text("Try Again")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                    }
+                    .background(Color.appPrimary)
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                    Button {
+                        AudioPlayerService.shared.playbackError = nil
+                        dismiss()
+                    } label: {
+                        Text("Close Player")
+                            .font(.subheadline)
+                            .foregroundStyle(DesignTokens.Color.foreground.opacity(0.7))
+                    }
+                }
+                .padding(.top, 8)
+            }
+            .padding(24)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(DesignTokens.Color.surface.opacity(0.95))
+            )
+            .padding(.horizontal, 40)
+        }
+    }
+
     private var backgroundLayer: some View {
         ZStack {
             // Apple Music-style dynamic cover art background with rich fallback
@@ -189,6 +246,19 @@ public struct AudioPlayerView: View {
             // Title and author
             titleSection
                 .padding(.horizontal, 24)
+
+            // Partial-availability notice: some tracks could not be resolved
+            // in storage, so content will skip over missing chapters.
+            if let missing = viewModel.session.missingTrackCount, missing > 0 {
+                Label(
+                    "\(missing) track\(missing == 1 ? "" : "s") unavailable — some content may be skipped",
+                    systemImage: "exclamationmark.triangle"
+                )
+                .font(.footnote)
+                .foregroundStyle(Color.appPrimary)
+                .padding(.horizontal, 24)
+                .padding(.top, 8)
+            }
 
             Spacer()
 

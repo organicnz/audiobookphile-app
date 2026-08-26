@@ -191,6 +191,11 @@ public class AudioPlayerService {
         self.currentTime = session.currentTime
         self.isPlaying = true
         self.bookmarks = []
+        // A fresh session invalidates any failure from the previous one —
+        // otherwise the error overlay from a broken book would linger over
+        // the newly opened one.
+        self.playbackError = nil
+        self.retryCount = 0
 
         Task {
             let fetched = await bookmarkManager.fetchBookmarks(libraryItemId: session.libraryItemId)
@@ -247,6 +252,21 @@ public class AudioPlayerService {
         nowPlayingManager.updateNowPlaying(rate: playbackRate, elapsedTime: currentTime)
         #endif
         syncWidgetState()
+    }
+
+    /// Manual retry after a surfaced playback failure (error overlay button).
+    /// Reloads the current track from its in-track offset; clears the error
+    /// first so a repeated failure re-presents the overlay cleanly.
+    public func retryCurrentTrack() {
+        guard let session = session, !session.audioTracks.isEmpty else { return }
+        playbackError = nil
+        retryCount = 0
+        let index = min(currentTrackIndex, session.audioTracks.count - 1)
+        currentTrackIndex = index
+        let track = session.audioTracks[index]
+        let seekTime = max(0, currentTime - track.startOffset)
+        loadQueue(from: index, seekTimeWithinTrack: seekTime, autoPlay: true)
+        isPlaying = true
     }
 
     public func pause() {
