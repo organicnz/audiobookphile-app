@@ -2,7 +2,7 @@ import Foundation
 #if canImport(OSLog)
 import OSLog
 #endif
-#if os(iOS)
+#if !SKIP && os(iOS)
 import UIKit
 import BackgroundTasks
 #endif

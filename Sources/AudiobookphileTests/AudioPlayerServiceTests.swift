@@ -42,6 +42,7 @@ final class AudioPlayerServiceTests: XCTestCase {
             ],
             chapters: [],
             manifestUrl: "/api/items/item-1/manifest.m3u8",
+            missingTrackCount: 0,
             currentTime: 0,
             playbackRate: 1.0,
             startedAt: Date(),

@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-#if os(iOS)
+#if !SKIP && os(iOS)
 import UIKit
 #endif
 
@@ -53,14 +53,12 @@ extension View {
 // MARK: - Haptic Feedback
 
 extension View {
-    #if os(iOS)
+    #if !SKIP && os(iOS)
     /// Trigger haptic feedback on tap
     func hapticFeedback(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) -> some View {
         self.simultaneousGesture(
             TapGesture().onEnded { _ in
-                #if !SKIP
                 UIImpactFeedbackGenerator(style: style).impactOccurred()
-                #endif
             }
         )
     }
@@ -69,9 +67,7 @@ extension View {
     func selectionHaptic() -> some View {
         self.simultaneousGesture(
             TapGesture().onEnded { _ in
-                #if !SKIP
                 UISelectionFeedbackGenerator().selectionChanged()
-                #endif
             }
         )
     }
@@ -223,7 +219,7 @@ extension View {
     /// Hide keyboard on tap
     func hideKeyboardOnTap() -> some View {
         self.onTapGesture {
-            #if os(iOS) && !SKIP
+            #if !SKIP && os(iOS)
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             #endif
         }
