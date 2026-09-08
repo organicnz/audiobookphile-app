@@ -5,14 +5,14 @@ import Observation
 /// This decouples player UI state from the global AppState, avoiding transition glitches.
 @Observable
 @MainActor
-public class PlayerCoordinator {
+final class PlayerCoordinator {
     public static let shared = PlayerCoordinator()
-
+    
     /// Controls whether the full-screen audio player is visible.
     public var isPlayerPresented: Bool = false
-
+    
     private init() {}
-
+    
     /// Safely presents the player with an optional delay to allow current modal dismissals to complete.
     ///
     /// The delay alone is not sufficient: presenting `.fullScreenCover` while another
@@ -31,12 +31,12 @@ public class PlayerCoordinator {
             self.isPlayerPresented = true
         }
     }
-
+    
     /// Dismisses the player.
     public func dismissPlayer() {
         self.isPlayerPresented = false
     }
-
+    
     #if !SKIP && os(iOS)
     /// Polls (bounded to ~5s) until the key window has no presented view
     /// controller, i.e. no sheet/fullScreenCover is mid-transition.

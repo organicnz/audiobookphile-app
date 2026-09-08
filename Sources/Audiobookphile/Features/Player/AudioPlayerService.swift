@@ -255,18 +255,34 @@ public class AudioPlayerService {
     }
 
     /// Manual retry after a surfaced playback failure (error overlay button).
-    /// Reloads the current track from its in-track offset; clears the error
-    /// first so a repeated failure re-presents the overlay cleanly.
+    /// Asynchronously requests a fresh playback session from the server to renew
+    /// presigned URLs, with automatic fallback to local tracks if network is unavailable.
     public func retryCurrentTrack() {
         guard let session = session, !session.audioTracks.isEmpty else { return }
         playbackError = nil
         retryCount = 0
-        let index = min(currentTrackIndex, session.audioTracks.count - 1)
-        currentTrackIndex = index
-        let track = session.audioTracks[index]
-        let seekTime = max(0, currentTime - track.startOffset)
-        loadQueue(from: index, seekTimeWithinTrack: seekTime, autoPlay: true)
-        isPlaying = true
+        Task { @MainActor in
+            do {
+                logger.info("Manual retry triggered: refreshing playback session for \(session.libraryItemId)...")
+                let refreshed = try await AudiobookphileAPI.shared.startPlaybackSession(
+                    libraryItemId: session.libraryItemId,
+                    episodeId: session.episodeId
+                )
+                self.session = refreshed
+                let trackInfo = self.findTrackIndexAndOffset(for: self.currentTime)
+                self.currentTrackIndex = trackInfo.index
+                self.loadQueue(from: trackInfo.index, seekTimeWithinTrack: trackInfo.offset, autoPlay: true)
+                self.isPlaying = true
+            } catch {
+                logger.error("Session refresh during retry failed (\(error.localizedDescription)); attempting local queue reload...")
+                let index = min(self.currentTrackIndex, session.audioTracks.count - 1)
+                self.currentTrackIndex = index
+                let track = session.audioTracks[index]
+                let seekTime = max(0, self.currentTime - track.startOffset)
+                self.loadQueue(from: index, seekTimeWithinTrack: seekTime, autoPlay: true)
+                self.isPlaying = true
+            }
+        }
     }
 
     public func pause() {
@@ -613,11 +629,28 @@ public class AudioPlayerService {
                 self.loadQueue(from: self.currentTrackIndex, seekTimeWithinTrack: seekTime, autoPlay: self.isPlaying)
             }
         } else {
-            retryCount = 0
-            pause()
-            self.acknowledgedSeekEpoch = self.activeSeekEpoch
+            // Attempt to seamlessly refresh the session from the server to obtain fresh presigned URLs
             Task { @MainActor in
-                self.playbackError = error ?? NSError(domain: "AudioPlayerServiceErrorDomain", code: -1, userInfo: [NSLocalizedDescriptionKey: "Audio stream failed repeatedly."])
+                do {
+                    logger.info("Presigned URL or stream failed after 3 retries; refreshing session from server for \(session.libraryItemId)...")
+                    let refreshed = try await AudiobookphileAPI.shared.startPlaybackSession(
+                        libraryItemId: session.libraryItemId,
+                        episodeId: session.episodeId
+                    )
+                    guard self.session?.id == session.id || self.session?.libraryItemId == session.libraryItemId else { return }
+
+                    self.session = refreshed
+                    self.retryCount = 0
+                    self.playbackError = nil
+                    let trackInfo = self.findTrackIndexAndOffset(for: self.currentTime)
+                    self.currentTrackIndex = trackInfo.index
+                    self.loadQueue(from: trackInfo.index, seekTimeWithinTrack: trackInfo.offset, autoPlay: self.isPlaying)
+                } catch {
+                    self.retryCount = 0
+                    self.pause()
+                    self.acknowledgedSeekEpoch = self.activeSeekEpoch
+                    self.playbackError = error
+                }
             }
         }
     }

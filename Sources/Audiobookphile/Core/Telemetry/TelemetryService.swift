@@ -119,10 +119,24 @@ public final class TelemetryService: @unchecked Sendable {
 
     /// Parses the Sentry DSN from the environment and flushes any events that
     /// failed to upload in previous sessions. Safe to call more than once.
+    ///
+    /// This is the single entry point for Sentry/Telemetry initialization.
+    /// It reads the DSN from `EnvironmentConfig.sentryDSN` (which flows from
+    /// `Skip.env` → `xcconfig` → `Info.plist`). If no DSN is set, the service
+    /// remains a no-op and fallbacks to local `CrashReporter` on iOS.
     public func configure() {
         guard config == nil else { return }
+        // Guard: only attempt DSN parsing if a non-empty DSN is configured
+        guard !EnvironmentConfig.sentryDSN.isEmpty else {
+            logger.debug("TelemetryService: no Sentry DSN configured; reporting disabled")
+            // On iOS, install CrashReporter fallback so crashes are still captured locally
+            #if !SKIP && os(iOS)
+            CrashReporter.install()
+            #endif
+            return
+        }
         guard let dsn = SentryDSN(string: EnvironmentConfig.sentryDSN) else {
-            logger.debug("TelemetryService: no valid Sentry DSN; reporting disabled")
+            logger.debug("TelemetryService: invalid Sentry DSN; reporting disabled")
             return
         }
         let info = Bundle.main.infoDictionary ?? [:]
@@ -206,6 +220,13 @@ public final class TelemetryService: @unchecked Sendable {
     /// Reports a free-form message at the given severity.
     public func captureMessage(_ message: String, level: SentryLevel = .info, tags: [String: String] = [:]) {
         captureEvent(level: level, message: message, type: nil, value: nil, tags: tags)
+    }
+
+    /// Captures a breadcrumb event for Sentry debugging.
+    /// Breadcrumbs are lightweight log entries that help trace the sequence
+    /// of events leading up to a crash or error.
+    public func captureBreadcrumb(_ message: String, level: SentryLevel = .info, tags: [String: String] = [:]) {
+        captureEvent(level: level, message: message, type: "breadcrumb", value: nil, tags: tags)
     }
 
     /// Reports an unhandled fatal condition (used by the crash reporter).

@@ -87,6 +87,8 @@ public class AudioPlayerViewModel {
         progress
     }
 
+    public var showChapterTimeRemaining: Bool = false
+
     public var currentTimePretty: String {
         formatTime(currentTime)
     }
@@ -102,8 +104,27 @@ public class AudioPlayerViewModel {
     }
 
     public var timeRemainingPretty: String {
-        guard let chapter = currentChapter else { return totalTimeRemainingPretty }
-        return "-" + formatTime(max(0, chapter.end - currentTime))
+        if showChapterTimeRemaining, let chapter = currentChapter {
+            return "-" + formatTime(max(0, chapter.end - currentTime))
+        }
+        return totalTimeRemainingPretty
+    }
+
+    public func toggleTimeRemainingMode() {
+        showChapterTimeRemaining.toggle()
+    }
+
+    public func chapter(at time: TimeInterval) -> Chapter? {
+        guard !chapters.isEmpty else { return nil }
+        return chapters.first { $0.start <= time && $0.end > time } ?? chapters.last
+    }
+
+    public func formattedRemainingTime(for targetTime: TimeInterval) -> String {
+        if showChapterTimeRemaining, let chapter = chapter(at: targetTime) {
+            return "-" + formatTime(max(0, chapter.end - targetTime))
+        }
+        let remaining = max(0, duration - targetTime)
+        return "-" + formatTime(remaining)
     }
 
     public init(session: PlaybackSession) {

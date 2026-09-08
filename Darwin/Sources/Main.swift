@@ -1,6 +1,5 @@
 import SwiftUI
 import Audiobookphile
-@preconcurrency import Sentry
 
 // Force recompilation of main app bundle to ensure rebuilt SPM views are correctly embedded
 private typealias AppRootView = AudiobookphileRootView
@@ -50,22 +49,6 @@ typealias AppType = NSApplication
     }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-        SentrySDK.start { options in
-            options.dsn = EnvironmentConfig.sentryDSN
-            #if DEBUG
-            options.debug = true
-            options.environment = "development"
-            options.tracesSampleRate = 1.0
-            #else
-            options.debug = false
-            options.environment = "production"
-            options.tracesSampleRate = 0.1
-            #endif
-            options.tracePropagationTargets = ["iambzzclljayqdxkeepy.supabase.co"]
-        }
-        // Track an application metric to verify setup
-        SentrySDK.metrics.count(key: "app_launch", value: 1)
-        
         AppDelegate.shared.onLaunch()
         return true
     }
@@ -93,22 +76,6 @@ typealias AppType = NSApplication
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        SentrySDK.start { options in
-            options.dsn = EnvironmentConfig.sentryDSN
-            #if DEBUG
-            options.debug = true
-            options.environment = "development"
-            options.tracesSampleRate = 1.0
-            #else
-            options.debug = false
-            options.environment = "production"
-            options.tracesSampleRate = 0.1
-            #endif
-            options.tracePropagationTargets = ["iambzzclljayqdxkeepy.supabase.co"]
-        }
-        // Track an application metric to verify setup
-        SentrySDK.metrics.count(key: "app_launch", value: 1)
-        
         AppDelegate.shared.onLaunch()
     }
 

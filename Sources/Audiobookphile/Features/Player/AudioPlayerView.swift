@@ -28,6 +28,7 @@ public struct AudioPlayerView: View {
     @State var showAIInsights = false
     @State var newBookmarkTitle = ""
     @State var isAnimatingBackground = false
+    @State var isRetrying = false
 
     @State var colorLoader = DynamicColorLoader()
 
