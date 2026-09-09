@@ -16,7 +16,7 @@ import WidgetKit
 
 @Observable
 @MainActor
-public class AudioPlayerService {
+public class AudioPlayerService: AudioPlayerServiceProtocol {
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Audiobookphile", category: "AudioPlayer")
     public static let shared = AudioPlayerService()
 
@@ -248,6 +248,7 @@ public class AudioPlayerService {
         guard session != nil else { return }
         engine.play(rate: playbackRate)
         isPlaying = true
+        TelemetryService.shared.captureBreadcrumb("playback resumed", level: .info, tags: ["area": "player"])
         #if !SKIP && !os(Android)
         nowPlayingManager.updateNowPlaying(rate: playbackRate, elapsedTime: currentTime)
         #endif
@@ -288,6 +289,7 @@ public class AudioPlayerService {
     public func pause() {
         engine.pause()
         isPlaying = false
+        TelemetryService.shared.captureBreadcrumb("playback paused", level: .info, tags: ["area": "player"])
         #if !SKIP && !os(Android)
         nowPlayingManager.updateNowPlaying(rate: 0.0, elapsedTime: currentTime)
         #endif
@@ -618,6 +620,9 @@ public class AudioPlayerService {
 
     private func handlePlaybackFailure(error: Error?) {
         guard let session = session else { return }
+        if let error {
+            TelemetryService.shared.captureError(error, tags: ["area": "player", "op": "playback"])
+        }
         if retryCount < 3 {
             retryCount += 1
             let delay = Double(retryCount) * 1.5
@@ -650,6 +655,7 @@ public class AudioPlayerService {
                     self.pause()
                     self.acknowledgedSeekEpoch = self.activeSeekEpoch
                     self.playbackError = error
+                    TelemetryService.shared.captureError(error, tags: ["area": "player", "op": "session-refresh"])
                 }
             }
         }

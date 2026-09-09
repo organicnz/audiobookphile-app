@@ -1,18 +1,39 @@
 import SwiftUI
 import Observation
 
+// MARK: - PlayerCoordinatorProtocol
+
+/// Interface for the player-presentation coordinator, enabling dependency
+/// injection and test doubles in previews and unit tests.
+/// Plain protocol (not ObservableObject): `@Observable` classes satisfy it
+/// structurally without inheriting from `ObservableObject`.
+@MainActor
+public protocol PlayerCoordinatorProtocol: AnyObject {
+    /// Whether the full-screen audio player is currently presented.
+    var isPlayerPresented: Bool { get set }
+
+    /// Safely presents the player, accounting for in-flight modal presentations.
+    /// - Parameter delayMilliseconds: Delay to allow current modal dismissals to complete.
+    func presentPlayer(delayMilliseconds: Int)
+
+    /// Dismisses the player.
+    func dismissPlayer()
+}
+
+// MARK: - PlayerCoordinator
+
 /// Coordinates the presentation and state of the Audio Player across the app.
 /// This decouples player UI state from the global AppState, avoiding transition glitches.
 @Observable
 @MainActor
-final class PlayerCoordinator {
+final class PlayerCoordinator: PlayerCoordinatorProtocol {
     public static let shared = PlayerCoordinator()
-    
+
     /// Controls whether the full-screen audio player is visible.
     public var isPlayerPresented: Bool = false
-    
+
     private init() {}
-    
+
     /// Safely presents the player with an optional delay to allow current modal dismissals to complete.
     ///
     /// The delay alone is not sufficient: presenting `.fullScreenCover` while another
@@ -31,12 +52,12 @@ final class PlayerCoordinator {
             self.isPlayerPresented = true
         }
     }
-    
+
     /// Dismisses the player.
     public func dismissPlayer() {
         self.isPlayerPresented = false
     }
-    
+
     #if !SKIP && os(iOS)
     /// Polls (bounded to ~5s) until the key window has no presented view
     /// controller, i.e. no sheet/fullScreenCover is mid-transition.
