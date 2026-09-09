@@ -9,10 +9,6 @@ name: Mobile E2E (Maestro)
 on:
   workflow_dispatch: {}
 
-      - '.maestro/**'
-      - '.github/workflows/mobile-e2e.yml'
-  workflow_dispatch:
-
 concurrency:
   group: mobile-e2e-${{ github.ref }}
   cancel-in-progress: true
