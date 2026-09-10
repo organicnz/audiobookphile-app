@@ -16,7 +16,21 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check Sentry secrets
+        id: secrets
+        run: |
+          if [ -z "${{ secrets.SENTRY_AUTH_TOKEN }}" ]; then
+            echo "SENTRY_AUTH_TOKEN not configured — skipping Sentry release."
+            echo "To enable issue-to-PR linking, add secrets.SENTRY_AUTH_TOKEN"
+            echo "(scopes: project:read, project:write, project:releases, org:read)"
+            echo "and set the SENTRY_DSN build secret in Xcode Cloud / Sentry dashboard."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Create Sentry Release
+        if: steps.secrets.outputs.available == 'true'
         uses: getsentry/action-release@v1
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
