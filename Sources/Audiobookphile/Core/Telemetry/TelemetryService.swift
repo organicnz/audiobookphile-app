@@ -136,7 +136,12 @@ public final class TelemetryService: @unchecked Sendable {
             return
         }
         guard let dsn = SentryDSN(string: EnvironmentConfig.sentryDSN) else {
-            logger.debug("TelemetryService: invalid Sentry DSN; reporting disabled")
+            logger.debug("TelemetryService: invalid Sentry DSN; falling back to local CrashReporter")
+            // Invalid DSN must not silently disable crash capture: sentry-cocoa
+            // is never started with it, so install the local fallback.
+            #if !SKIP && os(iOS)
+            CrashReporter.install()
+            #endif
             return
         }
         let info = Bundle.main.infoDictionary ?? [:]

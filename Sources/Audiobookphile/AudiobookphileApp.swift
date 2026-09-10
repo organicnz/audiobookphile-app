@@ -17,6 +17,7 @@ public struct AudiobookphileRootView: View {
     @State private var appState = AppState.shared
     @State private var audioPlayer = AudioPlayerService.shared
     @State private var playerCoordinator = PlayerCoordinator.shared
+    @State private var telemetry = TelemetryComponent.shared
 
     /* SKIP @bridge */public init() {
     }
@@ -26,6 +27,7 @@ public struct AudiobookphileRootView: View {
             .environment(appState)
             .environment(audioPlayer)
             .environment(playerCoordinator)
+            .environment(telemetry)
             .task {
                 logger.info(
                     "Skip app logs are viewable in the Xcode console for iOS; Android logs via Studio/adb logcat"
@@ -50,15 +52,14 @@ public final class AudiobookphileAppDelegate: Sendable {
 
         #if !SKIP && os(iOS)
         // Native crash reporting via sentry-cocoa (already a package
-        // dependency). Started only when a DSN is configured; otherwise fall
-        // back to the lightweight on-device CrashReporter so crashes are still
-        // captured locally and surfaced in Settings → Crash Diagnostics.
-        // Installing both would double-report: Sentry replaces the process
-        // signal/exception handlers when it starts.
+        // dependency). Started only when a DSN is configured; otherwise the
+        // lightweight on-device CrashReporter (installed by
+        // TelemetryService.configure() below, the single entry point) keeps
+        // crashes captured locally and surfaced in Settings → Crash
+        // Diagnostics. Installing both would double-report: Sentry replaces
+        // the process signal/exception handlers when it starts.
         let sentryDSN = EnvironmentConfig.sentryDSN
-        if sentryDSN.isEmpty {
-            CrashReporter.install()
-        } else {
+        if !sentryDSN.isEmpty {
             let info = Bundle.main.infoDictionary ?? [:]
             let version = info["CFBundleShortVersionString"] as? String ?? "0.0.0"
             let build = info["CFBundleVersion"] as? String ?? "0"
