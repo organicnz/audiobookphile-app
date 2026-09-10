@@ -1,0 +1,35 @@
+name: Sentry Release (App)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  create-release:
+    name: Create Sentry Release
+    runs-on: [self-hosted, macOS]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Create Sentry Release
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG || 'organicnz' }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT || 'audiobookphile-app' }}
+        with:
+          environment: ${{ github.ref_name }}
+          # SHA release with associated commits powers suspect-commits, so a
+          # Sentry issue links the likely PR/author ("open up PRs").
+          # Runtime events use audiobookphile-app@version+build; dSYMs are
+          # uploaded by Darwin/ci_scripts/ci_post_xcodebuild.sh (Xcode Cloud).
+          release: ${{ github.sha }}
+          version: ${{ github.sha }}
+          set_commits: auto
+          ignore_missing: true
+          ignore_empty: true
