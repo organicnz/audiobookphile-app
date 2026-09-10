@@ -28,7 +28,6 @@ jobs:
           # Sentry issue links the likely PR/author ("open up PRs").
           # Runtime events use audiobookphile-app@version+build; dSYMs are
           # uploaded by Darwin/ci_scripts/ci_post_xcodebuild.sh (Xcode Cloud).
-          release: ${{ github.sha }}
           version: ${{ github.sha }}
           set_commits: auto
           ignore_missing: true
