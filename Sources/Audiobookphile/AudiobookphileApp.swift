@@ -51,15 +51,17 @@ public final class AudiobookphileAppDelegate: Sendable {
         migrateLegacyKeys()
 
         #if !SKIP && os(iOS)
-        // Native crash reporting via sentry-cocoa (already a package
-        // dependency). Started only when a DSN is configured; otherwise the
-        // lightweight on-device CrashReporter (installed by
-        // TelemetryService.configure() below, the single entry point) keeps
-        // crashes captured locally and surfaced in Settings → Crash
-        // Diagnostics. Installing both would double-report: Sentry replaces
-        // the process signal/exception handlers when it starts.
+        // Configure TelemetryService FIRST so crashes during SentrySDK.start()
+        // are captured by the local CrashReporter fallback. TelemetryService
+        // decides whether to install CrashReporter (no DSN) or let SentrySDK
+        // handle native crash capture (valid DSN).
+        TelemetryService.shared.configure()
+        
+        // Now start SentrySDK after TelemetryService has validated the DSN
+        // and installed the appropriate crash handler. This prevents a race
+        // where SentrySDK.start() crashes before any handler is installed.
         let sentryDSN = EnvironmentConfig.sentryDSN
-        if !sentryDSN.isEmpty {
+        if !sentryDSN.isEmpty, TelemetryService.shared.isConfigured {
             let info = Bundle.main.infoDictionary ?? [:]
             let version = info["CFBundleShortVersionString"] as? String ?? "0.0.0"
             let build = info["CFBundleVersion"] as? String ?? "0"
@@ -71,13 +73,18 @@ public final class AudiobookphileAppDelegate: Sendable {
                 #else
                 options.environment = "production"
                 #endif
+                // Enable session replay for iOS (10% sample rate)
+                options.sessionReplay.sessionSampleRate = 0.1
+                options.sessionReplay.onErrorSampleRate = 1.0
             }
+            logger.debug("SentrySDK started with valid DSN")
+        } else if !sentryDSN.isEmpty {
+            logger.warning("SentrySDK not started: TelemetryService validation failed, using CrashReporter fallback")
         }
 
         // Deliver any crash retained from a previous session: forwards to
         // Sentry when telemetry is configured, otherwise mirrors the report to
         // the system log and keeps it on disk for Crash Diagnostics.
-        TelemetryService.shared.configure()
         TelemetryService.shared.handlePendingCrashReport()
         #endif
         // TelemetryService is also the cross-platform Sentry envelope transport
