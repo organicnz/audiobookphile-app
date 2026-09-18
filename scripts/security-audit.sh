@@ -1,6 +1,15 @@
 #!/bin/bash
+set -euo pipefail
 
 echo "🔒 Running Mobile Security & Package Audit..."
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+CLI_BIN="$REPO_ROOT/../audiobookphile-backend/crates/cli/target/release/audiobookphile"
+
+if [ -f "$CLI_BIN" ]; then
+    "$CLI_BIN" audit --path "$REPO_ROOT"
+fi
 
 # 1. Secret Scan Audit
 FORBIDDEN_PATTERNS="eyJhbGci|sbp_[a-zA-Z0-9]{20,}|SUPABASE_SERVICE_ROLE_KEY=[a-zA-Z0-9]|BEGIN PRIVATE KEY|sk_live_[a-zA-Z0-9]{20,}|AKIA[0-9A-Z]{16}"

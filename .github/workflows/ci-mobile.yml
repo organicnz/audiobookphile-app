@@ -130,6 +130,7 @@ jobs:
     needs: [lint-swift, skip-verify, verify-swift]
     if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: [self-hosted, macOS]
+    timeout-minutes: 15
     concurrency:
       group: ci-mobile-deploy-${{ github.ref }}
       cancel-in-progress: false
@@ -152,4 +153,40 @@ jobs:
             exit 0
           fi
           echo "Executing Apple App Store Connect / TestFlight deployment pipeline..."
-          # Future fastlane / xcodebuild release commands go here when secrets are set
+
+  sentry-release:
+    name: Create Sentry Release (App)
+    needs: [verify-swift]
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, macOS]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check Sentry Secrets
+        id: secrets
+        run: |
+          if [ -z "${{ secrets.SENTRY_AUTH_TOKEN }}" ]; then
+            echo "SENTRY_AUTH_TOKEN not configured — skipping Sentry release."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Sentry secrets configured — proceeding with release."
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create Sentry Release
+        if: steps.secrets.outputs.available == 'true'
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG || 'organicnz' }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT || 'audiobookphile-app' }}
+        with:
+          environment: production
+          version: ${{ github.sha }}
+          set_commits: auto
+          ignore_missing: true
+          ignore_empty: true
