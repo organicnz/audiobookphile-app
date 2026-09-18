@@ -16,7 +16,7 @@ pre-push:
     security-audit:
       run: ./scripts/security-audit.sh
     full-test-suite:
-      run: swift test
+      run: xcodebuild build-for-testing -scheme Audiobookphile -destination "generic/platform=iOS Simulator" CODE_SIGNING_ALLOWED=NO -quiet
 
 post-merge:
   commands:

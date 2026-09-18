@@ -152,7 +152,11 @@ fi
 
 if [ -n "$SWIFT_FILES" ]; then
     echo "🔍 [12/12] Swift 6 Compiler & Strict Concurrency check..."
-    swift build --build-tests 2>&1
+    if command -v xcodebuild >/dev/null 2>&1; then
+        xcodebuild build-for-testing -scheme Audiobookphile -destination "generic/platform=iOS Simulator" CODE_SIGNING_ALLOWED=NO -quiet
+    else
+        swift build --build-tests 2>&1
+    fi
     if [ $? -ne 0 ]; then
         echo "❌ Swift compilation failed."
         exit 1
