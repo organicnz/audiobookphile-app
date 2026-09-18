@@ -86,22 +86,26 @@ public class BookshelfViewModel {
                 sort: sort,
                 desc: desc
             )
-            let continueItems = try await service.fetchContinueListening(libraryId: libraryId)
 
             self.books = response.results
             self.filteredBooks = response.results
             self.totalBooksCount = response.total
             self.currentPage = 0
             self.hasMorePages = pageSize > 0 && self.books.count < response.total
-            self.continueListening = continueItems
+            self.errorMessage = nil
             
             let cacheData = BookshelfCacheData(books: response.results, total: response.total, page: 0)
             await LocalCacheService.shared.save(cacheData, forKey: cacheKey)
         } catch {
             print("[BookshelfViewModel] Failed to load library items: \(error)")
-            if books.isEmpty {
-                self.errorMessage = error.localizedDescription
-            }
+            self.errorMessage = error.localizedDescription
+        }
+
+        // Fetch continue listening independently so failures do not discard library items
+        do {
+            self.continueListening = try await service.fetchContinueListening(libraryId: libraryId)
+        } catch {
+            print("[BookshelfViewModel] Failed to fetch continue listening: \(error)")
         }
 
         isLoading = false

@@ -36,13 +36,13 @@ public struct BookCard: View {
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .lineLimit(2)
-                        .foregroundStyle(DesignTokens.Color.foreground)
+                        .foregroundStyle(Color.primary)
                         .multilineTextAlignment(.leading)
 
                     if let author = book.author, !author.isEmpty, author != "Unknown Author" {
                         Text(author)
                             .font(.caption)
-                            .foregroundStyle(.white.opacity(0.65))
+                            .foregroundStyle(Color.secondary)
                             .lineLimit(1)
                     } else {
                         Text(" ")
