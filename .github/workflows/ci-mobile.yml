@@ -127,7 +127,7 @@ jobs:
           step_tree "Verify Swift iOS Package" build \
             "checkout:Checkout Repository|audit:Security Audit|resolve:Resolve Package Dependencies|build:Build & Typecheck Package" \
             "checkout=${{ steps.checkout.outcome }};audit=${{ steps.audit.outcome }};resolve=${{ steps.resolve.outcome }}"
-          swift build
+          xcodebuild build-for-testing -scheme Audiobookphile -destination "generic/platform=iOS Simulator" CODE_SIGNING_ALLOWED=NO -quiet
 
   deploy-mobile:
     name: Deploy iOS & macOS App (TestFlight / Xcode Cloud)

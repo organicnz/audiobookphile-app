@@ -20,7 +20,7 @@ let package = Package(
             .product(name: "SkipFuseUI", package: "skip-fuse-ui"),
             "AnyCodable",
             .product(name: "Sentry", package: "sentry-cocoa", condition: .when(platforms: [.iOS, .macOS]))
-        ], resources: [.process("Resources")]),
+        ], exclude: ["Skip/skip.yml", "audiobookphile-app.code-workspace"], resources: [.process("Resources")]),
         .testTarget(name: "AudiobookphileTests", dependencies: ["Audiobookphile"]),
     ]
 )
