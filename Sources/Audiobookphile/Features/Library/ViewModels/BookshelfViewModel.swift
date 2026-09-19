@@ -173,6 +173,11 @@ public class BookshelfViewModel {
         }
     }
 
+    public func changeSort(sort: String, desc: Bool, libraryId: String?, isAuthenticated: Bool) async {
+        guard sort != currentSort || desc != currentDesc else { return }
+        await loadLibrary(libraryId: libraryId, isAuthenticated: isAuthenticated, sort: sort, desc: desc)
+    }
+
     public func showFilterOptions() {}
     public func showSettings() {}
     public func showDownloads() {}

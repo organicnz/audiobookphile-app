@@ -87,7 +87,38 @@ public struct BookshelfView: View {
             #if os(iOS) || SKIP
             ToolbarItem(placement: .topBarTrailing) {
                 if selectedPill == .library {
-                    Button(action: viewModel.showFilterOptions) {
+                    Menu {
+                        Section("Sort By") {
+                            Button(action: {
+                                Task {
+                                    await viewModel.changeSort(sort: "addedAt", desc: true, libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated)
+                                }
+                            }) {
+                                Label("Recently Added", systemImage: viewModel.currentSort == "addedAt" && viewModel.currentDesc ? "checkmark" : "")
+                            }
+                            Button(action: {
+                                Task {
+                                    await viewModel.changeSort(sort: "title", desc: false, libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated)
+                                }
+                            }) {
+                                Label("Title (A-Z)", systemImage: viewModel.currentSort == "title" && !viewModel.currentDesc ? "checkmark" : "")
+                            }
+                            Button(action: {
+                                Task {
+                                    await viewModel.changeSort(sort: "author", desc: false, libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated)
+                                }
+                            }) {
+                                Label("Author (A-Z)", systemImage: viewModel.currentSort == "author" && !viewModel.currentDesc ? "checkmark" : "")
+                            }
+                            Button(action: {
+                                Task {
+                                    await viewModel.changeSort(sort: "duration", desc: true, libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated)
+                                }
+                            }) {
+                                Label("Longest Duration", systemImage: viewModel.currentSort == "duration" && viewModel.currentDesc ? "checkmark" : "")
+                            }
+                        }
+                    } label: {
                         Image(systemName: "line.3.horizontal.decrease.circle")
                     }
                     .tint(.primary)
@@ -96,7 +127,38 @@ public struct BookshelfView: View {
             #else
             ToolbarItem(placement: .primaryAction) {
                 if selectedPill == .library {
-                    Button(action: viewModel.showFilterOptions) {
+                    Menu {
+                        Section("Sort By") {
+                            Button(action: {
+                                Task {
+                                    await viewModel.changeSort(sort: "addedAt", desc: true, libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated)
+                                }
+                            }) {
+                                Label("Recently Added", systemImage: viewModel.currentSort == "addedAt" && viewModel.currentDesc ? "checkmark" : "")
+                            }
+                            Button(action: {
+                                Task {
+                                    await viewModel.changeSort(sort: "title", desc: false, libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated)
+                                }
+                            }) {
+                                Label("Title (A-Z)", systemImage: viewModel.currentSort == "title" && !viewModel.currentDesc ? "checkmark" : "")
+                            }
+                            Button(action: {
+                                Task {
+                                    await viewModel.changeSort(sort: "author", desc: false, libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated)
+                                }
+                            }) {
+                                Label("Author (A-Z)", systemImage: viewModel.currentSort == "author" && !viewModel.currentDesc ? "checkmark" : "")
+                            }
+                            Button(action: {
+                                Task {
+                                    await viewModel.changeSort(sort: "duration", desc: true, libraryId: appState.currentLibraryId, isAuthenticated: appState.isAuthenticated)
+                                }
+                            }) {
+                                Label("Longest Duration", systemImage: viewModel.currentSort == "duration" && viewModel.currentDesc ? "checkmark" : "")
+                            }
+                        }
+                    } label: {
                         Image(systemName: "line.3.horizontal.decrease.circle")
                     }
                     .tint(.primary)
