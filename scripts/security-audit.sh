@@ -7,8 +7,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 CLI_BIN="$REPO_ROOT/../audiobookphile-backend/crates/cli/target/release/audiobookphile"
 
+if command -v audiobookphile >/dev/null 2>&1; then
+    audiobookphile audit --path "$REPO_ROOT" --strict
+    exit 0
+fi
+
 if [ -f "$CLI_BIN" ]; then
-    "$CLI_BIN" audit --path "$REPO_ROOT"
+    "$CLI_BIN" audit --path "$REPO_ROOT" --strict
+    exit 0
 fi
 
 # 1. Secret Scan Audit
