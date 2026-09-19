@@ -74,7 +74,7 @@ public actor AudiobookphileAPI {
 
     private init() {
         let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 10
+        config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 60
         config.waitsForConnectivity = true
         config.httpShouldUsePipelining = true
@@ -937,6 +937,7 @@ public actor AudiobookphileAPI {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 30
 
         let deviceInfo: [String: Any] = [
             "clientName": "Audiobookphile iOS (Native SKIP)",
