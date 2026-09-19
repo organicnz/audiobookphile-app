@@ -15,7 +15,10 @@ public class AuthManager {
         appState.isLoading = true
         
         if let credentials = try? KeychainManager.shared.loadCredentials() {
-            if !credentials.serverURL.contains("supabase.co") && !credentials.serverURL.contains("vercel.app") {
+            // Canonical domain is audiobookphile.app; supabase.co (direct) and
+            // vercel.app (legacy) remain valid. Anything else is a stale
+            // non-Supabase server entry — clear it rather than crash on it.
+            if !credentials.serverURL.contains("supabase.co") && !credentials.serverURL.contains("vercel.app") && !credentials.serverURL.contains("audiobookphile.app") {
                 print("[AuthManager] Found old non-Supabase server credentials. Migrating/Clearing...")
                 logout(appState: appState)
                 appState.isLoading = false

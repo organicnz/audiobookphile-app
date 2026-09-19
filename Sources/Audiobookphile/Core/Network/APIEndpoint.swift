@@ -40,8 +40,10 @@ public enum APIEndpoint {
     
     public func urlString(baseURL: String) -> String {
         let isDirectSupabase = baseURL.contains(".supabase.co") || baseURL.contains("54321")
-        let isVercelProxy = baseURL.contains("vercel.app") || baseURL.hasSuffix("/api")
-        let isSupabaseBackend = isDirectSupabase || isVercelProxy
+        // First-party web origins serve the edge API under /api (canonical
+        // audiobookphile.app; vercel.app is the legacy equivalent).
+        let isFirstPartyWeb = baseURL.contains("audiobookphile.app") || baseURL.contains("vercel.app") || baseURL.hasSuffix("/api")
+        let isSupabaseBackend = isDirectSupabase || isFirstPartyWeb
         
         var base = baseURL
         if isDirectSupabase && !baseURL.contains("/functions/v1") {
