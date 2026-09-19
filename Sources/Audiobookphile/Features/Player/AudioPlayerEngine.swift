@@ -244,7 +244,7 @@ public class AudioPlayerEngine {
             try audioSession.setCategory(
                 .playback,
                 mode: mode,
-                options: [.allowBluetooth, .allowBluetoothA2DP, .allowAirPlay, .defaultToSpeaker]
+                options: [.allowBluetoothHFP, .allowBluetoothA2DP, .allowAirPlay, .defaultToSpeaker]
             )
 
             if AppState.shared.settings.highResAudioEnabled {

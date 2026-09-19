@@ -337,6 +337,7 @@ private final class PasskeyRegistrationBridge: NSObject, ASAuthorizationControll
     }
 }
 
+@MainActor
 private func keyWindow() -> UIWindow? {
     for scene in UIApplication.shared.connectedScenes {
         guard let windowScene = scene as? UIWindowScene else { continue }

@@ -70,7 +70,7 @@ public struct ContentView: View {
     /// shared app group and opens the app; drain it here exactly once.
     private func consumeWidgetPlaybackCommand() {
         #if os(iOS)
-        guard let defaults = UserDefaults(suiteName: "group.organicnz.audiobookphile") else { return }
+        guard let defaults = UserDefaults(suiteName: EnvironmentConfig.appGroupIdentifier) else { return }
         let commandKey = "audiobookWidgetPlaybackCommand"
         guard let issuedAt = defaults.object(forKey: commandKey) as? TimeInterval else { return }
         defaults.removeObject(forKey: commandKey)
