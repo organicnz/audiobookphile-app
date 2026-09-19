@@ -36,7 +36,7 @@ jobs:
           step_tree "SwiftLint" install \
             "checkout:Checkout Repository|install:Install SwiftLint|lint:Run SwiftLint" \
             "checkout=${{ steps.checkout.outcome }}"
-          brew install swiftlint
+          which swiftlint >/dev/null 2>&1 || brew install swiftlint
 
       - name: Run SwiftLint
         id: lint
@@ -69,7 +69,7 @@ jobs:
           step_tree "Skip Cross-Platform Verify" install \
             "checkout:Checkout Repository|java:Setup Java|install:Install Skip|verify:Skip Verify" \
             "checkout=${{ steps.checkout.outcome }};java=${{ steps.java.outcome }}"
-          brew install skiptools/skip/skip
+          which skip >/dev/null 2>&1 || brew install skiptools/skip/skip
 
       - name: Skip Verify
         id: verify
@@ -88,14 +88,18 @@ jobs:
         id: checkout
         uses: actions/checkout@v7
 
-      - name: Select Xcode-beta Toolchain
+      - name: Select Xcode Toolchain
         id: toolchain
         run: |
-          # The default `swift` on PATH is a stale 6.3 toolchain that mismatches
-          # the Xcode-beta SDK (Swift 6.4) and fails to build modules such as
-          # Accelerate. Pin the Xcode-beta toolchain first on PATH, per AGENTS.md.
-          echo "/Applications/Xcode-beta.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin" >> "$GITHUB_PATH"
-          echo "DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer" >> "$GITHUB_ENV"
+          if [ -d "/Applications/Xcode-beta.app/Contents/Developer" ]; then
+            DEV_DIR="/Applications/Xcode-beta.app/Contents/Developer"
+          elif [ -d "/Applications/Xcode.app/Contents/Developer" ]; then
+            DEV_DIR="/Applications/Xcode.app/Contents/Developer"
+          else
+            DEV_DIR="$(xcode-select -p)"
+          fi
+          echo "$DEV_DIR/Toolchains/XcodeDefault.xctoolchain/usr/bin" >> "$GITHUB_PATH"
+          echo "DEVELOPER_DIR=$DEV_DIR" >> "$GITHUB_ENV"
           swift --version
 
       - name: Security Audit
