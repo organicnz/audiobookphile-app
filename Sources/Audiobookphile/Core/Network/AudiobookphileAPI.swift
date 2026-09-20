@@ -30,6 +30,11 @@ public actor AudiobookphileAPI {
     public var accessToken: String = ""
     public var refreshToken: String = ""
     public var serverConnectionId: String = ""
+    public var onTokenRefreshed: (@Sendable (String, String) -> Void)?
+
+    public func setOnTokenRefreshed(_ callback: (@Sendable (String, String) -> Void)?) {
+        self.onTokenRefreshed = callback
+    }
 
 
     private let session: URLSession
@@ -95,6 +100,9 @@ public actor AudiobookphileAPI {
         self.refreshToken = refreshToken
         self.serverConnectionId = connectionId
         self.isAuthenticated = !token.isEmpty
+        if !token.isEmpty {
+            self.onTokenRefreshed?(token, refreshToken)
+        }
     }
 
     /// Send a magic link sign-in email for the iOS client
@@ -521,6 +529,7 @@ public actor AudiobookphileAPI {
             token: self.accessToken,
             refreshToken: self.refreshToken
         )
+        self.onTokenRefreshed?(self.accessToken, self.refreshToken)
         logger.info("Token refreshed successfully")
     }
 

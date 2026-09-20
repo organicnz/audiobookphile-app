@@ -18,6 +18,7 @@ public struct PlaybackScrubberView: View {
 
     @State private var isDragging = false
     @State private var draggedProgress: Double = 0
+    @State private var pendingSeekTarget: TimeInterval?
     @State private var lastNotchedChapterStart: TimeInterval?
     @State private var lastNotchedDecile: Int = -1
 
@@ -38,6 +39,9 @@ public struct PlaybackScrubberView: View {
         if isDragging {
             return max(0, min(1, draggedProgress))
         }
+        if let pending = pendingSeekTarget {
+            return max(0, min(1, pending / safeDuration))
+        }
         return viewModel.totalProgress
     }
 
@@ -45,6 +49,9 @@ public struct PlaybackScrubberView: View {
     private var displayTime: TimeInterval {
         if isDragging {
             return max(0, min(safeDuration, safeDuration * draggedProgress))
+        }
+        if let pending = pendingSeekTarget {
+            return pending
         }
         let current = viewModel.currentTime
         return (current.isNaN || current.isInfinite || current < 0) ? 0 : min(safeDuration, current)
@@ -135,14 +142,26 @@ public struct PlaybackScrubberView: View {
                     } else {
                         let dur = safeDuration
                         let targetTime = max(0, min(dur, draggedProgress * dur))
+                        pendingSeekTarget = targetTime
                         viewModel.seek(to: targetTime)
                         triggerImpactHaptic()
                         isDragging = false
                         lastNotchedChapterStart = nil
                         lastNotchedDecile = -1
+                        Task { @MainActor in
+                            try? await Task.sleep(nanoseconds: 2_500_000_000)
+                            if self.pendingSeekTarget == targetTime {
+                                self.pendingSeekTarget = nil
+                            }
+                        }
                     }
                 }
             )
+            .onChange(of: viewModel.currentTime) { _, newTime in
+                if let target = pendingSeekTarget, abs(newTime - target) < 1.5 {
+                    pendingSeekTarget = nil
+                }
+            }
             .tint(.appPrimary)
             .disabled(isUiLocked)
             .opacity(isUiLocked ? 0.4 : 1.0)

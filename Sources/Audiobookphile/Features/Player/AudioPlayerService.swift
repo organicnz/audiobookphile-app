@@ -187,7 +187,8 @@ public class AudioPlayerService: AudioPlayerServiceProtocol {
                 )
             }
         }
-        self.duration = session.duration
+        let tracksDuration = session.audioTracks.last.map { $0.startOffset + $0.duration } ?? session.audioTracks.reduce(0) { $0 + $1.duration }
+        self.duration = tracksDuration > 0 ? tracksDuration : session.duration
         self.currentTime = session.currentTime
         self.isPlaying = true
         self.bookmarks = []

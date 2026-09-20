@@ -11,8 +11,40 @@ public class AuthManager {
     
     public init() {}
     
+    private func isJWTExpired(_ jwt: String) -> Bool {
+        let parts = jwt.split(separator: ".")
+        guard parts.count == 3 else { return true }
+        var base64 = String(parts[1])
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        while base64.count % 4 != 0 {
+            base64.append("=")
+        }
+        guard let data = Data(base64Encoded: base64),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let exp = json["exp"] as? TimeInterval else {
+            return true
+        }
+        // Consider expired if less than 60 seconds of validity remaining
+        return Date().timeIntervalSince1970 >= (exp - 60)
+    }
+
     public func checkAuthentication(appState: AppState) async {
         appState.isLoading = true
+
+        // Wire token refresh callback so any refreshed token immediately updates appState and socket
+        await AudiobookphileAPI.shared.setOnTokenRefreshed { [weak appState] newToken, _ in
+            Task { @MainActor in
+                guard let appState else { return }
+                appState.token = newToken
+                if !appState.serverURL.isEmpty && !newToken.isEmpty {
+                    SocketService.shared.connect(
+                        serverAddress: appState.serverURL,
+                        token: newToken
+                    )
+                }
+            }
+        }
         
         if let credentials = try? KeychainManager.shared.loadCredentials() {
             // Canonical domain is audiobookphile.app; supabase.co (direct) and
@@ -28,17 +60,31 @@ public class AuthManager {
             appState.serverURL = credentials.serverURL
             appState.token = credentials.token
             appState.isAuthenticated = true
-            tokenIssuedAt = Date()
-
-            SocketService.shared.connect(
-                serverAddress: credentials.serverURL,
-                token: credentials.token
-            )
 
             await AudiobookphileAPI.shared.configure(
                 serverURL: credentials.serverURL,
                 token: credentials.token,
                 refreshToken: credentials.refreshToken
+            )
+
+            // Proactive startup check: If token has expired, refresh before firing hydration requests
+            if isJWTExpired(credentials.token) && !credentials.refreshToken.isEmpty {
+                print("[AuthManager] Stored token is expired, performing proactive startup refresh...")
+                do {
+                    try await AudiobookphileAPI.shared.refreshTokensFromForeground()
+                    appState.token = await AudiobookphileAPI.shared.accessToken
+                    tokenIssuedAt = Date()
+                    print("[AuthManager] Startup token refresh succeeded.")
+                } catch {
+                    print("[AuthManager] Startup token refresh failed: \(error)")
+                }
+            } else {
+                tokenIssuedAt = Date()
+            }
+
+            SocketService.shared.connect(
+                serverAddress: credentials.serverURL,
+                token: appState.token
             )
 
             // Auth state is established — drop the loading flag before the
@@ -122,7 +168,7 @@ public class AuthManager {
                 token: accessToken,
                 refreshToken: refresh
             )
-            try await KeychainManager.shared.saveCredentials(
+            try KeychainManager.shared.saveCredentials(
                 serverURL: resolvedServer,
                 token: accessToken,
                 refreshToken: refresh
