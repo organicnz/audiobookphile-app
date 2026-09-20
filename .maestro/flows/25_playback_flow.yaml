@@ -1,0 +1,30 @@
+appId: club.foodshare.audiobookphile
+name: Playback initiation flow
+tags:
+  - e2e
+  - playback
+---
+- runFlow: _login.yaml
+- tapOn: "Library"
+- extendedWaitUntil:
+    visible: "Filter"
+    timeout: 15000
+# Tap the first available book in library
+- tapOn:
+    point: "50%,40%"
+# Wait for BookDetailView to present and tap play
+- extendedWaitUntil:
+    visible:
+      id: "abp_play_book_button"
+    timeout: 10000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        id: "abp_play_book_button"
+    commands:
+      - tapOn:
+          id: "abp_play_book_button"
+# Assert that Playback Error alert does NOT appear
+- assertNotVisible: "Playback Error"
+- assertNotVisible: "The request timed out."

@@ -45,6 +45,7 @@ public struct BookActionRow: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .shadow(color: (detailed.isMissing == true || viewModel.isStartingPlayback) ? .clear : .appPrimary.opacity(0.3), radius: 10)
             }
+            .accessibilityIdentifier("abp_play_book_button")
             .disabled(detailed.isMissing == true || viewModel.isStartingPlayback)
 
             // Dynamic Download Button
