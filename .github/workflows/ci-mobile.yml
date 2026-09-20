@@ -184,10 +184,11 @@ jobs:
       - name: Create Sentry Release
         if: steps.secrets.outputs.available == 'true'
         uses: getsentry/action-release@v1
+        continue-on-error: true
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ vars.SENTRY_ORG || 'organicnz' }}
-          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT || 'audiobookphile-app' }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG || secrets.SENTRY_ORG || 'organicnz' }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT || secrets.SENTRY_PROJECT || 'audiobookphile' }}
         with:
           environment: production
           version: ${{ github.sha }}
