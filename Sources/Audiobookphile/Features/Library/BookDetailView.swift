@@ -91,11 +91,17 @@ public struct BookDetailView: View {
     }
 
     private var dragHandle: some View {
-        Capsule()
-            .fill(DesignTokens.Color.foreground.opacity(0.3))
-            .frame(width: 40, height: 5)
-            .padding(.top, 12)
-            .padding(.bottom, 8)
+        Button {
+            dismiss()
+        } label: {
+            Capsule()
+                .fill(DesignTokens.Color.foreground.opacity(0.3))
+                .frame(width: 40, height: 5)
+                .frame(maxWidth: .infinity, minHeight: 44)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Close book details")
+        .accessibilityHint("Closes the book details")
     }
 
     // MARK: - Loading State

@@ -53,10 +53,19 @@ public struct MiniPlayerView: View {
             Spacer()
 
             GlassIconButton(
+                icon: "chevron.up",
+                size: .small,
+                color: .secondary,
+                label: "Open full player",
+                action: onTap
+            )
+
+            GlassIconButton(
                 icon: audioPlayer.isPlaying ? "pause.fill" : "play.fill",
                 fill: true,
                 size: .small,
                 color: .primary,
+                label: audioPlayer.isPlaying ? "Pause" : "Play",
                 action: {
                     audioPlayer.togglePlayPause()
                 }
@@ -80,6 +89,7 @@ public struct MiniPlayerView: View {
                 fill: false,
                 size: .small,
                 color: .secondary,
+                label: "Close player",
                 action: {
                     onClose()
                 }

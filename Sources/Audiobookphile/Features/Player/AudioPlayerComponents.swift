@@ -40,7 +40,9 @@ public struct GlassIconButton: View {
         }
 
         switch icon {
-        case "bookmark": return "Bookmarks"
+        case "bookmark", "bookmark.fill": return "Bookmarks"
+        case "xmark": return "Close"
+        case "ellipsis": return "More options"
         case "moon": return "Sleep Timer"
         case "list.bullet": return "Chapters"
         case "backward.end.fill": return "Previous Chapter"
