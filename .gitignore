@@ -62,7 +62,8 @@ playground.xcworkspace
 # Add this line if you want to avoid checking in source code from Swift Package Manager dependencies.
 Packages/
 Package.pins
-Package.resolved
+# Package.resolved is intentionally tracked (pinned dependency graph for
+# reproducible CI/simulator builds) — do not re-add it here.
 #*.xcodeproj
 
 Carthage/Build/
