@@ -134,10 +134,23 @@ public class AudioPlayerEngine {
     private func setupPlayerObservers() {
         guard let player = player else { return }
 
-        timeControlStatusObserver = player.observe(\.timeControlStatus, options: [.initial, .new]) { [weak self] player, _ in
+        timeControlStatusObserver = player.observe(\.timeControlStatus, options: [.initial, .new]) { [weak self] player, change in
+            // Capture the status that *triggered* the notification. Re-reading
+            // `player.timeControlStatus` inside the deferred Task reported
+            // whatever the value had drifted to by the time the task ran, so a
+            // burst of transitions (playing -> paused -> playing while a queue
+            // item is replaced) collapsed onto one arbitrary value and the
+            // service acted on a state that never really happened.
+            let status: AVPlayer.TimeControlStatus
+            if let newValue = change.newValue {
+                status = newValue
+            } else {
+                status = player.timeControlStatus
+            }
+
             Task { @MainActor in
                 guard let self = self else { return }
-                switch player.timeControlStatus {
+                switch status {
                 case .playing:
                     self.onTimeControlStatusChanged?(true, false)
                 case .waitingToPlayAtSpecifiedRate:

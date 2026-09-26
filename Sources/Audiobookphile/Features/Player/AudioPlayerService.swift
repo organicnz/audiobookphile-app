@@ -27,6 +27,29 @@ public class AudioPlayerService: AudioPlayerServiceProtocol {
     public var playbackRate: Float = 1.0
     public var duration: TimeInterval = 0
     public var playbackError: Error?
+
+    /// User playback *intent*: true between an explicit play (or an autoplay
+    /// start) and an explicit pause / end-of-book.
+    ///
+    /// ── WHY THIS IS SEPARATE FROM `isPlaying` ──
+    /// `isPlaying` mirrors AVPlayer's `timeControlStatus`, which is *not* a
+    /// reliable record of intent: AVPlayer transiently reports `.paused`
+    /// while it swaps items (queue top-up, track advance, item rebuild).
+    /// The old code cleared `isPlaying` on that transient pause, and then
+    /// resumed via `handleItemReady` -> `if self.isPlaying { self.play() }`.
+    /// The flag that got cleared by the transient was the same flag gating the
+    /// resume, so the player latched into "not playing and not allowed to
+    /// start" -- the reported "plays for a second, then pauses and never
+    /// comes back".
+    ///
+    /// Intent is therefore the authoritative input to every resume path, and
+    /// `isPlaying` is derived from the transport as an output for the UI.
+    public private(set) var isPlayRequested = false
+
+    /// Set by the only two paths that may end playback on purpose: an explicit
+    /// `pause()` (user tap, interruption) and reaching the end of the book.
+    /// Everything else that makes AVPlayer report `.paused` is transient.
+    private var isExplicitlyPaused = false
     // MARK: - Monotonic Seek Transaction Epochs
     /**
      * ── ARCHITECTURAL INVARIANT: PLAYBACK TIMELINE & SEEK INTEGRITY ──
@@ -100,10 +123,21 @@ public class AudioPlayerService: AudioPlayerServiceProtocol {
                 self.isBuffering = buffering
                 if !buffering { self.retryCount = 0 }
             } else {
-                if self.activeSeekEpoch == self.acknowledgedSeekEpoch {
+                // A `.paused` transition only ends playback if the *user* asked
+                // for it. AVPlayer reports `.paused` transiently while it
+                // replaces items (queue top-up, track advance, item rebuild),
+                // and clearing the flag there used to strand the player: the
+                // resume path in handleItemReady was gated on this very flag.
+                // When we still intend to play, treat it as buffering so the
+                // UI shows a spinner rather than a paused state, and let
+                // handleItemReady restart the transport.
+                if self.isPlayRequested && !self.isExplicitlyPaused {
+                    self.isPlaying = true
+                    self.isBuffering = true
+                } else {
                     self.isPlaying = false
+                    self.isBuffering = false
                 }
-                self.isBuffering = false
             }
             self.syncWidgetState()
         }
@@ -190,6 +224,11 @@ public class AudioPlayerService: AudioPlayerServiceProtocol {
         let tracksDuration = session.audioTracks.last.map { $0.startOffset + $0.duration } ?? session.audioTracks.reduce(0) { $0 + $1.duration }
         self.duration = tracksDuration > 0 ? tracksDuration : session.duration
         self.currentTime = session.currentTime
+        // Starting a book IS a play request: record the intent so a transient
+        // `.paused` while the first item loads cannot be mistaken for the user
+        // hitting pause.
+        self.isPlayRequested = true
+        self.isExplicitlyPaused = false
         self.isPlaying = true
         self.bookmarks = []
         // A fresh session invalidates any failure from the previous one —
@@ -232,6 +271,8 @@ public class AudioPlayerService: AudioPlayerServiceProtocol {
         )
         loadQueue(from: trackInfo.index, seekTimeWithinTrack: trackInfo.offset, autoPlay: true)
         #endif
+        self.isPlayRequested = true
+        self.isExplicitlyPaused = false
         self.isPlaying = true
         #if !SKIP && !os(Android)
         nowPlayingManager.updateNowPlaying(rate: playbackRate)
@@ -247,8 +288,10 @@ public class AudioPlayerService: AudioPlayerServiceProtocol {
 
     public func play() {
         guard session != nil else { return }
-        engine.play(rate: playbackRate)
+        isPlayRequested = true
+        isExplicitlyPaused = false
         isPlaying = true
+        engine.play(rate: playbackRate)
         TelemetryService.shared.captureBreadcrumb("playback resumed", level: .info, tags: ["area": "player"])
         #if !SKIP && !os(Android)
         nowPlayingManager.updateNowPlaying(rate: playbackRate, elapsedTime: currentTime)
@@ -274,6 +317,8 @@ public class AudioPlayerService: AudioPlayerServiceProtocol {
                 let trackInfo = self.findTrackIndexAndOffset(for: self.currentTime)
                 self.currentTrackIndex = trackInfo.index
                 self.loadQueue(from: trackInfo.index, seekTimeWithinTrack: trackInfo.offset, autoPlay: true)
+                self.isPlayRequested = true
+                self.isExplicitlyPaused = false
                 self.isPlaying = true
             } catch {
                 logger.error("Session refresh during retry failed (\(error.localizedDescription)); attempting local queue reload...")
@@ -282,14 +327,18 @@ public class AudioPlayerService: AudioPlayerServiceProtocol {
                 let track = session.audioTracks[index]
                 let seekTime = max(0, self.currentTime - track.startOffset)
                 self.loadQueue(from: index, seekTimeWithinTrack: seekTime, autoPlay: true)
+                self.isPlayRequested = true
+                self.isExplicitlyPaused = false
                 self.isPlaying = true
             }
         }
     }
 
     public func pause() {
-        engine.pause()
+        isPlayRequested = false
+        isExplicitlyPaused = true
         isPlaying = false
+        engine.pause()
         TelemetryService.shared.captureBreadcrumb("playback paused", level: .info, tags: ["area": "player"])
         #if !SKIP && !os(Android)
         nowPlayingManager.updateNowPlaying(rate: 0.0, elapsedTime: currentTime)
@@ -405,6 +454,8 @@ public class AudioPlayerService: AudioPlayerServiceProtocol {
         #if !SKIP && !os(Android)
         engine.initializePlayer()
         if autoPlay {
+            self.isPlayRequested = true
+            self.isExplicitlyPaused = false
             self.isPlaying = true
         }
         topUpQueue(from: index)
@@ -493,7 +544,12 @@ public class AudioPlayerService: AudioPlayerServiceProtocol {
     private func handleCurrentItemChanged(_ item: AVPlayerItem?) {
         guard let session = session else { return }
         guard let item = item else {
-            if isPlaying && currentTrackIndex >= session.audioTracks.count - 1 && activeSeekEpoch == acknowledgedSeekEpoch {
+            // `currentItem == nil` is emitted transiently while the queue is
+            // rebuilt (top-up, track advance), not only at the end of a book.
+            // Treating it as end-of-book called pause() and stopped playback
+            // mid-book -- the second half of the "plays, then pauses" report.
+            // Only conclude end-of-book when we were not asked to keep playing.
+            if !isPlayRequested && currentTrackIndex >= session.audioTracks.count - 1 && activeSeekEpoch == acknowledgedSeekEpoch {
                 handleItemDidPlayToEndTime()
             }
             return
@@ -552,7 +608,11 @@ public class AudioPlayerService: AudioPlayerServiceProtocol {
                 if self.activeSeekEpoch == thisEpoch {
                     self.acknowledgedSeekEpoch = thisEpoch
                 }
-                if self.isPlaying {
+                // Gate on play INTENT, not on the observed transport flag. This
+                // is the line the bug hinged on: the transport flag is cleared
+                // every time AVPlayer swaps items, and using it here meant a
+                // fresh item would never actually start.
+                if self.isPlayRequested {
                     self.play()
                 }
             }
@@ -562,7 +622,7 @@ public class AudioPlayerService: AudioPlayerServiceProtocol {
             } else {
                 self.acknowledgedSeekEpoch = self.activeSeekEpoch
             }
-            if self.isPlaying {
+            if self.isPlayRequested {
                 self.play()
             }
         }
@@ -663,11 +723,13 @@ public class AudioPlayerService: AudioPlayerServiceProtocol {
     }
 
     private func handlePlaybackStalled() {
-        guard isPlaying else { return }
+        guard isPlayRequested else { return }
         isBuffering = true
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 3_000_000_000)
-            if self.isBuffering && self.isPlaying {
+            // Re-check intent as well as buffering: a pause issued during the
+            // 3s grace period must not be undone by this recovery path.
+            if self.isBuffering && self.isPlayRequested {
                 if self.engine.currentItem == nil {
                     self.playbackError = NSError(domain: "AudioPlayerServiceErrorDomain", code: -2, userInfo: [NSLocalizedDescriptionKey: "Audio stream stalled completely."])
                     self.pause()
@@ -681,6 +743,11 @@ public class AudioPlayerService: AudioPlayerServiceProtocol {
     private func handleItemDidPlayToEndTime() {
         guard let session = self.session else { return }
         if self.currentTrackIndex >= session.audioTracks.count - 1 {
+            // End of book is a legitimate reason to stop: clear the intent so
+            // the transient-pause guard in the transport observer does not
+            // immediately try to resume.
+            self.isPlayRequested = false
+            self.isExplicitlyPaused = true
             self.pause()
             self.currentTime = self.duration
             self.syncManager.syncProgressImmediately(getSessionData: { [weak self] in
